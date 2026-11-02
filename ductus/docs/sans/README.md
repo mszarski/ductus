@@ -537,3 +537,32 @@ Light 0.8903 → 0.8904. Kerning re-run.
 
 **Self-critique.** The Bold a's counter looks pinched in words ("rar").
 That is next.
+
+## 12 — the Bold a
+
+In words the Bold a's counter read as a squinting wedge. Its bottom edge
+rose in a straight diagonal into the stem, and its left end had a kink.
+Geist Bold's counter is a D: round on the left, with the stem as its right
+side for most of its height.
+
+- **A lower join.** The bowl entered the stem at 110, and the stroke's upper
+  edge sits about 50 above that, so the counter met the stem at about 0.3 of
+  the x-height. Now the bowl meets the stem at 85 at 40°, with its bottom
+  node further left (`a_bb_x` 220).
+- **A thinner left side.** New kit parameter `a_bl_dw` (default 0) is the
+  bowl's width at its left node. At Bold it is −25, with the node moved out
+  to `a_bl_x` 74 so the outer edge stays put. With rounder turns
+  (`a_bs_t` 0.85), this removes the kink in the counter's lower left.
+- **A tapered bar.** New kit parameter `a_bt_dw` (default 0) is the width at
+  the bar's stem end. At Bold, −10 lifts the counter's top at the stem.
+- **Refit:** the hood (`a_hood_thin` 1.16, `a_bias` 0.5) and the bar
+  (`a_bt_y` 295, `a_bt_x` 264, `a_bs_thin` 96).
+
+Judged by eye: the a scores 0.885 against Geist Bold (0.904 before), and
+the Bold 0.8816 → 0.8809.
+
+**Self-critique.**
+- The Medium a sits halfway between the Regular's pointed counter (which
+  matches Geist Regular) and the Bold's D, so it is still a little pointed.
+  Geist Medium's is already a D.
+- The counter's corner at the stem is sharp, where Geist's is rounded.
