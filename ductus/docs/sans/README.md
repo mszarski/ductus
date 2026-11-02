@@ -294,3 +294,40 @@ MAE 7.0 u.
 - The a's join with the stem is a little heavy.
 - & and @ differ in shape; # and < > differ in width.
 - Geist uses no fi ligature; ours joins the f's hook to the i.
+
+## 06 — leftovers: the a's foot, & # < >, square dots, no fi ligature
+
+![iteration 06](06.png)
+
+- **a.** Geist's stem doesn't stand on the baseline with a spur added. It
+  turns at its foot into a short level foot, cut square: the t's tail in
+  small (`a_turn`, `a_tail`, `a_foot_dy`). That leaves a V notch where the
+  bowl meets the stem, so the join no longer looks heavy. a 0.942 → 0.953.
+- **&.** `amp_style="branch"` uses Geist's construction:
+  - a straight diagonal from the leg up into the top loop;
+  - round the loop, down through the crossing into the lower bowl, and
+    back into the diagonal;
+  - the arm, a short stroke branching off the diagonal and cut level.
+
+  The old single stroke made the arm the lower bowl's right side.
+  & 0.83 → 0.914.
+- **#.** The bars now follow the slant (`hash_bar_shift`). The verticals'
+  formula centred the pair half a stroke to the right of the bars; that
+  bug is fixed for both faces. # 0.853 → 0.992.
+- **< >.** `chevron_style="level"`: one polygon, with the arms cut
+  vertically and a flat vertical tip, as Geist's are. 0.833 → 0.978.
+- **Dots.** `dot_style="square"`: sharp squares sitting on the baseline,
+  with no overshoot. The bullet stays round. Period and ellipsis
+  0.848 → 0.983, ! 0.946 → 0.970, ? 0.928 → 0.947.
+- **fi.** `ligatures=False`: Geist sets f and i apart, and so does the sans
+  now.
+- **@.** The ring no longer steps out below the inner stem (`at_root_dy`).
+  @ 0.796 → 0.823. The rest of the gap is that Geist's inner a leans (an
+  italic a inside an upright ring); not done.
+
+Mean IoU over all glyphs: 0.926 → 0.931. Kerning was regenerated: 16,127
+pairs, agreement with Geist Sans correlation 0.823, MAE 7.0 u.
+
+**Still to do.** The weakest are now marks and small symbols: the
+standalone cedilla (0.46), ~ (0.74), ^ (0.77), @ (0.82), =, the quotes and
+comma (0.83–0.84), £ (0.84).

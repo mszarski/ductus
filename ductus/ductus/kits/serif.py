@@ -259,10 +259,25 @@ DEFAULTS: dict[str, tuple] = {
     # stem (height, direction), and the curve's tension
     "a_bs_thick": (88, (50, 120)), "a_bs_thin": (73, (20, 120)), "a_bt_y": (300, (220, 380)),
     "a_bt_tilt": (10, (-5, 25)), "a_bt_x": (220, (120, 330)), "a_bl_x": (88, (40, 160)), "a_bl_y": (135, (80, 220)),
+    "a_turn": (110, (40, 250)), "a_tail": (90, (40, 160)), "a_foot_dy": (0, (-10, 40)),   # its stem's foot
     "a_bb_x": (227, (150, 320)), "a_bj_y": (120, (40, 220)), "a_bj_dir": (60, (20, 90)), "a_bs_t": (1.0, (0.75, 1.5)),
     # Hobby tension at the U's cup and the J's (J_style="base") hook: < 1 squarer, > 1 rounder
     "U_t": (1.0, (0.75, 1.5)), "J_t": (1.0, (0.75, 1.5)),
     "ss_t": (1.0, (0.75, 1.5)),
+    "at_root_dy": (20, (0, 120)),            # @: where the ring leaves the inner stem, above its foot
+    # amp_style="branch" (&): leg end x, the diagonal's direction (from the leg) and where it reaches the loop,
+    # the loop's right side, top x, left side, the waist below it (and its direction), the bowl's left side,
+    # bottom x, where the bowl rejoins the diagonal (and its direction), the arm's root (and direction) and end
+    "amb_leg_x": (550, (420, 680)), "amb_diag": (129, (100, 160)), "amb_cx": (265, (150, 380)),
+    "amb_cy": (350, (250, 450)), "amb_lr_x": (403, (300, 520)), "amb_lr_y": (574, (480, 660)),
+    "amb_top_x": (282, (180, 380)), "amb_ll_x": (153, (60, 260)), "amb_ll_y": (562, (480, 660)),
+    "amb_wx": (205, (100, 320)), "amb_wy": (400, (320, 480)), "amb_wdir": (250, (200, 320)),
+    "amb_bl_x": (85, (30, 180)), "amb_bl_y": (174, (100, 260)), "amb_bb_x": (265, (160, 380)),
+    "amb_bj_x": (434, (330, 540)), "amb_bj_y": (75, (20, 160)), "amb_bj_dir": (45, (0, 90)),
+    "amb_a0_x": (480, (380, 600)), "amb_a0_y": (130, (60, 220)), "amb_a0_dir": (60, (20, 90)),
+    "amb_arm_x": (540, (440, 640)), "amb_arm_y": (314, (220, 420)),
+    "lt_tip": (100, (20, 200)),              # chevron_style="level": the < >'s flat tip
+    "hash_bar_shift": (0, (0, 1)),           # #: how far the bars follow the slant
     "t_bot_dy": (0, (-10, 40)), "l_bot_dy": (0, (-10, 40)),
     # j_style="foot": the foot's centre height, where the turn meets it (a share of j_hook), the turn's tension
     "j_foot_y": (-120, (-180, -60)), "j_foot_x": (0.5, (0.1, 0.9)), "j_t": (1.0, (0.75, 1.5)),   # t, tailed l: raise the tail's lowest point              # ß, ss_style="bar": tension where the bowls meet the bars
@@ -722,7 +737,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
            Q_style: str = "wedge", seven_style: str = "poly", fig_ends: str = "wedge", face_serifs: bool = True, one_style: str = "flag",
            d_style: str = "lobe", a_style: str = "lobe", y_left: str = "stroke", level_trim: bool = False,
            brace_beak: str = "square", ss_style: str = "spine", j_style: str = "hook",
-           paren_ends: str = "square",
+           paren_ends: str = "square", chevron_style: str = "stroke", amp_style: str = "stroke",
+           dot_style: str = "round", ligatures: bool = True,
            b_style: str = "bowl", E_serifs: str = "rect",
            G_jaw: str = "bar"):
     """Register the kit's glyphs on ``font``. ``g_ear``: ``"stroke"`` (a
@@ -758,7 +774,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     a square spur ``a_spur_len`` x ``a_spur_h`` off the stem's foot) or
     ``"stroke"`` (one pen stroke with a straight top rising into the stem,
     round below, rejoining the stem near the baseline; ``a_bs_*``, ``a_bt_*``,
-    ``a_bl_*``, ``a_bb_x``, ``a_bj_*``; with the same spur).
+    ``a_bl_*``, ``a_bb_x``, ``a_bj_*``; its stem turns at ``a_turn`` into a
+    short level foot ``a_tail`` long, cut square).
     ``y_left``: the y's thick arm -- ``"stroke"`` (with its top and vertex
     terminals) or ``"poly"`` (a parallelogram cut level at x-height and at
     the vertex: a flat-cut terminal there would cut through the tail too).
@@ -777,7 +794,18 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     centred ``j_foot_y``, reaching ``j_hook`` left and cut square: the t's
     tail, mirrored below the baseline). ``paren_ends``: ``"square"`` (cut
     across the stroke) or ``"level"`` (the ``paren_end`` terminal: the sans
-    set cuts it level, as a grotesque's)."""
+    set cuts it level, as a grotesque's). ``chevron_style`` (< >): ``"stroke"``
+    (two strokes meeting in a point) or ``"level"`` (one polygon: arms
+    ``lt_t`` thick measured vertically, ends cut vertically, the tip a
+    vertical face ``lt_tip`` tall). ``amp_style``: ``"stroke"`` (one stroke
+    from the arm round to the leg) or ``"branch"`` (a grotesque's: a
+    straight diagonal from the leg up into the loop, round the loop, down
+    through the crossing into the lower bowl and back into the diagonal;
+    the arm a short stroke branching off the diagonal; ``amb_*``).
+    ``dot_style``: ``"round"`` (four curves, squarer with ``dot_square``) or
+    ``"square"`` (a sharp square sitting on the line, no overshoot: i j . : ;
+    ! ? and the rest; the bullet stays round). ``ligatures``: the fi
+    ligature (a grotesque like Geist sets f and i apart)."""
     from ..handles import handle
     from ..junctions import contact, join, join_handles, notch_cut
     from ..parts import part
@@ -1026,7 +1054,17 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         stem_top = P.a_stem_top + P.a_stem_up
         # the a's stem may be a little lighter than the n's, and dip below the baseline
         a_pen = Pen(angle=0, width=P.stem * P.a_stem_w, contrast=1 - P.hairline / (P.stem * P.a_stem_w))
-        gl += stem_(x=sx, top=stem_top, bottom=P.a_stem_bot, foot="spur", head=False, pen=a_pen)
+        if a_style == "stroke":
+            # a grotesque's a: the stem turns at its foot into a short level
+            # foot to the right (the t's tail in small), cut square
+            fy = -os_ + a_pen.width_at(0) / 2 + P.a_foot_dy
+            (gl.path(name="stem", pen=a_pen)
+                .start((sx, stem_top), name="top", dir=270, terminal=False)
+                .line_to((sx, P.a_turn), name="turn")
+                .curve_to((sx + P.a_tail * 0.4, fy), name="bottom", dir=0)
+                .line_to((sx + P.a_tail, fy), name="end", terminal=False))
+        else:
+            gl += stem_(x=sx, top=stem_top, bottom=P.a_stem_bot, foot="spur", head=False, pen=a_pen)
         hood_pen = Pen(angle=P.a_hood_angle, width=P.stem, contrast=1 - P.hairline * P.a_hood_thin / P.stem)
         top_y = xh + os_ - hood_pen.width_at(0) * (1 - val(P.a_bias))
         (gl.path(name="hood", pen=hood_pen, bias=P.a_bias,
@@ -1050,8 +1088,6 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
                 .curve_to((P.a_bl_x, P.a_bl_y), name="left", dir=270, tension=P.a_bs_t)
                 .curve_to((P.a_bb_x, -os_ + P.a_bs_thin / 2), name="bottom", dir=0, tension=P.a_bs_t)
                 .curve_to((sx, P.a_bj_y), name="join", dir=P.a_bj_dir, terminal=False))
-            sr = sx + P.stem * P.a_stem_w / 2
-            rect(gl, "spur", sr - 1, 0, sr + P.a_spur_len, P.a_spur_h)
             return
         if a_style == "bowl":
             right = sx + P.stem * P.a_stem_w / 2 + P.a_bowl_r
@@ -1245,7 +1281,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
 
     # fi: the f's ball is the i's dot -- a dotless i stands under the hook's end,
     # and the f's bar runs across to it; the i stem stops at the bar's top
-    if want is None or {"f", "i"} <= set(want):
+    if ligatures and (want is None or {"f", "i"} <= set(want)):
         @g("f_i")
         def f_i(gl):
             xi = P.f_hook + P.fi_dx
@@ -1272,12 +1308,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     @g("i")
     def i(gl):
         gl += stem_(x=0, top=xh + P.head_top, head="head")
-        r = P.i_dot_r
-        k = r * (0.5523 + (1 - 0.5523) * P.dot_square)
-        y = P.i_dot_y
-        (gl.contour("dot").move((0, y - r), "bottom").curve((k, y - r), (r, y - k), (r, y), "right")
-            .curve((r, y + k), (k, y + r), (0, y + r), "top").curve((-k, y + r), (-r, y + k), (-r, y), "left")
-            .curve_close((-r, y - k), (-k, y - r)).close())
+        dot(gl, "dot", 0, P.i_dot_y, P.i_dot_r)
 
     @g("O")
     def O(gl):
@@ -2155,6 +2186,18 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
 
     def chevron(gl, flip):
         w, h, t, cy = P.lt_w, P.lt_h, P.lt_t, cy_math + P.lt_dy
+        if chevron_style == "level":
+            f = P.lt_tip
+            # the inner edges run parallel to the outer ones, t lower; they meet at (xi, cy)
+            slope = (h / 2 - f / 2) / w
+            xi = w - (h / 2 - t) / slope
+            pts = [((w, cy - h / 2), "end_lo"), ((w, cy - h / 2 + t), "end_lo_in"), ((xi, cy), "inner"),
+                   ((w, cy + h / 2 - t), "end_hi_in"), ((w, cy + h / 2), "end_hi"), ((0, cy + f / 2), "tip_hi"),
+                   ((0, cy - f / 2), "tip_lo")]
+            if flip:
+                pts = [((w - x, y), nm) for (x, y), nm in reversed(pts)]
+            poly_(gl, "chevron", pts)
+            return
         tip, a, b = ((w, cy), (0, cy + h / 2), (0, cy - h / 2)) if flip else \
                     ((0, cy), (w, cy + h / 2), (w, cy - h / 2))
         pr = Profile((0, P.lt_end_k), (1, 1))      # heavier at the point
@@ -2183,7 +2226,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
 
     @g("bullet", sb=(0, 0))
     def bullet(gl):
-        dot(gl, "dot", 0, P.bullet_y, P.bullet_r)
+        dot(gl, "dot", 0, P.bullet_y, P.bullet_r, round_=True)     # the bullet stays round
 
     @g("ellipsis", sb=(0, 0))
     def ellipsis(gl):
@@ -2280,14 +2323,16 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     @g("numbersign", sb=(0, 0))
     def numbersign(gl):
         w, sl, t, gp = P.hash_w, P.hash_slant, P.hash_t, P.hash_gap
-        x0 = (w - gp) / 2 - sl / 2
+        x0 = (w - gp - t) / 2 - sl / 2          # the pair centred on the bars at mid-height
         for k, nm in ((0, "v1"), (1, "v2")):
             x = x0 + k * gp
             poly_(gl, nm, [((x, 0), "bl"), ((x + t, 0), "br"), ((x + t + sl, P.capheight), "tr"),
                            ((x + sl, P.capheight), "tl")])
         bt = P.hash_bar_t
-        rect(gl, "h1", 0, P.hash_y0 - bt / 2, w, P.hash_y0 + bt / 2)
-        rect(gl, "h2", 0, P.hash_y1 - bt / 2, w, P.hash_y1 + bt / 2)
+        # the bars may shift along the slant (hash_bar_shift 1: they follow it)
+        for nm, y in (("h1", P.hash_y0), ("h2", P.hash_y1)):
+            dx = sl * (y / P.capheight - 0.5) * P.hash_bar_shift
+            rect(gl, nm, dx, y - bt / 2, w + dx, y + bt / 2)
 
     @g("percent", sb=(0, 0))
     def percent(gl):
@@ -2342,7 +2387,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         gl += stem_(x=sx - P.stem / 2, bottom=iy, top=iy + ih, head=False, foot=False, name="stem")
         cy = bot + H / 2
         (gl.path(name="ring", pen=pen)
-            .start((sx - P.stem / 2, iy + 20), name="root", dir=P.at_root_dir, terminal=False)
+            .start((sx - P.stem / 2, iy + P.at_root_dy), name="root", dir=P.at_root_dir, terminal=False)
             .curve_to((W * P.at_right_x - t, cy), name="right", dir=90)
             .curve_to((W * 0.5, bot + H - t / 2), name="top", dir=180)
             .curve_to((t, cy), name="left", dir=270)
@@ -2353,6 +2398,25 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     def ampersand(gl):
         W, ch = P.amp_w, P.capheight
         pen = Pen(angle=0, width=P.amp_pen, contrast=1 - P.hairline / P.amp_pen)
+        if amp_style == "branch":
+            top = ch + os_ - P.hairline / 2
+            leg = (P.amb_leg_x, P.hairline * 0)
+            cross = (P.amb_cx, P.amb_cy)
+            (gl.path(name="stroke", pen=pen)
+                .start(leg, name="leg", dir=P.amb_diag, terminal="vertex")
+                .line_to(cross, name="cross", dir=P.amb_diag)
+                .curve_to((P.amb_lr_x, P.amb_lr_y), name="loop_r", dir=90)
+                .curve_to((P.amb_top_x, top), name="top", dir=180)
+                .curve_to((P.amb_ll_x, P.amb_ll_y), name="loop_l", dir=270)
+                .curve_to((P.amb_wx, P.amb_wy), name="waist", dir=P.amb_wdir)
+                .curve_to((P.amb_bl_x, P.amb_bl_y), name="bowl_l", dir=270)
+                .curve_to((P.amb_bb_x, -os_ + P.hairline / 2), name="bottom", dir=0)
+                .curve_to((P.amb_bj_x, P.amb_bj_y), name="bowl_r", dir=P.amb_bj_dir, terminal=False))
+            # the arm branches off the diagonal and rises to a level cut
+            (gl.path(name="arm", pen=pen)
+                .start((P.amb_a0_x, P.amb_a0_y), name="root", dir=P.amb_a0_dir, terminal=False)
+                .curve_to((P.amb_arm_x, P.amb_arm_y), name="arm", dir=90, terminal="apex"))
+            return
         lx, lw = W * P.amp_loop_x, P.amp_loop_w
         top = ch + os_ - P.hairline / 2
         (gl.path(name="stroke", pen=pen, smooth=True)
@@ -2410,7 +2474,12 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             .curve_to((L, hi + (hi - lo) * 0.3), name="r", dir=a, terminal=False))
 
     # ---- punctuation ----------------------------------------------------
-    def dot(gl, name, cx, cy, r):
+    def dot(gl, name, cx, cy, r, round_=False):
+        if dot_style == "square" and not round_:
+            # a grotesque's: a sharp square 2r wide
+            (gl.contour(name).move((cx - r, cy - r), "bl").line((cx + r, cy - r), "br").line((cx + r, cy + r), "tr")
+                .line((cx - r, cy + r), "tl").close())
+            return
         k = r * (0.5523 + (1 - 0.5523) * P.dot_square)      # dot_square 1: a square with rounded corners
         (gl.contour(name).move((cx, cy - r), "bottom").curve((cx + k, cy - r), (cx + r, cy - k), (cx + r, cy), "right")
             .curve((cx + r, cy + k), (cx + k, cy + r), (cx, cy + r), "top")
@@ -2449,7 +2518,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         poly_(gl, name, [((cx - tw / 2, top - P.quote_h), "bl"), ((cx + tw / 2, top - P.quote_h), "br"),
                          ((cx + w / 2, top), "tr"), ((cx - w / 2, top), "tl")])
 
-    cy_dot = P.dot_r - os_
+    dos = 0 if dot_style == "square" else os_          # square dots sit on the line, round ones overshoot
+    cy_dot = P.dot_r - dos
 
     @g("period", sb=(0, 0))
     def period(gl):
@@ -2462,12 +2532,12 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     @g("colon", sb=(0, 0))
     def colon(gl):
         dot(gl, "dot", 0, cy_dot, P.dot_r)
-        dot(gl, "dot_top", 0, xh + os_ - P.dot_r + P.colon_dy, P.dot_r)
+        dot(gl, "dot_top", 0, xh + dos - P.dot_r + P.colon_dy, P.dot_r)
 
     @g("semicolon", sb=(0, 0))
     def semicolon(gl):
         comma_(gl, "comma", P.semi_dx, cy_dot)
-        dot(gl, "dot_top", 0, xh + os_ - P.dot_r + P.colon_dy, P.dot_r)
+        dot(gl, "dot_top", 0, xh + dos - P.dot_r + P.colon_dy, P.dot_r)
 
     @g("quoteright", sb=(0, 0))
     def quoteright(gl):
