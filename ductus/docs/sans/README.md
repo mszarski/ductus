@@ -262,3 +262,35 @@ pairs, agreement with Geist Sans correlation 0.826, MAE 6.9 u.
 - The a's join with the stem is a little heavy, where Geist has a thin
   crotch by the spur.
 - & and @ differ in shape; # and < > differ in width.
+
+## 05 — the j, the f and the parentheses
+
+![iteration 05](05.png)
+
+**j.** `j_style="foot"`: the stem turns into a level foot along the
+descender, cut square at the left, as Geist's does. It replaces the hook
+that curled up into a tip. It is the t's tail mirrored below the baseline:
+`j_foot_y`, `j_foot_x`, `j_t`. j 0.946 → 0.957.
+
+**f.** The hook had a pinch on its underside: `f_top_dw` (−22) thinned the
+stroke at the top of the arc. Its end also ran almost straight down
+(−84°) into a cut, which left a tick. The hook is now even, and ends at
+−20° in a vertical cut (`sans_cut_f` 0). f 0.964 → 0.973. In "ffi" and
+"off" the hooks now read like Geist's.
+
+**Parentheses.** `paren_ends="level"`: both ends take the `paren_end`
+terminal, which the sans cuts level, as Geist's are cut. Before, they were
+cut across the stroke and came to points. ( ) 0.907 → 0.923.
+
+Mean IoU over all glyphs: 0.926 (0.9258 → 0.9261). Kerning was
+regenerated: 16,485 pairs, agreement with Geist Sans correlation 0.825,
+MAE 7.0 u.
+
+**Still to do.**
+- The parenthesis ends taper (`paren_end_w` 0.6) where Geist's keep
+  more weight.
+- Dots are rounded squares where Geist's are square, though square dots
+  scored lower.
+- The a's join with the stem is a little heavy.
+- & and @ differ in shape; # and < > differ in width.
+- Geist uses no fi ligature; ours joins the f's hook to the i.

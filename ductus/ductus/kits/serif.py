@@ -263,7 +263,9 @@ DEFAULTS: dict[str, tuple] = {
     # Hobby tension at the U's cup and the J's (J_style="base") hook: < 1 squarer, > 1 rounder
     "U_t": (1.0, (0.75, 1.5)), "J_t": (1.0, (0.75, 1.5)),
     "ss_t": (1.0, (0.75, 1.5)),
-    "t_bot_dy": (0, (-10, 40)), "l_bot_dy": (0, (-10, 40)),   # t, tailed l: raise the tail's lowest point              # ß, ss_style="bar": tension where the bowls meet the bars
+    "t_bot_dy": (0, (-10, 40)), "l_bot_dy": (0, (-10, 40)),
+    # j_style="foot": the foot's centre height, where the turn meets it (a share of j_hook), the turn's tension
+    "j_foot_y": (-120, (-180, -60)), "j_foot_x": (0.5, (0.1, 0.9)), "j_t": (1.0, (0.75, 1.5)),   # t, tailed l: raise the tail's lowest point              # ß, ss_style="bar": tension where the bowls meet the bars
     # brace: where the arm turns toward the beak (a share of the arm's height); brace_beak="point": the arms'
     # angle off level at the beak, and how far short of the midline the strokes stop (the beak fills it)
     "brace_low": (0.15, (0.0, 0.5)), "brace_beak_a": (35, (15, 60)), "brace_beak_len": (24, (8, 60)),
@@ -662,7 +664,7 @@ def sans_set(P) -> TerminalSet:
         s_top=cut(P.sans_cut_s1), s_bottom=cut(P.sans_cut_s2),
         hood=cut(P.sans_cut_hood), r_ear=cut(P.sans_cut_r), f_hook=cut(P.sans_cut_f),
         t_tail=cut(P.sans_cut_t), ear=cut(P.sans_cut_ear), fig_end=cut(P.sans_cut_fig),
-        g_end=cut(P.sans_cut_g))
+        g_end=cut(P.sans_cut_g), paren_end=hz)
 
 
 def didone_set(P) -> TerminalSet:
@@ -719,7 +721,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
            g_style: str = "double", l_style: str = "stem", J_style: str = "hook", R_leg: str = "line",
            Q_style: str = "wedge", seven_style: str = "poly", fig_ends: str = "wedge", face_serifs: bool = True, one_style: str = "flag",
            d_style: str = "lobe", a_style: str = "lobe", y_left: str = "stroke", level_trim: bool = False,
-           brace_beak: str = "square", ss_style: str = "spine",
+           brace_beak: str = "square", ss_style: str = "spine", j_style: str = "hook",
+           paren_ends: str = "square",
            b_style: str = "bowl", E_serifs: str = "rect",
            G_jaw: str = "bar"):
     """Register the kit's glyphs on ``font``. ``g_ear``: ``"stroke"`` (a
@@ -769,7 +772,12 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     middle -- ``"spine"`` (one stroke swinging in to a waist) or ``"bar"``
     (two strokes meeting square at ``ss_waist_x``: the upper bowl ends in a
     level bar, the lower bowl starts from it and ends in a level foot cut at
-    ``ss_end_x``; a grotesque's)."""
+    ``ss_end_x``; a grotesque's). ``j_style``: ``"hook"`` (the stem's foot
+    curves up-left into a flag) or ``"foot"`` (it turns into a level foot,
+    centred ``j_foot_y``, reaching ``j_hook`` left and cut square: the t's
+    tail, mirrored below the baseline). ``paren_ends``: ``"square"`` (cut
+    across the stroke) or ``"level"`` (the ``paren_end`` terminal: the sans
+    set cuts it level, as a grotesque's)."""
     from ..handles import handle
     from ..junctions import contact, join, join_handles, notch_cut
     from ..parts import part
@@ -1477,9 +1485,15 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     def j(gl):
         gl += stem_(x=0, bottom=P.j_bot, top=xh + P.head_top, head="head", foot=False)
         hook_pen = Pen(angle=0, width=P.stem, contrast=1 - P.hairline / P.stem)
-        (gl.path(name="hook", pen=hook_pen, profile=Profile((0, 1), (0.5, 1), (1, P.j_end_w)))
-            .start((0, P.j_bot + 2), name="root", dir=270, terminal=False)
-            .curve_to((-P.j_hook, P.j_end_y), name="end", dir=P.j_end_dir, terminal="ear"))   # a blunt flag
+        if j_style == "foot":
+            (gl.path(name="hook", pen=hook_pen)
+                .start((0, P.j_bot + 2), name="root", dir=270, terminal=False)
+                .curve_to((-P.j_hook * P.j_foot_x, P.j_foot_y), name="bottom", dir=180, tension=P.j_t)
+                .line_to((-P.j_hook, P.j_foot_y), name="end", terminal=False))
+        else:
+            (gl.path(name="hook", pen=hook_pen, profile=Profile((0, 1), (0.5, 1), (1, P.j_end_w)))
+                .start((0, P.j_bot + 2), name="root", dir=270, terminal=False)
+                .curve_to((-P.j_hook, P.j_end_y), name="end", dir=P.j_end_dir, terminal="ear"))   # a blunt flag
         r, k = P.i_dot_r, 0.5523 * P.i_dot_r
         dot(gl, "dot", 0, P.i_dot_y, P.i_dot_r)
 
@@ -2528,11 +2542,12 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         mid_y = (P.paren_top + P.paren_bot) / 2
         x_end, x_mid = (0, P.paren_bow) if flip else (P.paren_bow, 0)
         a_ = P.paren_end_dir
+        pend = "paren_end" if paren_ends == "level" else False
         d_top, d_bot = (360 - a_, 180 + a_) if flip else (180 + a_, 360 - a_)
         (gl.path(name="arc", pen=pen, profile=Profile((0, P.paren_end_w), (0.5, 1), (1, P.paren_end_w)))
-            .start((x_end, P.paren_top), name="top", dir=d_top, terminal=False)
+            .start((x_end, P.paren_top), name="top", dir=d_top, terminal=pend)
             .curve_to((x_mid, mid_y), name="mid", dir=270, tension=P.paren_tension)
-            .curve_to((x_end, P.paren_bot), name="bottom", dir=d_bot, terminal=False, tension=P.paren_tension))
+            .curve_to((x_end, P.paren_bot), name="bottom", dir=d_bot, terminal=pend, tension=P.paren_tension))
 
     @g("parenleft", sb=(0, 0))
     def parenleft(gl):

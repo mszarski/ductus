@@ -20,7 +20,7 @@ P = kit.params(
     # no serifs: the E's arm "serifs" sit inside the arms
     E_serif=34, E_serif_w=10, E_arm_t=84, H_bar_t=108, bar_t=76, t_bar_t=74, f_bar_t=76, e_bar_t=74,
     bar_w=80, bar_top=750,
-    f_hook=149, f_end_dir=-84, f_end_y=0.9, f_top=708, f_top_dw=-22, f_bar_l=114, f_bar_r=174, f_end_w=1.06,
+    f_hook=181, f_end_dir=-20, f_end_y=0.944, f_top=700, f_top_dw=0, f_bar_l=116, f_bar_r=177, f_end_w=1.03,
     t_tail=183, t_tail_y=35.5, t_turn=115, t_end_w=1.0, t_end_dir=0, t_bar_l=120, t_bar_r=182, t_top=654,
     t_angle=-4.0, E_width=405, E_mid=0.965, E_bot_k=1.02,
     t_bot_dy=10.5,
@@ -77,8 +77,9 @@ P = kit.params(
     B_flat_m=235, B_full=0.6, B_in_full=0.6,
     O_thick_k=1.03, O_full_dh=0.05, O_in_full_dh=0.01, G_thick_k=1.05, G_thin_k=0.99, G_full_dh=-0.01,
     G_in_full_dh=-0.02, G_width=633, G_term_y=0.69, G_jaw_dx=-24, G_spur_w=0.82, G_serif=215, G_bar_y=0.505,
-    G_full_dv=-0.01, h_top=-39, i_dot_y=663, i_dot_r=48, q_dfar=-1, q_top=-10.0, desc_stem=-160, j_bot=-30,
-    j_hook=140, j_end_y=-94, j_end_dir=142, j_end_w=0.8, y_width=410, y_vertex=0.52, y_tail_y=-60, y_end_x=40,
+    G_full_dv=-0.01, h_top=-39, i_dot_y=663, i_dot_r=48, q_dfar=-1, q_top=-10.0, desc_stem=-160, j_bot=6,
+    j_hook=143, j_end_y=-94, j_end_dir=142, j_end_w=0.8, y_width=410, y_vertex=0.52, y_tail_y=-60, y_end_x=40,
+    j_foot_y=-110, j_foot_x=0.44, j_t=0.84,
     y_end_y=-126, y_end_w=1.0, P_bot=276, P_far=458, P_flat=224, Q_t0=305, Q_tip_x=716, Q_tip_y=-120,
     Q_end_x=674, F_width=407, F_mid=0.95, F_mid_y=0.49, L_width=402, T_width=526, T_wedge=0.0, T_serif=84,
     Q_b0y=154, Q_b1x=544, Q_b1y=-72, Q_bar_w=73, Q_b0x=380,
@@ -100,8 +101,8 @@ P = kit.params(
     eight_overlap=0.5,
     quest_end_y=495, quest_neck_x=0.52, quest_neck_y=290, quest_bot=200, quest_bot_w=0.95, quest_tension=0.95,
     quest_right_y=518, quest_neck_dir=248, quest_bot_dx=-17.0,
-    paren_tension=1.1, paren_w=96, paren_end_w=0.6, paren_top=760, paren_bow=140, paren_end_dir=53,
-    paren_bot=-121, dot_r=63, comma_tail=162, comma_dx=-15.0, comma_tip_w=66, comma_bend=38, quote_w=109,
+    paren_tension=1.11, paren_w=98, paren_end_w=0.6, paren_top=750, paren_bow=139, paren_end_dir=55,
+    paren_bot=-110, dot_r=63, comma_tail=162, comma_dx=-15.0, comma_tip_w=66, comma_bend=38, quote_w=109,
     dot_square=0.6,
     quote_tip_w=40, quote_h=270, quote_dbl_gap=168, excl_w=85, excl_shoulder=410, excl_tip_w=56, excl_bot=205,
     quote_k=1.02, quote_top=719, quote_bot=450, quote_gap=168,
@@ -141,12 +142,13 @@ P = kit.params(
     pound_w=500, sans_cut_fig=90, sans_cut_hood=82, sans_cut_r=0,
     sans_cut_t=0, endash_len=503,
     sans_cut_g=105, descender_g=-162,
+    sans_cut_f=0,
 )
 kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
                            "ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüýÿı´`¨¸˚ÆŒØæœøß"
                            "&*%·#$+<=>@[\\]^_{|}~…•°×€£.,:;-–—'\"‘’“”!?¿¡()/",
            terminals=kit.sans_set(P), g_style="single", l_style="tail", J_style="base",
-           R_leg="curve", Q_style="bar", seven_style="curve", fig_ends="cut", face_serifs=False, one_style="arm", d_style="bowl", a_style="stroke", y_left="poly", level_trim=True, brace_beak="point", ss_style="bar", g_ear="flag", b_style="oval")
+           R_leg="curve", Q_style="bar", seven_style="curve", fig_ends="cut", face_serifs=False, one_style="arm", d_style="bowl", a_style="stroke", y_left="poly", level_trim=True, brace_beak="point", ss_style="bar", j_style="foot", paren_ends="level", g_ear="flag", b_style="oval")
 
 # side bearings (left, right) on top of sb_straight / sb_round, set from the
 # glyphs' measured side bearings in Geist Sans
