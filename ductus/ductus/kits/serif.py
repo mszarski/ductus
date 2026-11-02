@@ -521,11 +521,12 @@ DEFAULTS: dict[str, tuple] = {
     # tip width, and how far below the ball's equator its outer curve bends
     "comma_tail": (157, (80, 240)), "comma_dx": (-15, (-60, 40)), "comma_tip_w": (50, (10, 100)),
     "comma_root": (0.0, (-0.9, 0.9)),   # square comma: where the tail's left edge leaves the dot's bottom (share of r from its centre)
+    "quote_tail_d": (0, (-80, 80)), "quote_dx_d": (0, (-60, 60)), "quote_tip_dw": (0, (-60, 60)), "quote_root_d": (0, (-0.9, 0.9)),
     "comma_bend": (52, (0, 120)),
     "semi_dx": (0, (-40, 40)), "colon_dy": (0, (-80, 20)),   # the colon's (and semicolon's) upper dot, lowered   # the semicolon's comma, right of its dot
     # curly quotes: the comma shape scaled by quote_k; ’ tops out at quote_top,
     # ‘ (turned) bottoms out at quote_bot; pairs are quote_gap apart (centres)
-    "quote_k": (0.9, (0.6, 1.2)), "quote_top": (724, (650, 800)), "quote_bot": (530, (450, 620)),
+    "quote_k": (0.9, (0.6, 1.2)), "quote_top": (724, (650, 800)), "quote_bot": (530, (380, 620)),
     "quote_gap": (186, (120, 260)),
     # straight quotes: a wedge from quote_w at the cap height to quote_tip_w,
     # quote_h long; " pairs them quote_dbl_gap apart
@@ -2525,6 +2526,19 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     @g("asciicircum", sb=(0, 0))
     def asciicircum(gl):
         w, h, y0, t = P.caret_w, P.caret_h, P.caret_y0, P.caret_t
+        if level_trim:
+            # a grotesque's caret: both strokes run on past the apex and below the feet, then are
+            # cut level -- a flat apex (no notch) and level feet
+            e = 0.5                                       # run-on, as a share of the height
+            gl.line((-w / 2 * e, y0 - h * e), (w / 2 + w / 2 * e, y0 + h + h * e), name="l", names=("s", "e"),
+                    terminal=(False, False), pen=sym_pen(t))
+            gl.line((w + w / 2 * e, y0 - h * e), (w / 2 - w / 2 * e, y0 + h + h * e), name="r", names=("s", "e"),
+                    terminal=(False, False), pen=sym_pen(t))
+            (gl.cut("trim_bottom").move((-600, y0 - 400), "a").line((1600, y0 - 400), "b").line((1600, y0), "c")
+                .line((-600, y0), "d").close())
+            (gl.cut("trim_top").move((-600, y0 + h), "a").line((1600, y0 + h), "b").line((1600, y0 + h + 400), "c")
+                .line((-600, y0 + h + 400), "d").close())
+            return
         gl.line((0, y0), (w / 2, y0 + h), name="l", names=("s", "e"), terminal=(False, False), pen=sym_pen(t))
         gl.line((w, y0), (w / 2, y0 + h), name="r", names=("s", "e"), terminal=(False, False), pen=sym_pen(t))
 
@@ -2552,12 +2566,19 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             .curve((cx - k, cy + r), (cx - r, cy + k), (cx - r, cy), "left")
             .curve_close((cx - r, cy - k), (cx - k, cy - r)).close())
 
-    def comma_(gl, name, cx, cy, sc=1.0, turn=False):
+    def comma_(gl, name, cx, cy, sc=1.0, turn=False, quote=False):
         """A ball with a tail curling down-left from its right side (turned
         180 degrees about the ball's centre for the opening quote)."""
         r, k = P.dot_r * sc, 0.5523 * P.dot_r * sc
-        tail = cy - (P.comma_tail + P.dot_r - os_) * sc
-        tx, tw = cx + P.comma_dx * sc, P.comma_tip_w * sc
+        # quotes: their own offsets on the comma's tail (a bold's comma and quotes differ)
+        qt, qx, qw = (P.quote_tail_d, P.quote_dx_d, P.quote_tip_dw) if quote else (0, 0, 0)
+        # the quote offsets keep the comma's values within the comma's own ranges (beyond them
+        # the tail can fold or cross itself)
+        lo, hi = DEFAULTS["comma_tail"][1]; tl_ = lazy_min(lazy_max(P.comma_tail + qt, lo), hi)
+        lo, hi = DEFAULTS["comma_dx"][1]; dx_ = lazy_min(lazy_max(P.comma_dx + qx, lo), hi)
+        lo, hi = DEFAULTS["comma_tip_w"][1]; tw_ = lazy_min(lazy_max(P.comma_tip_w + qw, lo), hi)
+        tail = cy - (tl_ + P.dot_r - os_) * sc
+        tx, tw = cx + dx_ * sc, tw_ * sc
         tip_l, tip, tip_r = (tx - tw * 0.55, tail + 10 * sc), (tx, tail), (tx + tw * 0.45, tail + 45 * sc)
         ctrl = (cx + r, cy - P.comma_bend * sc)
         c1 = (tip_r[0] + (ctrl[0] - tip_r[0]) * 0.67, tip_r[1] + (ctrl[1] - tip_r[1]) * 0.67)
@@ -2572,7 +2593,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             # middle to the right corner) down-left to the tip
             pts = [("p", tip_l, "tip_l"), ("p", tip, "tip"), ("p", tip_r, "tip_r"),
                    ("p", (cx + r, cy - r), "br"), ("p", (cx + r, cy + r), "tr"), ("p", (cx - r, cy + r), "tl"),
-                   ("p", (cx - r, cy - r), "bl"), ("p", (cx + P.comma_root * r, cy - r), "root")]
+                   ("p", (cx - r, cy - r), "bl"), ("p", (cx + lazy_min(lazy_max(P.comma_root + (P.quote_root_d if quote else 0), -0.9), 0.9) * r, cy - r), "root")]
         T = (lambda q: (2 * cx - q[0], 2 * cy - q[1])) if turn else (lambda q: q)
         c = gl.contour(name).move(T(pts[0][1]), pts[0][2])
         for it in pts[1:]:
@@ -2614,24 +2635,24 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     @g("quoteright", sb=(0, 0))
     def quoteright(gl):
         r = P.dot_r * P.quote_k
-        comma_(gl, "quote", 0, P.quote_top - r, P.quote_k)
+        comma_(gl, "quote", 0, P.quote_top - r, P.quote_k, quote=True)
 
     @g("quoteleft", sb=(0, 0))
     def quoteleft(gl):
         r = P.dot_r * P.quote_k
-        comma_(gl, "quote", 0, P.quote_bot + r, P.quote_k, turn=True)
+        comma_(gl, "quote", 0, P.quote_bot + r, P.quote_k, turn=True, quote=True)
 
     @g("quotedblright", sb=(0, 0))
     def quotedblright(gl):
         r = P.dot_r * P.quote_k
-        comma_(gl, "quote_l", 0, P.quote_top - r, P.quote_k)
-        comma_(gl, "quote_r", P.quote_gap, P.quote_top - r, P.quote_k)
+        comma_(gl, "quote_l", 0, P.quote_top - r, P.quote_k, quote=True)
+        comma_(gl, "quote_r", P.quote_gap, P.quote_top - r, P.quote_k, quote=True)
 
     @g("quotedblleft", sb=(0, 0))
     def quotedblleft(gl):
         r = P.dot_r * P.quote_k
-        comma_(gl, "quote_l", 0, P.quote_bot + r, P.quote_k, turn=True)
-        comma_(gl, "quote_r", P.quote_gap, P.quote_bot + r, P.quote_k, turn=True)
+        comma_(gl, "quote_l", 0, P.quote_bot + r, P.quote_k, turn=True, quote=True)
+        comma_(gl, "quote_r", P.quote_gap, P.quote_bot + r, P.quote_k, turn=True, quote=True)
 
     @g("quotesingle", sb=(0, 0))
     def quotesingle(gl):

@@ -672,3 +672,43 @@ Light 0.8964 → 0.8983. Kerning re-run.
 
 **Self-critique.** The cedilla's tick has a pointed top, where Geist's is
 cut flat. It is mostly hidden inside the letter.
+
+## 15 — Bold figures and symbols
+
+![weights sheet](15_sheet.png)
+
+The Bold figures and symbols averaged 0.8966 against Geist Bold. Each weak
+glyph was refit over all of its own parameters: stepwise fits first, then a
+random joint search where the steps stalled. Construction changes:
+
+- **Opening quotes ‘ “** are the comma turned, so they inherited the Bold
+  comma's fitted tail. New quote-only offsets on the tail (`quote_tail_d`,
+  `quote_dx_d`, `quote_tip_dw`, `quote_root_d`, default 0). The real fault
+  was height: Geist's opening quotes sit about 30 units lower, and
+  `quote_bot`'s range (450–620) stopped the fit. It is now 380–620, and the
+  Bold uses 415. 0.71 → 0.95.
+- **^ with `level_trim`** (the sans): both strokes run on past the apex and
+  below the feet, then are cut level, giving Geist's flat apex and level
+  feet instead of a notched M. Regular 0.760 → 0.928, Bold 0.830 → 0.921.
+- **=** had moved when the + fit changed the shared math height; it gets
+  its own `eq_dy`. 0.893 → 0.986.
+
+| Bold | before | after |
+|---|---|---|
+| ? ¿ | 0.826 | 0.964 |
+| & | 0.863 | 0.947 |
+| \* | 0.834 | 0.904 |
+| + | 0.890 | 0.966 |
+| < > | 0.805 | 0.990 |
+| _ | 0.872 | 0.913 |
+| ¨ | 0.858 | 0.903 |
+| ( ) | 0.911 | 0.921 |
+| % | 0.831 | 0.862 |
+
+Bold figures and symbols 0.8966 → 0.9249. Mean IoU: Regular 0.9381 →
+0.9390, Bold 0.9107 → 0.9226, Light 0.8983 → 0.8994. Kerning re-run.
+
+**Self-critique.**
+- The % rings are even-weight, where Geist's have heavier sides (0.862).
+- The ~ (0.84), @ (0.84) and € (0.86) remain the weakest symbols. They
+  match in outline but not in fine curve.
