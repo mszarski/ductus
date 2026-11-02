@@ -641,3 +641,34 @@ Mean IoU: Regular 0.9311 → 0.9359, Bold 0.8823 → 0.9077, Light
 - The cedilla's form still differs from Geist's (Bold 0.61).
 - The Bold ellipsis' dots are too large (0.66).
 - There is no ¢.
+
+## 14 — the cedilla, the ellipsis, and ¢
+
+![weights sheet](14_sheet.png)
+
+- **Cedilla.** Geist's is a straight tick slanting down-left from under
+  the letter into a corner, then a hook round to the left. Ours was one
+  smooth curl, which can't make that corner. New kit option
+  `ced_style="tick"` (default `"curl"`) draws a line into a corner, then
+  the hook. New parameters: `ced_root_dx` (where the tick starts),
+  `ced_neck_dir` (the hook's direction out of the corner), `ced_end_x` and
+  `ced_t` (default `ced_root_dir`, used by the curl, is also exposed).
+  Regular 0.456 → 0.746; Bold 0.614 → 0.796, with lighter stroke widths
+  (they had scaled with the stems). At the Light, the corner left a 45 u²
+  pinhole, just above the 40 u² drop threshold, which changed the contour
+  count. With `ced_neck_dir` −30 it closes at every weight.
+- **Ellipsis.** `WEIGHT_GAPS` widened the gap between dots as they grew;
+  Geist lets it shrink. At Bold the dots are now 229 apart, as measured.
+  Bold 0.66 → 0.939.
+- **¢ (new).** Geist's ¢ is its c raised about 90 units, crossed by a
+  nearly vertical stroke from −12 to 726. The c's construction became
+  `c_body(gl, cut_x, dy)`. The ¢ raises it (`cent_dy`), keeps the aperture
+  cut clear of the stroke (`cent_cut_x`), and adds the stroke (`cent_x0/x1`,
+  `cent_bot/top`, `cent_t`, which scales with weight). It takes the c's side
+  bearings. Regular 0.972, Bold 0.938.
+
+Mean IoU: Regular 0.9359 → 0.9381 (now with ¢), Bold 0.9077 → 0.9107,
+Light 0.8964 → 0.8983. Kerning re-run.
+
+**Self-critique.** The cedilla's tick has a pointed top, where Geist's is
+cut flat. It is mostly hidden inside the letter.

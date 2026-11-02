@@ -91,7 +91,7 @@ points:
 
 | Font | Glyphs | Status |
 |---|---|---|
-| Ductus Sans (`examples/sans/`) | 182, incl. ¿ ¡; no fi ligature | Iterations 01–06 (`docs/sans/README.md`, sheets `NN.png`). Mean IoU vs Geist Sans **0.931**. Kerning 16,127 pairs; agreement with Geist Sans corr 0.823, MAE 7.0 u |
+| Ductus Sans (`examples/sans/`) | 183, incl. ¿ ¡ ¢; no fi ligature | Iterations 01–14 (`docs/sans/README.md`, sheets `NN.png`). Mean IoU vs Geist Sans **0.938** (Bold 0.911, Light 0.898). Kerning 16,127 pairs; agreement with Geist Sans corr 0.823, MAE 7.0 u |
 | Ductus Display (`examples/display_serif/`) | 183, incl. ¿ ¡ | Iterations 01–33. Letters ≈ 0.944 vs Geist Serif. Kerning 5,378 pairs |
 | Benchmark (`benchmarks/geist_serif/`) | 16 + fi | Every glyph 0.96–0.995, 0 overrides |
 | Test font (`examples/test_font/`) | 7 | The M1 font |
@@ -113,7 +113,7 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 
 ### In progress
 - **SPEC M3, variable weight axis.** `ductus build --variable`
-  builds Ductus Sans as a CFF2 font, `wght` 300–700, with all 182 glyphs
+  builds Ductus Sans as a CFF2 font, `wght` 300–700, with all 183 glyphs
   varying (`ductus/variable.py`, `ductus/compat.py`; `docs/sans/README.md`
   07–09).
   - The Bold and Light masters are designed against Geist Bold and Light

@@ -14,6 +14,17 @@ from ductus.kits import serif as kit
 font = Font("Ductus Sans", upm=1000)
 
 P = kit.params(
+    cent_cut_x=0.59,
+    cent_t=70,
+    cent_top=726,
+    cent_bot=-12,
+    cent_x1=0.55,
+    cent_x0=0.42,
+    cent_dy=93,
+    ced_neck_dir=-30,
+    ced_t=0.7,
+    ced_end_x=0.45,
+    ced_root_dx=46,
     # weight and contrast: near monoline
     stem=84, cap_stem=84, hairline=79, round_gain=1.03, arch_contrast=0.1, t_contrast=0.1,
     sb_straight=80, sb_round=44, overshoot=12,
@@ -133,8 +144,8 @@ P = kit.params(
     tl_amp=110, tl_w=78, tl_dir=88, acc_y0=598, acc_y1=725, acc_dx_c=10.0, acc_dx_U=0.0, acc_dx_E=0.0,
     acc_dx_C=15.0, acute_bot_w=54, acute_top_w=115, acute_run=46, acute_dx=50, grave_dx=-55, circ_w=266,
     circ_top_w=106, circ_leg_w=49, circ_in=50, tilde_len=294, tilde_lo=617, tilde_hi=696, tilde_w=54,
-    tilde_dir=60, diaer_r=50, diaer_gap=174, ring_w=184, ring_h=184, ring_thick=50, ring_thin=49, ced_w=55,
-    ced_thin=38, ced_len=157, ced_drop=224, ced_neck=-48, Oslash_x0=30, Oslash_x1=522, oslash_x0=12.0,
+    tilde_dir=60, diaer_r=50, diaer_gap=174, ring_w=184, ring_h=184, ring_thick=50, ring_thin=49, ced_w=54,
+    ced_thin=57, ced_len=148, ced_drop=219, ced_neck=-64, Oslash_x0=30, Oslash_x1=522, oslash_x0=12.0,
     oslash_x1=382, oslash_os=12.0, oslash_w=80, AE_x=482, AE_top_x=397, AE_bar_y=231, AE_bar_t=58, AE_top_w=368,
     AE_mid_w=359, AE_bot_w=379, AE_thick=78, OE_x=601, OE_dw=-40, OE_top_w=368, OE_mid_w=350, ae_dx=338,
     oe_dx=397, ss_top=520, ss_top_x=174, ss_ur_y=535, ss_waist_x=120, ss_waist_y=376, ss_lr_x=382, ss_lr_y=207,
@@ -157,9 +168,9 @@ P = kit.params(
 )
 kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
                            "ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüýÿı´`¨¸˚ÆŒØæœøß"
-                           "&*%·#$+<=>@[\\]^_{|}~…•°×€£.,:;-–—'\"‘’“”!?¿¡()/",
+                           "&*%·#$+<=>@[\\]^_{|}~…•°×€£¢.,:;-–—'\"‘’“”!?¿¡()/",
            terminals=kit.sans_set(P), g_style="single", l_style="tail", J_style="base",
-           R_leg="curve", Q_style="bar", seven_style="curve", fig_ends="cut", face_serifs=False, one_style="arm", d_style="bowl", a_style="stroke", y_left="poly", level_trim=True, brace_beak="square", ss_style="bar", j_style="foot", paren_ends="level", chevron_style="level", amp_style="branch", dot_style="square", ligatures=False, g_ear="flag", b_style="oval", r_style="arch", ec_aperture="vertical")
+           R_leg="curve", Q_style="bar", seven_style="curve", fig_ends="cut", face_serifs=False, one_style="arm", d_style="bowl", a_style="stroke", y_left="poly", level_trim=True, brace_beak="square", ss_style="bar", j_style="foot", paren_ends="level", chevron_style="level", amp_style="branch", dot_style="square", ligatures=False, g_ear="flag", b_style="oval", r_style="arch", ec_aperture="vertical", ced_style="tick")
 
 # side bearings (left, right) on top of sb_straight / sb_round, set from the
 # glyphs' measured side bearings in Geist Sans
@@ -242,6 +253,7 @@ font.spacing.update({
     "k": (0, 4),
     "j": (-48, -2),
     "c": (0, -10),
+    "cent": (0, -10),   # the c's, as Geist's
     "S": (12, 12),
     "E": (12, -24),
     "G": (0, 6),

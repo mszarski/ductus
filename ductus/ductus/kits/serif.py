@@ -328,6 +328,7 @@ DEFAULTS: dict[str, tuple] = {
     "c_width": (465, (380, 540)), "c_face": (0.9, (0.7, 1.0)), "c_top_y": (420, (330, 500)),
     "c_term_y": (150, (80, 240)), "c_cut_x": (0.5, (0.3, 0.7)), "c_cut_y": (70, (20, 140)),
     "c_cut_angle": (185, (150, 220)), "c_cut_h1": (0.3, (0.0, 0.9)), "c_cut_h2": (0.6, (0.0, 0.9)),
+    "cent_x0": (0.3, (0.0, 0.7)), "cent_x1": (0.62, (0.3, 1.0)), "cent_bot": (-20, (-180, 100)), "cent_top": (720, (560, 800)), "cent_t": (70, (30, 160)), "cent_cut_x": (0.62, (0.35, 0.85)), "cent_dy": (0, (-40, 160)),
     # j: the i's stem running below the baseline into a hook to the left
     "j_bot": (-60, (-150, 60)), "j_hook": (190, (100, 280)), "j_end_y": (-150, (-200, -60)),
     "j_end_w": (0.9, (0.3, 1.4)), "j_end_dir": (150, (100, 200)),
@@ -451,6 +452,8 @@ DEFAULTS: dict[str, tuple] = {
     "ring_thick": (38, (20, 60)), "ring_thin": (22, (10, 50)),
     "ced_w": (60, (30, 90)), "ced_thin": (20, (8, 40)), "ced_len": (125, (80, 180)), "ced_drop": (200, (150, 240)),
     "ced_neck": (-60, (-100, -20)),
+    # the neck may start right of the hook and slant down-left into it; the hook's end reaches back ced_end_x * len
+    "ced_root_dx": (0, (-20, 120)), "ced_root_dir": (262, (200, 280)), "ced_end_x": (0.25, (0.0, 0.8)), "ced_t": (1.0, (0.7, 1.4)), "ced_neck_dir": (0, (-60, 40)),
     # placement: acute and grave sit by their foot, not their centre, so their
     # centres stand off the base's (acute right, grave left); some bases
     # centre their marks off their ink's centre (E and U on their arms, ...)
@@ -745,7 +748,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
            paren_ends: str = "square", chevron_style: str = "stroke", amp_style: str = "stroke",
            dot_style: str = "round", ligatures: bool = True,
            b_style: str = "bowl", E_serifs: str = "rect",
-           G_jaw: str = "bar", r_style: str = "ear", ec_aperture: str = "tip"):
+           G_jaw: str = "bar", r_style: str = "ear", ec_aperture: str = "tip", ced_style: str = "curl"):
     """Register the kit's glyphs on ``font``. ``g_ear``: ``"stroke"`` (a
     short stroke taking the ``ear`` terminal, e.g. a ball) or ``"flag"`` (a
     four-sided flag). ``g_band``: ``"flat"`` puts a flat bar across the top of
@@ -1523,15 +1526,21 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
 
     @g("c")
     def c(gl):
+        c_body(gl)
+
+    def c_body(gl, cut_x=None, dy=0):
+        """The c; ``cut_x``: where the aperture cut reaches into the counter (share of the
+        width; the cent keeps it clear of its stroke)."""
+        cut_x = P.c_cut_x if cut_x is None else cut_x
         w = P.c_width
         th = P.stem * P.round_gain
-        gl += bowl(x=0, width=w, bottom=-os_, top=xh + os_, thick=th + P.e_thick_dl, thin=P.hairline,
+        gl += bowl(x=0, width=w, bottom=dy - os_, top=dy + xh + os_, thick=th + P.e_thick_dl, thin=P.hairline,
                    stress=P.e_stress, full=(P.e_full_h, P.e_full_v), in_full=(P.e_in_full_h, P.e_in_full_v),
                    thin_bottom=P.hairline * P.e_thin_bottom, thick_right=th + P.e_thick_dr)
         R = w + 120
         xf = w * P.c_face
-        tip = (w, P.c_term_y)
-        d_ = (w * P.c_cut_x, P.c_cut_y)
+        tip = (w, dy + P.c_term_y)
+        d_ = (w * cut_x, dy + P.c_cut_y)
         a1 = math.radians(val(P.c_cut_angle))
         L = math.hypot(val(d_[0]) - val(tip[0]), val(d_[1]) - val(tip[1]))
         c1 = (tip[0] + math.cos(a1) * L * P.c_cut_h1, tip[1] + math.sin(a1) * L * P.c_cut_h1)
@@ -1539,11 +1548,19 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         if ec_aperture == "vertical":
             # the lower terminal's tip is truncated by a near-vertical face, as the upper one is
             xb = w * P.c_vcut_x
-            (gl.cut("term_face").move((xb, -200), "a").line((R, -200), "b").line((R, P.c_term_y + 1), "c")
-                .line((xb + P.c_vcut_dx, P.c_term_y + 1), "d").close())
-        (gl.cut("aperture").move((w * P.c_cut_x, P.c_top_y), "a").line((xf, P.c_top_y), "face")
-            .line((xf, xh + 200), "b").line((R, xh + 200), "c").line((R, P.c_term_y), "d")
+            (gl.cut("term_face").move((xb, dy - 200), "a").line((R, dy - 200), "b").line((R, dy + P.c_term_y + 1), "c")
+                .line((xb + P.c_vcut_dx, dy + P.c_term_y + 1), "d").close())
+        (gl.cut("aperture").move((w * cut_x, dy + P.c_top_y), "a").line((xf, dy + P.c_top_y), "face")
+            .line((xf, dy + xh + 200), "b").line((R, dy + xh + 200), "c").line((R, dy + P.c_term_y), "d")
             .line(tip, "tip").curve(c1, c2, d_, "e").close())
+
+    @g("cent")
+    def cent(gl):
+        # the c, crossed by a slanted stroke from the baseline to above the cap height
+        c_body(gl, cut_x=P.cent_cut_x, dy=P.cent_dy)
+        w = P.c_width
+        gl.line((w * P.cent_x0, P.cent_bot), (w * P.cent_x1, P.cent_top), name="slash", names=("bottom", "top"),
+                terminal=("vfoot_r", "vtop_r"), pen=sym_pen(P.cent_t))
 
     @g("j")
     def j(gl):
@@ -2079,11 +2096,20 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     def cedilla_(gl):
         pen = Pen(angle=0, width=P.ced_w, contrast=1 - P.ced_thin / P.ced_w)
         L, d = P.ced_len, P.ced_drop
+        if ced_style == "tick":
+            # a grotesque's cedilla: a straight tick slanting down-left from under the letter
+            # into a corner, then the hook round to the left
+            (gl.path(name="mark", pen=pen)
+                .start((P.ced_root_dx, 15), name="root", terminal=False)
+                .line_to((0, P.ced_neck), name="neck", dir=P.ced_neck_dir)
+                .curve_to((L * 0.75, -(d + P.ced_neck) / 2 + P.ced_neck * 0.3), name="curl", dir=270, tension=P.ced_t)
+                .curve_to((-L * P.ced_end_x, -d + P.ced_thin / 2), name="end", dir=180, terminal="ear", tension=P.ced_t))
+            return
         (gl.path(name="mark", pen=pen, profile=Profile((0, 0.5), (0.3, 1), (1, 0.7)))
-            .start((0, 15), name="root", dir=262, terminal=False)
+            .start((P.ced_root_dx, 15), name="root", dir=P.ced_root_dir, terminal=False)
             .curve_to((-8, P.ced_neck), name="neck", dir=0)
             .curve_to((L * 0.75, -(d + P.ced_neck) / 2 + P.ced_neck * 0.3), name="curl", dir=270)
-            .curve_to((-L * 0.25, -d + P.ced_thin / 2), name="end", dir=180, terminal="ear"))
+            .curve_to((-L * P.ced_end_x, -d + P.ced_thin / 2), name="end", dir=180, terminal="ear"))
 
     MARKS = {"grave": lambda gl: acute_(gl, True), "acute": acute_, "circumflex": circumflex_, "tilde": tilde_,
              "dieresis": dieresis_, "ring": ring_, "cedilla": cedilla_}
@@ -2708,7 +2734,7 @@ seven_bar_t amp_pen brace_pen at_ring_t caret_t dash_t deg_t eq_t math_t hash_t 
 pct_thick pct_slash_w slash_w oslash_w paren_w excl_w quest_w quest_thin quote_w tl_w ring_thick ring_thin
 ced_thin dot_r i_dot_r diaer_r
 B_th B_hair D_th bar_w dollar_bar lt_tip A_apex acute_top_w acute_bot_w circ_top_w circ_leg_w tilde_w
-ast_tip_w ast_root_w comma_tip_w excl_tip_w quote_tip_w ced_w amb_wdx amb_wdy amb_bj_off
+ast_tip_w ast_root_w comma_tip_w excl_tip_w quote_tip_w ced_w amb_wdx amb_wdy amb_bj_off cent_t
 """.split())
 
 

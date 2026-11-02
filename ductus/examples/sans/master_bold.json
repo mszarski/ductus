@@ -70,10 +70,18 @@
   "cap_stem": 154.36,
   "caret_h": 288.0,
   "caret_t": 103.2,
-  "ced_drop": 236.0,
-  "ced_len": 175.0,
-  "ced_thin": 84.02,
-  "ced_w": 86.45,
+  "ced_drop": 225.0,
+  "ced_end_x": 0.6,
+  "ced_len": 148.0,
+  "ced_neck_dir": -10.0,
+  "ced_root_dx": 34.0,
+  "ced_thin": 68.0,
+  "ced_w": 83.0,
+  "cent_cut_x": 0.59,
+  "cent_dy": 85.0,
+  "cent_t": 77.3,
+  "cent_x0": 0.44,
+  "cent_x1": 0.57,
   "comma_root": -0.2,
   "comma_tail": 178.0,
   "comma_tip_w": 98.14,
@@ -87,6 +95,7 @@
   "eight_thick_k": 1.02,
   "eight_top_w": 494.0,
   "eight_w": 580.0,
+  "ellipsis_gap": 229,
   "eq_gap": 231,
   "eq_t": 122,
   "euro_bar_l": 31.0,
@@ -416,6 +425,10 @@
   ],
   "cedilla": [
    -6,
+   -8
+  ],
+  "cent": [
+   -8,
    -8
   ],
   "colon": [
