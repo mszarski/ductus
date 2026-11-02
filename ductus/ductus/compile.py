@@ -428,8 +428,16 @@ def merge(contours: list[Contour], round_to_grid: bool = True, cuts: list[Contou
     path = _path(contours)
     path.simplify(fix_winding=True, keep_starting_points=True, clockwise=False)
     if cuts:
-        cp = _path(cuts)
-        cp.simplify(fix_winding=True, keep_starting_points=True, clockwise=False)
+        # each cut is a region of its own: union them one by one, so two cuts
+        # drawn in opposite directions add up where they overlap instead of
+        # cancelling (a winding-number fill of all of them at once left
+        # whatever a terminal's cut and a trim cut both covered uncut)
+        cp = None
+        for c in cuts:
+            one = _path([c])
+            one.simplify(fix_winding=True, keep_starting_points=True, clockwise=False)
+            cp = one if cp is None else pathops.op(cp, one, pathops.PathOp.UNION, fix_winding=True,
+                                                    keep_starting_points=True, clockwise=False)
         path = pathops.op(path, cp, pathops.PathOp.DIFFERENCE, fix_winding=True,
                           keep_starting_points=True, clockwise=False)
     rp = RecordingPen()

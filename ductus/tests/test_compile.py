@@ -78,3 +78,15 @@ def test_compile_is_fast(font):
 def test_unknown_param_is_an_error(font):
     with pytest.raises(Exception, match="unknown parameter"):
         compile_font(font, {"stme": 3})
+
+
+def test_overlapping_cuts_drawn_in_opposite_directions_both_cut():
+    """Cuts are regions: where a terminal's cut and a trim cut overlap, the
+    overlap is cut even if the two run in opposite directions (a winding
+    fill of all cuts at once cancelled it, leaving slivers of ink)."""
+    from ductus.compile import merge
+    from ductus.terminals import poly
+    square = poly([(0, 0), (100, 0), (100, 100), (0, 100)])
+    ccw = poly([(-10, -10), (60, -10), (60, 110), (-10, 110)])           # left 60 % of the square
+    cw = poly([(40, -10), (40, 110), (110, 110), (110, -10)])            # right 60 %, opposite direction
+    assert merge([square], cuts=[ccw, cw]) == []

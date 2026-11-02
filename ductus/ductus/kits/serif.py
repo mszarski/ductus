@@ -253,6 +253,8 @@ DEFAULTS: dict[str, tuple] = {
     "a_full_h": (0.6, (0.4, 0.9)), "a_full_v": (0.6, (0.4, 0.9)), "a_in_full_h": (0.6, (0.4, 0.9)),
     "a_in_full_v": (0.6, (0.4, 0.9)),
     "a_spur_len": (0, (0, 80)), "a_spur_h": (70, (30, 120)),
+    # Hobby tension at the U's cup and the J's (J_style="base") hook: < 1 squarer, > 1 rounder
+    "U_t": (1.0, (0.75, 1.5)), "J_t": (1.0, (0.75, 1.5)),
     # b_style="oval" (b and p): the oval's reach right of the stem's right edge, its left edge past the stem's
     # left edge, its counter's left side right of the stem's right edge, thickness, stress and fullness
     "b_ov_far": (400, (320, 520)), "b_ov_l": (0, (-60, 30)), "b_ov_in": (0, (-20, 40)), "b_ov_thin": (60, (8, 120)),
@@ -331,8 +333,8 @@ DEFAULTS: dict[str, tuple] = {
     "F_width": (389, (300, 480)), "F_mid": (0.85, (0.6, 1.0)), "F_mid_y": (0.48, (0.38, 0.6)),
     "L_width": (408, (320, 500)), "T_width": (614, (520, 720)), "T_wedge": (90, (0, 160)),
     "T_serif": (120, (60, 200)),
-    "J_bot": (14, (-60, 120)), "J_hook": (233, (140, 320)), "J_end_y": (-190, (-240, -120)),
-    "J_end_w": (1.0, (0.4, 1.6)), "J_end_dir": (175, (120, 210)),
+    "J_bot": (14, (-60, 320)), "J_hook": (233, (140, 440)), "J_end_y": (-190, (-240, 360)),
+    "J_end_w": (1.0, (0.4, 1.6)), "J_end_dir": (175, (60, 210)),
     "K_arm_x": (420, (300, 540)), "K_join_y": (250, (120, 380)), "K_leg_x": (440, (340, 560)),
     "K_leg_y0": (380, (250, 500)), "K_leg_x0": (230, (100, 340)), "K_thick": (100, (60, 140)),
     "K_thin": (40, (15, 120)),
@@ -701,7 +703,7 @@ def didone_set(P) -> TerminalSet:
 def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "stroke", g_band: str = "none",
            g_style: str = "double", l_style: str = "stem", J_style: str = "hook", R_leg: str = "line",
            Q_style: str = "wedge", seven_style: str = "poly", fig_ends: str = "wedge", face_serifs: bool = True, one_style: str = "flag",
-           d_style: str = "lobe", a_style: str = "lobe", y_left: str = "stroke",
+           d_style: str = "lobe", a_style: str = "lobe", y_left: str = "stroke", level_trim: bool = False,
            b_style: str = "bowl", E_serifs: str = "rect",
            G_jaw: str = "bar"):
     """Register the kit's glyphs on ``font``. ``g_ear``: ``"stroke"`` (a
@@ -737,7 +739,10 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     a square spur ``a_spur_len`` x ``a_spur_h`` off the stem's foot).
     ``y_left``: the y's thick arm -- ``"stroke"`` (with its top and vertex
     terminals) or ``"poly"`` (a parallelogram cut level at x-height and at
-    the vertex: a flat-cut terminal there would cut through the tail too)."""
+    the vertex: a flat-cut terminal there would cut through the tail too).
+    ``level_trim``: cut the diagonal letters (A K M N V W X Y Z, k v w x z)
+    level at the baseline and at cap/x-height, so no vertex or diagonal end
+    pokes past them (a grotesque's; the serif's vertices may overshoot)."""
     from ..handles import handle
     from ..junctions import contact, join, join_handles, notch_cut
     from ..parts import part
@@ -751,8 +756,23 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     xh, os_ = P.xheight, P.overshoot
     want = set(glyphs) if glyphs else None
 
+    def _trimmed(name, fn):
+        top = ({c: P.capheight for c in "AKMNVWXYZ"} | {c: xh for c in "vwxz"} | {"k": None}).get(name, False)
+        if not level_trim or top is False:
+            return fn
+
+        def wrapped(gl):
+            fn(gl)
+            (gl.cut("trim_bottom").move((-600, -400), "a").line((1600, -400), "b").line((1600, 0), "c")
+                .line((-600, 0), "d").close())
+            if top is not None:
+                (gl.cut("trim_top").move((-600, top), "a").line((1600, top), "b").line((1600, top + 400), "c")
+                    .line((-600, top + 400), "d").close())
+        return wrapped
+
     def g(name, sb=None, **kw):
         def deco(fn):
+            fn = _trimmed(name, fn)
             from ..parts import _unicode_for
             u = _unicode_for(name)
             ch = chr(u) if u is not None else None
@@ -1268,7 +1288,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         ry, cy = (ch + 2 * os_) / 2, ch / 2
         q = max(0.0, 1 - ((val(yt) - val(cy)) / val(ry)) ** 2)
         ex = W / 2 + (W / 2) * q ** 0.42          # outer edge of the bowl at the terminal
-        bh = P.G_serif * P.G_beard_k              # beard length
+        # beard length (none without face serifs: a sans's G has a plain terminal)
+        bh = P.G_serif * P.G_beard_k if face_serifs else 0
         bw = P.E_serif_w + P.G_beard_dw           # beard width
         if G_jaw == "serif":
             # the terminal is the bowl's own wall cut off vertically at
@@ -1304,8 +1325,13 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         else:
             gl += stem_(x=sx, bottom=ch * P.G_spur_bot, top=yb, pen=spur_pen, foot="G_spur", head=False,
                         name="spur")
+            if not face_serifs:
+                # a sans's jaw: the bowl stops at the jaw's outer edge below the bar
+                (gl.cut("jaw_trim").move((sx + sw_ / 2, -os_ - 60), "a").line((R, -os_ - 60), "b")
+                    .line((R, yb), "c").line((sx + sw_ / 2, yb), "d").close())
             rect(gl, "bar", sx - sw_ / 2 - P.G_serif, yb - P.bar_t, sx + sw_ / 2, yb)
-            rect(gl, "beard", ex - bw, yt - bh, ex, yt + 2)
+            if face_serifs:
+                rect(gl, "beard", ex - bw, yt - bh, ex, yt + 2)
 
     @g("S")
     def S(gl):
@@ -1611,8 +1637,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             # a grotesque's J: the hook turns along the baseline and back up
             (gl.path(name="hook", pen=cap_pen, profile=Profile((0, 1), (0.5, 1), (1, P.J_end_w)))
                 .start((0, P.J_bot + 2), name="root", dir=270, terminal=False)
-                .curve_to((-P.J_hook * 0.5, -os_ + P.hairline / 2), name="bottom", dir=180)
-                .curve_to((-P.J_hook, P.J_end_y), name="end", dir=P.J_end_dir, terminal="apex"))
+                .curve_to((-P.J_hook * 0.5, -os_ + P.hairline / 2), name="bottom", dir=180, tension=P.J_t)
+                .curve_to((-P.J_hook, P.J_end_y), name="end", dir=P.J_end_dir, terminal="apex", tension=P.J_t))
             return
         (gl.path(name="hook", pen=cap_pen, profile=Profile((0, 1), (0.5, 1), (1, P.J_end_w)))
             .start((0, P.J_bot + 2), name="root", dir=270, terminal=False)
@@ -1669,8 +1695,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         cap_stem(gl, x=W, bottom=P.U_join, foot=False, pen=thinp, name="right")
         (gl.path(name="cup", pen=thickp, profile=Profile((0, 1), (0.45, 1), (1, P.U_end_w)))
             .start((0, P.U_join + 2), name="left", dir=270, terminal=False)
-            .curve_to((W * 0.48, -os_ + P.hairline / 2), name="bottom", dir=0)
-            .curve_to((W, P.U_join + 2), name="right", dir=90, terminal=False))
+            .curve_to((W * 0.48, -os_ + P.hairline / 2), name="bottom", dir=0, tension=P.U_t)
+            .curve_to((W, P.U_join + 2), name="right", dir=90, terminal=False, tension=P.U_t))
 
     @g("V", sb=(P.v_sb, P.v_sb))
     def V(gl):
