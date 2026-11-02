@@ -241,6 +241,36 @@ def test_autokern_kerns_interactions_not_ordinary_pairs():
     assert kr._closest("A", "V")(k) >= 90 - 1e-6         # never closer than the clearance
 
 
+
+def test_kern_style_biases_add_per_side_but_not_between_punctuation():
+    from ductus.kerning import Kerner
+    f = load_font(ROOT / "examples/sans/font.py")
+    cf = compile_font(f, glyphs=["n", "o", "period", "comma"])
+    base = Kerner(cf.glyphs, strength=0.6, clearance=0)
+    styled = Kerner(cf.glyphs, strength=0.6, clearance=0,
+                    weights={"n": [1, 1, -10, -5], "o": [1, 1, 0, -10], "period": [1, 1, -20, -20]})
+    # biases in steps of 5 survive the kerner's rounding to 5 exactly
+    assert styled.kern("n", "o") == base.kern("n", "o") - 20          # n's right bias + o's left bias
+    assert styled.kern("o", "n") == base.kern("o", "n") - 5           # o's right bias (0) + n's left bias
+    assert styled.kern("period", "comma") == base.kern("period", "comma")   # punctuation pairs take none
+    two = Kerner(cf.glyphs, strength=0.6, clearance=0, weights={"n": [1.0, 1.0]})
+    assert two.kern("n", "o") == base.kern("n", "o")                   # two-number styles still work
+
+
+def test_legacy_kern_table_is_capped_but_gpos_keeps_every_pair(tmp_path):
+    from ductus.emit import build_otf, validate_otf
+    from ductus.proof import gpos_kerning
+    from fontTools.ttLib import TTFont
+    f = load_font(ROOT / "examples/sans/font.py")
+    cf = compile_font(f)
+    names = sorted(g for g, cg in cf.glyphs.items() if cg.contours)
+    cf.kerning = {(a, b): -10 - (i % 50) for i, (a, b) in enumerate((a, b) for a in names for b in names)}
+    assert len(cf.kerning) > 10920
+    otf = build_otf(cf, tmp_path / "k.otf")
+    assert not validate_otf(otf)
+    assert len(TTFont(otf)["kern"].kernTables[0].kernTable) == 10920
+    assert len(gpos_kerning(otf)) == len(cf.kerning)
+
 def test_gpos_kerning_reaches_proofs(tmp_path):
     from ductus.emit import build_otf
     from ductus.proof import gpos_kerning

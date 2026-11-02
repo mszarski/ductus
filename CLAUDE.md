@@ -116,8 +116,8 @@ ask the user if you need it. `trajectory_classifier` was removed; it is unrelate
 - Benchmark IoU is exact on outlines (pathops) at the best offset, with guards (pathops once returned 1.007).
 - **Kerning is optical, computed from our own outlines** (`kerning.py`): power mean of side-profile gaps
   (p = −32, depth 500) vs a flat `|` edge; serifs discounted by morphological opening; 2-D clearance only
-  limits tightening. House style = per-glyph `[left, right]` weights fitted to the reference by ALS
-  (`kern_style.json`). Rejected: copying reference kern values (licensing), an "H" partner (serifs pollute), 1-D clearance.
+  limits tightening. House style = per-glyph `[left, right(, bias left, bias right)]` fitted to the reference by
+  ALS (`kern_style.json`, `tools/fitting/kstyle.py`); biases add class-kern-like tightening the optical measure can't see. Rejected: copying reference kern values (licensing), an "H" partner (serifs pollute), 1-D clearance.
 
 ## Dead ends (don't repeat)
 

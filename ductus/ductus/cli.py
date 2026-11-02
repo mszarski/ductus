@@ -132,7 +132,7 @@ def kern(font_py: Path,
     cf = compile_font(font, overrides=_overrides_for(font_py, None))
     names = [n for n, g in cf.glyphs.items() if g.contours and g.unicode is not None
              and unicodedata.category(chr(g.unicode))[0] in "LP"]
-    # style weights {glyph: [as left glyph, as right glyph]}; accented letters
+    # style weights {glyph: [as left glyph, as right glyph(, bias as left, bias as right)]}; accented letters
     # take their base's, combined glyphs (æ) their outer parts'
     style = style or (font_py.parent / "kern_style.json")
     weights = json.loads(style.read_text()) if style.exists() else {}
@@ -144,7 +144,18 @@ def kern(font_py: Path,
         elif "parts" in spec:
             first, last = spec["parts"][0][0], spec["parts"][-1][0]
             if first in weights and last in weights:
-                weights[cname] = [weights[last][0], weights[first][1]]
+                wl, wf = weights[last], weights[first]
+                weights[cname] = [wl[0], wf[1]] + ([wl[2] if len(wl) > 2 else 0.0, wf[3] if len(wf) > 3 else 0.0]
+                                                   if len(wl) > 2 or len(wf) > 2 else [])
+    # ligatures (no code point of their own) kern too, as their outer components do
+    for lg, comps in (cf.ligatures or {}).items():
+        if lg in cf.glyphs and lg not in names:
+            names.append(lg)
+            first, last = comps[0], comps[-1]
+            if lg not in weights and first in weights and last in weights:
+                wl, wf = weights[last], weights[first]
+                weights[lg] = [wl[0], wf[1]] + ([wl[2] if len(wl) > 2 else 0.0, wf[3] if len(wf) > 3 else 0.0]
+                                                if len(wl) > 2 or len(wf) > 2 else [])
     t0 = time.perf_counter()
     pairs = autokern(cf.glyphs, names, min_abs=min_abs, strength=strength, punct_strength=punct_strength,
                      clearance=clearance, weights=weights)

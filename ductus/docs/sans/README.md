@@ -118,3 +118,97 @@ The words comparison against Geist Sans is not committed, because renders
 of the reference stay out of the repo. To regenerate it, run
 `tools/fitting/cmpw.py`. Geist also tucks a
 few pairs our profile kerner leaves alone, such as rn −40 and Fl −20.
+
+## 03 — judged large: structural fixes, and kerning with per-side bias
+
+![iteration 03](03.png)
+
+**How the problems were found.** The words were rendered at 200–500 px
+beside Geist Sans (`tools/fitting/look.py` and `vlook.py`; the renders
+stay in scratch). Several glyphs with decent IoU had visible defects:
+- the 6 and 9 ended in a serif's wedge face;
+- the d, q, g, b and p had V notches and an S-wave crown where a lobe
+  hung on the stem;
+- the y had a white hairline through its tail;
+- spikes poked past the baseline or cap height on N and W;
+- the r ended in a thin beak, and the t and l tails curled up;
+- the G had a stub, and the U a dent.
+
+**New kit options**, so the serif keeps its own constructions:
+
+| Option | Glyphs | What it does |
+|---|---|---|
+| `fig_ends="cut"` | 6 9 | The hook turns down and ends in a plain cut. Its root is a parameter and never steps out past the bowl. |
+| `one_style="arm"` | 1 | A curved arm instead of a diagonal flag. |
+| `face_serifs=False` | 2 E F L T Z z 7 Æ Œ G | No vertical-face wedge serifs, and no beard on the G. |
+| `d_style="bowl"`, `b_style="oval"` | d q g, b p | An oval overlapping the stem. The g's bowl sits higher (`gs_bowl_b`). |
+| `a_style="bowl"` | a | A tilted oval, with Geist's square spur at the stem's foot. |
+| `y_left="poly"` | y | The thick arm is a parallelogram, so no flat cut crosses the tail. |
+| `level_trim` | A K M N V W X Y Z k v w x z | Cut level at the baseline and cap/x-height. |
+
+The 2's diagonal is trimmed at the base's left end in both faces.
+
+**A compiler bug.** Cuts were filled together by winding number. Two
+overlapping cuts drawn in opposite directions therefore cancelled where
+they overlapped, and left ink there. The N's diagonal clip lost its
+fragment that way in both faces. Cuts are now unioned one by one. Only 6 of
+379 glyphs across the three fonts changed (N and Ñ in both faces, and
+sub-unit changes to the serif's G and d).
+
+**Values.**
+- The r's arm and the t and l tails keep their full weight to a level end.
+- The e's aperture cut is flatter and its bar runs flush with the bowl.
+- The J's ranges now cover the baseline hook (the sans sat outside them,
+  so fits could not move it).
+- The W is narrower (its width range now goes down to 700).
+
+Per-glyph IoU, before → after:
+
+| Glyph | Before | After |
+|---|---|---|
+| d | 0.91 | 0.98 |
+| q | 0.89 | 0.98 |
+| g | 0.81 | 0.95 |
+| b | 0.94 | 0.98 |
+| p | 0.93 | 0.97 |
+| 6 | 0.88 | 0.95 |
+| 9 | 0.85 | 0.94 |
+| 1 | 0.89 | 0.96 |
+| J | 0.78 | 0.97 |
+| W | 0.89 | 0.96 |
+| l | 0.92 | 0.96 |
+| r | 0.91 | 0.94 |
+| a | 0.86 | 0.90 |
+
+Mean IoU over all 175 glyphs: 0.916 → 0.923.
+
+**Kerning.** The style weights only scale our optical measure, so pairs it
+sees as neutral (rn, xo, Fl) could not be kerned. Each glyph's style can now
+carry two more numbers, a bias as left glyph and a bias as right glyph,
+added to its pairs' kerns. These act like the class kerns a type designer
+sets. Punctuation-only pairs take none.
+
+The fit (`tools/fitting/kstyle.py`) regularises the biases toward 0.
+On 30% of the pairs held out of the fit, correlation with Geist's kerning
+went from 0.615 (weights only) to 0.760.
+
+| Agreement with Geist Sans | Iteration 02 | Now |
+|---|---|---|
+| All pairs, correlation | 0.705 | 0.826 |
+| All pairs, MAE | 8.9 u | 7.0 u |
+| Letter pairs, correlation | 0.676 | 0.817 |
+
+Ligatures now kern as their outer components do, which closes the
+f + f_i gap. The legacy `kern` table keeps the strongest 10,920 pairs, its
+format's limit; GPOS carries all 16,030. Generated with `ductus kern
+examples/sans/font.py --clearance 60 --min-abs 5`.
+
+**Still to do.**
+- The a's bowl top is a curve where Geist's is a straight diagonal.
+- The U has a slight notch where its cup meets the right stem (visible
+  above about 300 px).
+- ß, & and @ differ in shape.
+- The braces have a notched beak.
+- # and < > differ in width.
+- ¿ and ¡ are missing.
+- The ff join leaves a slight gap.

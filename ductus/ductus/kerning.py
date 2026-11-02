@@ -115,7 +115,10 @@ class Kerner:
                       if g.unicode is not None and unicodedata.category(chr(g.unicode))[0] in "PS"}
         self.edge, self.clearance, self.limit = edge, clearance, limit
         # style: per-glyph weights {glyph: [as left glyph (its right side), as right glyph (its left side)]};
-        # a pair's kern is scaled by the product (a house style -- which sides kern, how hard)
+        # a pair's kern is scaled by the product (a house style -- which sides kern, how hard). Two more
+        # optional numbers per glyph, [.., .., bias as left, bias as right], are added to the pair's kern:
+        # a side's house tightening the optical measure can't see (a class kern, e.g. the r's arm against
+        # every x-height letter). Pairs of two punctuation marks take no bias.
         self.weights = weights or {}
         self._d: dict = {}
 
@@ -148,7 +151,11 @@ class Kerner:
             return 0
         k = self.correction(left, right)
         if self.weights:
-            k *= self.weights.get(left, (1.0, 1.0))[0] * self.weights.get(right, (1.0, 1.0))[1]
+            wl = self.weights.get(left, (1.0, 1.0))
+            wr = self.weights.get(right, (1.0, 1.0))
+            k *= wl[0] * wr[1]
+            if not (left in self.punct and right in self.punct):
+                k += (wl[2] if len(wl) > 2 else 0.0) + (wr[3] if len(wr) > 3 else 0.0)
         k = float(np.clip(k, *self.limit))
         # a kern never brings the outlines closer than ``clearance`` -- the
         # true (2-D) distance between the left glyph's right edge and the

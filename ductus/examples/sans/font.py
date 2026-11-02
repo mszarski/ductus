@@ -79,8 +79,8 @@ P = kit.params(
     y_end_y=-126, y_end_w=1.0, P_bot=276, P_far=458, P_flat=224, Q_t0=305, Q_tip_x=716, Q_tip_y=-120,
     Q_end_x=674, F_width=407, F_mid=0.95, F_mid_y=0.49, L_width=402, T_width=526, T_wedge=0.0, T_serif=84,
     Q_b0y=154, Q_b1x=544, Q_b1y=-72, Q_bar_w=73, Q_b0x=380,
-    J_bot=243, J_hook=361, J_end_y=235, J_end_w=1.0, J_end_dir=86, W_width=820, W_mid3_dx=6.0, zero_w=565,
-    J_t=0.88,
+    J_bot=243, J_hook=361, J_end_y=235, J_end_w=1.0, J_end_dir=86, W_width=781, W_mid3_dx=-1, zero_w=565,
+    W_v1=0.24, W_v2=0.74, W_mid_dx=-3, W_thin_dx=10, J_t=0.88,
     zero_thick_k=1.03, one_top=710, one_fy=562, one_flag=232, one_flag_t=2.0, two_w=504, two_end_y=490,
     one_arm_y=564, one_arm_t=76, one_arm_x=0.48, one_arm_tn=0.8,
     two_right_y=527, two_mid_x=0.44, two_mid_y=282, two_mid_dir=210, two_bar_r=502, two_serif=122,
@@ -110,7 +110,7 @@ P = kit.params(
     nine_root_w=0.75, nine_root_t=1.0,
     at_slant=4.0, at_w=864, at_h=845, at_bot=-130, at_ring_t=58, at_in_w=374, at_in_h=420, at_in_x=0.25,
     at_root_dir=348, at_end_x=0.7, at_end_y=0.13, at_end_dir=42, at_pen_k=1.3, at_in_y=80,
-    colon_dy=-30, math_t=70, math_y=297, math_w=480, eq_gap=197, eq_t=70, times_w=364, lt_w=484, lt_h=438,
+    colon_dy=-30, math_t=70, math_y=297, math_w=480, eq_gap=197, eq_t=70, times_w=364, lt_w=479, lt_h=438,
     lt_t=78, lt_dy=-8.0, lt_end_k=0.95, mid_dot_y=302, bullet_r=104, ellipsis_gap=185, under_w=468, under_t=79,
     under_y=-39, brk_w=239, brk_stem=82, brk_arm=70, brk_top=750, brk_bot=-109, brace_w=358, brace_pen=82,
     brace_x=0.44, brace_end_w=1.1, brace_beak_w=1.2, brace_beak_x=21, hash_w=403, hash_slant=138, hash_t=74,
@@ -132,7 +132,7 @@ P = kit.params(
     pound_foot_x=0.26, pound_foot_dir=75, pound_rise_x=0.24, pound_rise_y=0.8, pound_top_x=0.56,
     pound_end_y=0.79, pound_end_w=1.2, pound_bar_l=0.0, pound_bar_r=0.72, pound_base_k=1.1, pound_bar_y=354,
     pound_w=500, sans_cut_fig=90, sans_cut_hood=82, sans_cut_r=0,
-    sans_cut_t=0,
+    sans_cut_t=0, endash_len=503,
 )
 kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
                            "ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüýÿı´`¨¸˚ÆŒØæœøß"
@@ -143,6 +143,11 @@ kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 # side bearings (left, right) on top of sb_straight / sb_round, set from the
 # glyphs' measured side bearings in Geist Sans
 font.spacing.update({
+    "q": (0, 36),
+    "p": (36, 0),
+    "d": (0, 36),
+    "g": (0, 36),
+    "b": (36, 0),
     "slash": (-4, 20),
     "parenright": (-28, 0),
     "parenleft": (0, -28),
@@ -199,7 +204,7 @@ font.spacing.update({
     "M": (12, 12),
     "L": (12, -32),
     "K": (12, -28),
-    "J": (24, -4),
+    "J": (22, -4),
     "I": (12, 12),
     "F": (12, -28),
     "D": (12, -4),

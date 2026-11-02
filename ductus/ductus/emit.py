@@ -81,7 +81,11 @@ def build_otf(cf: CompiledFont, path):
         from fontTools.ttLib.tables._k_e_r_n import KernTable_format_0
         sub = KernTable_format_0()
         sub.version, sub.format, sub.coverage, sub.tupleIndex = 0, 0, 1, 0
-        sub.kernTable = dict(kerning)
+        # a format-0 subtable's length field is 16 bits: at most 10,920 pairs
+        # (14-byte header + 6 bytes a pair). GPOS carries them all; the legacy
+        # table keeps the strongest
+        LEGACY_MAX = (0xFFFF - 14) // 6
+        sub.kernTable = dict(sorted(kerning.items(), key=lambda kv: -abs(kv[1]))[:LEGACY_MAX])
         kt = newTable("kern"); kt.version = 0; kt.kernTables = [sub]
         fb.font["kern"] = kt
     fb.save(str(path) if isinstance(path, Path) else path)
