@@ -91,7 +91,7 @@ ask the user if you need it. `trajectory_classifier` was removed; it is unrelate
 - **FreeType ignores the legacy `kern` table in CFF fonts.** Proofs must use `proof.gpos_kerning`
   / `render_text` (cached by path + mtime); proofs made before that fix were unkerned.
 - `proof._shape` applies every GSUB type-4 ligature lookup regardless of feature; distrust odd reference renders.
-- `pyproject.toml` `packages` omits `ductus.kits`: editable installs work, a regular install misses the kit.
+- Packages are discovered (`[tool.setuptools.packages.find]`, `ductus*`); `tests/test_packaging.py` fails if a subpackage would not ship.
 - Pinhole contours < 40 u² are dropped after merge (< 4 u² earlier); a real tiny mark can vanish.
 - Stems lint is skipped for slanted glyphs (`font.slants`), profiled strokes and strokes with node `dw`.
 - Composites inherit their base's kerning weights; combines (æ œ) take their outer parts'. Marks are drawn
