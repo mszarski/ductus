@@ -197,7 +197,7 @@ DEFAULTS: dict[str, tuple] = {
     "b_crown_x": (0.4, (0.05, 0.9)), "b_crown_t": (34, (6, 120)),
     "b_spur_len": (20, (0, 100)), "b_spur_rise": (20, (0, 100)), "b_spur_drop": (20, (0, 100)),
     "b_foot_angle": (-52, (-89, -10)),
-    "r_width": (230, (150, 330)), "r_y": (0.82, (0.6, 0.98)), "r_dir": (-30, (-80, 20)),
+    "r_width": (230, (150, 330)), "r_arch_dw": (0, (-80, 200)), "r_arch_sdw": (0, (-30, 80)), "r_y": (0.82, (0.6, 0.98)), "r_dir": (-30, (-80, 20)),
     "f_hook": (230, (120, 330)), "f_top": (720, (640, 790)), "f_bar_l": (90, (30, 160)), "f_bar_r": (150, (60, 240)),
     "f_end_y": (0.92, (0.8, 1.0)), "f_beak_len": (25, (0, 120)), "f_beak_depth": (70, (5, 200)),
     # crossbars of f and t: the left end can come to a point (at bar_tip_y of
@@ -740,7 +740,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
            paren_ends: str = "square", chevron_style: str = "stroke", amp_style: str = "stroke",
            dot_style: str = "round", ligatures: bool = True,
            b_style: str = "bowl", E_serifs: str = "rect",
-           G_jaw: str = "bar"):
+           G_jaw: str = "bar", r_style: str = "ear"):
     """Register the kit's glyphs on ``font``. ``g_ear``: ``"stroke"`` (a
     short stroke taking the ``ear`` terminal, e.g. a ball) or ``"flag"`` (a
     four-sided flag). ``g_band``: ``"flat"`` puts a flat bar across the top of
@@ -896,7 +896,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             acc += L
 
     @part
-    def arch(p, x, width, top=xh, flip=False, edge_half=None, inset=False):
+    def arch(p, x, width, top=xh, flip=False, edge_half=None, inset=False, shoulder_dw=0, taper=None, join_at=None):
         """Leaves the stem at a :class:`Join` (hairline thinning at the crotch),
         over the shoulder, down into the leg. Ends inside the leg so the leg
         can be an exact stem. ``flip`` rotates it 180 degrees (the cup of u)."""
@@ -904,7 +904,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             return _cup(p, x, width, top)
         bias = P.n_bias
         hair = arch_pen.hairline
-        J = n_join(top)
+        # join_at: (height share, thin, angle) for an arch that leaves the stem elsewhere (the r)
+        J = n_join(top) if join_at is None else join(val(top) * join_at[0], join_at[1], join_at[2], P.n_notch, P.n_notch_w)
         # the join sits on the stem's actual edge (the h's stem is a little
         # heavier: on n's edge its notch cut a pinhole inside the stem)
         edge = x + (P.stem / 2 if edge_half is None else edge_half)
@@ -912,19 +913,19 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         m0 = thin / max(arch_pen.width_at(d0), 1.0)
         left_half = hair / 2 + (val(P.stem) - hair) * val(bias)
         leg_x = x + width
-        sh_y = top + os_ - arch_pen.width_at(0) * (1 - val(bias))
+        sh_y = top + os_ - (arch_pen.width_at(0) + shoulder_dw) * (1 - val(bias))   # the extra weight goes inward
         (p.path(name="arch", pen=arch_pen, bias=bias,
-                profile=Profile((0, m0), (P.n_taper_len, 1), (1, 1)))
+                profile=Profile((0, m0), (P.n_taper_len if taper is None else taper, 1), (1, 1)))
             .start(st, name="join", dir=d0, terminal=False, pen_angle=P.n_join_pa)
             .curve_to((x + width * P.n_shoulder_x, sh_y), name="shoulder", dir=0, tension=P.n_tension,
-                      width=P.n_shoulder_dw, pen_angle=P.n_shoulder_pa)
+                      width=P.n_shoulder_dw + shoulder_dw, pen_angle=P.n_shoulder_pa)
             .curve_to((leg_x + P.stem / 2 - left_half, top * P.n_out_y * 0.5), name="leg", dir=-90,
                       tension=P.n_leg_t, pen_angle=P.n_leg_pa))
         notch_cut(p, J, val(edge), +1)
         if inset:
-            head_inset_cut(p, edge, val(top) * P.n_join_at, P.head_inset)
+            head_inset_cut(p, edge, val(top) * (P.n_join_at if join_at is None else join_at[0]), P.head_inset)
         join_handles(J, val(edge), +1, rising=True)
-        taper_handle(p._strokes[-1], P.n_taper_len)
+        taper_handle(p._strokes[-1], P.n_taper_len if taper is None else taper)
 
     def _cup(p, x, width, top):
         """The u's cup: leaves the right stem low through a Join (the arch's
@@ -1253,6 +1254,14 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     @g("r", sb=(0, P.r_rsb))
     def r(gl):
         gl += stem_(x=0, top=xh + P.head_top, head="head", foot="foot_wide")
+        if r_style == "arch":
+            # the grotesque r: the n's arch (n_* values, its width + r_arch_dw)
+            # cut off square at r_width -- the arm keeps the n's shoulder
+            gl += arch(x=0, width=P.n_width + P.r_arch_dw, inset=True, shoulder_dw=P.r_arch_sdw, taper=P.r_taper_len,
+                         join_at=(P.r_join_at, P.r_join_thin, P.r_join_angle))
+            (gl.cut("r_term").move((P.r_width, -400), "a").line((P.r_width + 2000, -400), "b")
+                .line((P.r_width + 2000, xh + 400), "c").line((P.r_width, xh + 400), "d").close())
+            return
         J = join(val(xh) * P.r_join_at, P.r_join_thin, P.r_join_angle)
         _, _, st, d0, thin = contact(J, val(P.stem / 2), +1, rising=True)
         join_handles(J, val(P.stem / 2), +1, rising=True)

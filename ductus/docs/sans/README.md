@@ -502,3 +502,38 @@ The Bold scores 0.8800 → 0.8816 against Geist Bold.
   text sizes.
 - The e's terminal is still a wedge where Geist cuts it level.
 - Lines still set slightly long at Medium and Bold.
+
+## 11 — the r is the n's arch, cut square
+
+The Bold r still looked wrong: its arm was a flag rising in a straight
+diagonal from a deep notch. Geist's r is the top of its n: the arm leaves
+the stem at the top, rounds over a shoulder level with the x-height, and
+ends in a square cut. A single curve from the join can't make that shoulder.
+A steep start makes the thick pen bulge above the x-height.
+
+New kit option `r_style="arch"` (the sans uses it; `"ear"` is the default,
+so the serif and the benchmark are unchanged). The r draws the n's arch,
+with its own values where Geist's r differs from its n:
+
+- width `n_width + r_arch_dw` (the arch is wider, so the cut lands on the
+  level part of the shoulder);
+- its own join (`r_join_at/thin/angle`), lower than the n's, which gives a
+  smooth concave underside;
+- its own taper (`r_taper_len`): the taper is a share of arc length, and
+  this arch is much longer than the n's;
+- extra weight at the shoulder (`r_arch_sdw`), kept inside the x-height.
+
+The arch is then cut square at `r_width`. `arch()` gained `shoulder_dw`,
+`taper` and `join_at` arguments; their defaults leave n, m and h unchanged.
+
+| r | ear (before) | arch |
+|---|---|---|
+| Regular vs Geist Regular | 0.943 | 0.9348 |
+| Bold vs Geist Bold | 0.943 | 0.932 |
+
+The IoU is a little lower, but the outline now follows Geist's at every
+weight. Mean IoU: Regular 0.9311 → 0.9310, Bold 0.8816 (unchanged),
+Light 0.8903 → 0.8904. Kerning re-run.
+
+**Self-critique.** The Bold a's counter looks pinched in words ("rar").
+That is next.
