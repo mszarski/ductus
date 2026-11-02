@@ -245,6 +245,19 @@ DEFAULTS: dict[str, tuple] = {
     "Q_b0x": (440, (300, 600)), "Q_b0y": (130, (40, 260)), "Q_b1x": (640, (500, 780)), "Q_b1y": (-120, (-220, -20)),
     "Q_bar_w": (88, (40, 130)), "N_dy": (0, (-30, 30)),
     "eight_overlap": (1.0, (0.3, 1.2)), "gs_dfar": (0, (-80, 40)),
+    "gs_bowl_b": (-12, (-20, 120)),
+    # a_style="bowl": the oval's left edge, top, right edge past the stem's, its counter's right side left of
+    # the stem's left edge, top/bottom thickness, tilt and fullness (outer, counter; h, v)
+    "a_bowl_l": (44, (0, 120)), "a_bowl_t": (320, (240, 420)), "a_bowl_r": (0, (-60, 30)), "a_bowl_in": (0, (-20, 40)),
+    "a_bowl_thin": (60, (8, 120)), "a_bowl_thin_b": (60, (8, 120)), "a_bowl_rot": (0, (-15, 15)),
+    "a_full_h": (0.6, (0.4, 0.9)), "a_full_v": (0.6, (0.4, 0.9)), "a_in_full_h": (0.6, (0.4, 0.9)),
+    "a_in_full_v": (0.6, (0.4, 0.9)),
+    "a_spur_len": (0, (0, 80)), "a_spur_h": (70, (30, 120)),
+    # b_style="oval" (b and p): the oval's reach right of the stem's right edge, its left edge past the stem's
+    # left edge, its counter's left side right of the stem's right edge, thickness, stress and fullness
+    "b_ov_far": (400, (320, 520)), "b_ov_l": (0, (-60, 30)), "b_ov_in": (0, (-20, 40)), "b_ov_thin": (60, (8, 120)),
+    "b_ov_stress": (0, (-20, 20)), "b_ov_full_h": (0.6, (0.4, 0.9)), "b_ov_full_v": (0.6, (0.4, 0.9)),
+    "b_ov_in_full_h": (0.6, (0.4, 0.9)), "b_ov_in_full_v": (0.6, (0.4, 0.9)),          # d_style="bowl": the single-storey g's bowl bottom
     "seven_stem": (90, (50, 130)), "seven_top_dir": (240, (200, 270)), "seven_foot_dir": (250, (220, 290)),
     "pound_foot_x": (0.3, (0.15, 0.5)), "pound_foot_dir": (90, (60, 120)), "pound_rise_x": (0.32, (0.15, 0.5)),
     "pound_rise_y": (0.62, (0.4, 0.8)), "pound_top_x": (0.62, (0.4, 0.8)), "pound_end_x": (0.92, (0.75, 1.05)),
@@ -267,7 +280,12 @@ DEFAULTS: dict[str, tuple] = {
     "d_bot_angle": (50, (0, 80)), "d_lobe_thick": (90, (50, 130)), "d_lobe_thin_b": (34, (10, 80)),
     "d_out_mid": (0.5, (0.3, 0.7)), "d_in_mid": (0.5, (0.3, 0.7)), "d_bx_out": (0.75, (0.3, 1.0)),
     "d_bx_in": (0.85, (0.3, 1.0)), "d_crown_x": (0.4, (0.1, 0.8)), "d_crown_t": (50, (15, 120)),
-    "q_dfar": (0, (-60, 60)), "q_top": (0, (-40, 60)),
+    "q_dfar": (0, (-60, 60)),
+    # d_style="bowl": the oval's right edge past the stem's right edge, its counter's right side left of the
+    # stem's left edge, top/bottom thickness, stress and fullness (outer, counter; h, v)
+    "d_bowl_r": (0, (-60, 30)), "d_bowl_in": (0, (-20, 40)), "d_bowl_thin": (50, (8, 120)), "d_stress": (0, (-20, 20)),
+    "d_full_h": (0.6, (0.4, 0.9)), "d_full_v": (0.6, (0.4, 0.9)), "d_in_full_h": (0.6, (0.4, 0.9)),
+    "d_in_full_v": (0.6, (0.4, 0.9)), "q_top": (0, (-40, 60)),
     "p_dfar": (0, (-60, 60)),
     # c: the e's bowl and lower terminal; the upper terminal a vertical face
     "c_width": (465, (380, 540)), "c_face": (0.9, (0.7, 1.0)), "c_top_y": (420, (330, 500)),
@@ -683,13 +701,15 @@ def didone_set(P) -> TerminalSet:
 def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "stroke", g_band: str = "none",
            g_style: str = "double", l_style: str = "stem", J_style: str = "hook", R_leg: str = "line",
            Q_style: str = "wedge", seven_style: str = "poly", fig_ends: str = "wedge", face_serifs: bool = True, one_style: str = "flag",
+           d_style: str = "lobe", a_style: str = "lobe", y_left: str = "stroke",
            b_style: str = "bowl", E_serifs: str = "rect",
            G_jaw: str = "bar"):
     """Register the kit's glyphs on ``font``. ``g_ear``: ``"stroke"`` (a
     short stroke taking the ``ear`` terminal, e.g. a ball) or ``"flag"`` (a
     four-sided flag). ``g_band``: ``"flat"`` puts a flat bar across the top of
     the g's lower loop (and trims the loop above it) -- a tilted loop with a
-    flat top, which one contour bowl can't make. ``b_style``: ``"bowl"`` (a
+    flat top, which one contour bowl can't make. ``b_style`` (b and p): ``"oval"`` (the
+    d's oval mirrored, ``b_ov_*``; a grotesque's), ``"bowl"`` (a
     free bowl overlapping the stem) or ``"lobe"`` (a lobe hanging on the
     stem at two joins, like the a's bowl mirrored). ``E_serifs``: ``"rect"``
     (upright bars at the arm ends) or ``"wedge"`` (vertical faces whose inner
@@ -707,7 +727,17 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     ``one_style``: ``"flag"`` (the stem's top cut off on a diagonal) or
     ``"arm"`` (the stem stands to ``one_top``; a monoline arm ``one_arm_t``
     thick runs from a square-cut tip at ``-one_flag``, centred at
-    ``one_arm_y``, and curves up into the stem)."""
+    ``one_arm_y``, and curves up into the stem). ``d_style``: the d's, q's
+    and single-storey g's bowl -- ``"lobe"`` (hung on the stem at two joins,
+    a serif's) or ``"bowl"`` (an oval overlapping the stem, a grotesque's:
+    the crotches are where the oval meets the stem; its counter's right side
+    runs ``d_bowl_in`` left of the stem's left edge). ``a_style``: the a's
+    bowl, ``"lobe"`` or ``"bowl"`` (an oval ``a_bowl_l``..stem, baseline to
+    ``a_bowl_t``, tilted ``a_bowl_rot`` degrees, overlapping the stem; with
+    a square spur ``a_spur_len`` x ``a_spur_h`` off the stem's foot).
+    ``y_left``: the y's thick arm -- ``"stroke"`` (with its top and vertex
+    terminals) or ``"poly"`` (a parallelogram cut level at x-height and at
+    the vertex: a flat-cut terminal there would cut through the tail too)."""
     from ..handles import handle
     from ..junctions import contact, join, join_handles, notch_cut
     from ..parts import part
@@ -952,6 +982,16 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             # always end inside the stem, so hood and stem overlap
             .curve_to((sx, min(val(P.a_stem_top + (xh - P.a_stem_top) * (1 - P.a_out_y) * 0.5),
                                val(stem_top) - 6)), name="out", dir=-90))
+        if a_style == "bowl":
+            right = sx + P.stem * P.a_stem_w / 2 + P.a_bowl_r
+            gl += bowl(x=P.a_bowl_l, width=right - P.a_bowl_l, bottom=-os_, top=P.a_bowl_t,
+                       thick=P.stem * P.round_gain, thin=P.a_bowl_thin, thin_bottom=P.a_bowl_thin_b,
+                       thick_right=right - (sx - P.stem * P.a_stem_w / 2 - P.a_bowl_in), rotate=P.a_bowl_rot,
+                       full=(P.a_full_h, P.a_full_v), in_full=(P.a_in_full_h, P.a_in_full_v))
+            # a grotesque's spur: a short foot off the stem's right side at the baseline
+            sr = sx + P.stem * P.a_stem_w / 2
+            rect(gl, "spur", sr - 1, 0, sr + P.a_spur_len, P.a_spur_h)
+            return
         # the bowl hangs on the stem's left edge at two joins
         gl.lobe(sx - P.stem * P.a_stem_w / 2, -1, P.a_far, -os_,
                 join(P.a_top_at, P.a_top_thin, P.a_top_angle),
@@ -970,7 +1010,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             # single-storey: the d's lobe on a stem that runs below the
             # baseline into a hook to the left
             gl += stem_(x=0, bottom=P.gs_bot, top=xh + os_ + P.q_top, head="apex", foot=False)
-            d_lobe(gl, -P.d_far - P.gs_dfar)
+            d_lobe(gl, -P.d_far - P.gs_dfar, bottom=P.gs_bowl_b)
             hook_pen = Pen(angle=0, width=P.stem, contrast=1 - P.hairline / P.stem)
             bot = P.descender_g + P.hairline / 2
             (gl.path(name="hook", pen=hook_pen, profile=Profile((0, 1), (0.7, 1), (1, P.gs_end_w)))
@@ -1079,6 +1119,10 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
 
     @g("b")
     def b(gl):
+        if b_style == "oval":
+            gl += stem_(x=0, bottom=P.b_foot, top=asc + P.head_top * 0.5 + P.b_top, head="head", foot="b_foot")
+            b_oval(gl, P.b_ov_far)
+            return
         if b_style == "lobe":
             gl += stem_(x=0, bottom=P.b_foot, top=asc + P.head_top * 0.5 + P.b_top, head="head", foot="b_foot")
             gl.lobe(P.stem / 2, +1, P.b_far, -os_,
@@ -1296,7 +1340,22 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             return
         gl += stem_(x=0, top=asc + P.head_top * 0.5 + P.h_top, head="head")
 
-    def d_lobe(gl, far):
+    def b_oval(gl, far):
+        """b_style="oval": the b's and p's bowl, the d's mirrored -- an oval
+        overlapping the stem, its counter's left side b_ov_in right of the
+        stem's right edge."""
+        left, right = -P.stem / 2 - P.b_ov_l, P.stem / 2 + far
+        gl += bowl(x=left, width=right - left, bottom=-os_, top=xh + os_, thick=P.stem / 2 + P.b_ov_in - left,
+                   thin=P.b_ov_thin, thick_right=P.stem * P.round_gain, stress=P.b_ov_stress,
+                   full=(P.b_ov_full_h, P.b_ov_full_v), in_full=(P.b_ov_in_full_h, P.b_ov_in_full_v))
+
+    def d_lobe(gl, far, bottom=None):
+        if d_style == "bowl":
+            left, right = -P.stem / 2 + far, P.stem / 2 + P.d_bowl_r
+            gl += bowl(x=left, width=right - left, bottom=-os_ if bottom is None else bottom, top=xh + os_, thick=P.stem * P.round_gain,
+                       thin=P.d_bowl_thin, thick_right=right + P.stem / 2 + P.d_bowl_in, stress=P.d_stress,
+                       full=(P.d_full_h, P.d_full_v), in_full=(P.d_in_full_h, P.d_in_full_v))
+            return
         gl.lobe(-P.stem / 2, -1, far, -os_,
                 join(P.d_top_at, P.d_top_thin, P.d_top_angle), join(P.d_bot_at, P.d_bot_thin, P.d_bot_angle),
                 thick=P.d_lobe_thick, thin_bottom=P.d_lobe_thin_b, out_mid=P.d_out_mid, in_mid=P.d_in_mid,
@@ -1316,6 +1375,9 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     @g("p")
     def p_(gl):
         gl += stem_(x=0, bottom=P.desc_stem, top=xh + P.head_top, head="head", foot="foot")
+        if b_style == "oval":
+            b_oval(gl, P.b_ov_far + P.p_dfar)
+            return
         gl.lobe(P.stem / 2, +1, P.b_far + P.p_dfar, -os_,
                 join(P.b_top_at, P.b_top_thin, P.b_top_angle), join(P.b_bot_at, P.b_bot_thin, P.b_bot_angle),
                 thick=P.b_lobe_thick, thin_bottom=P.b_lobe_thin_b, out_mid=P.b_out_mid, in_mid=P.b_in_mid,
@@ -1387,7 +1449,15 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         W, vx = P.y_width, P.y_width * P.y_vertex
         thick = Pen(angle=0, width=P.v_thick, contrast=0)
         thin = Pen(angle=0, width=P.v_thin, contrast=0)
-        gl.line((0, xh), (vx, -P.v_os), name="left", names=("top", "vertex"), terminal=("vtop_l", "vertex"), pen=thick)
+        if y_left == "poly":
+            # horizontal half-width of an arm v_thick wide, running from (0, xh) to the vertex
+            ddx, ddy = val(vx), val(xh) + val(P.v_os)
+            hw = val(P.v_thick) / 2 * math.hypot(ddx, ddy) / ddy
+            poly_(gl, "left", [((-hw, xh), "top_l"), ((hw, xh), "top_r"), ((vx + hw, -P.v_os), "vertex_r"),
+                               ((vx - hw, -P.v_os), "vertex_l")])
+        else:
+            gl.line((0, xh), (vx, -P.v_os), name="left", names=("top", "vertex"), terminal=("vtop_l", "vertex"),
+                    pen=thick)
         # the thin arm, straight on past the vertex into the tail
         dx, dy = val(W) - val(vx), val(xh) + val(P.v_os)
         tx = val(vx) - (val(P.y_tail_y) + val(P.v_os)) * -dx / dy
