@@ -212,3 +212,53 @@ examples/sans/font.py --clearance 60 --min-abs 5`.
 - # and < > differ in width.
 - ¿ and ¡ are missing.
 - The ff join leaves a slight gap.
+
+## 04 — the a, the braces, the ß, and ¿ ¡
+
+![iteration 04](04.png)
+
+Each was rebuilt to Geist's construction, read from its outline points,
+rather than tuned within the old one.
+
+**a.** `a_style="stroke"`: the bowl is one pen stroke. It runs from inside
+the stem along a straight top that rises about 10° into the stem, round the
+left side and the bottom, and back into the stem near the baseline. The old
+oval could only give a curved top. a 0.90 → 0.94.
+
+**Braces.** `brace_beak="point"`: the arms reach the beak at an angle
+(`brace_beak_a`). A filled beak continues their edges from each stroke's
+square end: the outer edges meet in the tip, and the inner ones in a notch.
+Before, two level square ends stacked into a blunt, notched rectangle. The
+arms stop at least half their width ÷ tan(angle) short of the midline, so
+the beak is valid at every setting. { } 0.81 → 0.90.
+
+**ß.** `ss_style="bar"` takes two strokes:
+- the upper bowl comes down into a level bar that stops short of the stem;
+- the lower bowl starts from that bar and ends in a level foot, cut square.
+
+ß 0.83 → 0.945.
+
+**¿ ¡.** A new composite, `font.turn(glyph, base, dy)`, turns a glyph 180°
+about its ink and moves it `dy` up. The side bearings swap, and the
+contours keep their direction. ¿ and ¡ are ? and ! hung `inv_dy` (−162)
+lower, as in Geist. Added to both faces.
+
+**Also fixed on the way:**
+- **t and l:** the feet were slightly wavy (the end sat above the tail's
+  lowest point). `t_bot_dy` and `l_bot_dy` raise the lowest point, so the
+  foot is level: t 0.971 → 0.991, l 0.963 → 0.984.
+- **g:** the hook's end was a flick. It now rounds a wider bottom
+  (`gs_bot_x`, `gs_t`) to an end cut nearly across the stroke, with its own
+  terminal tag (`g_end`, `sans_cut_g`), separate from the y's tail. g 0.95
+  → 0.96.
+
+Mean IoU over all glyphs: 0.923 → 0.926. Kerning was regenerated: 16,442
+pairs, agreement with Geist Sans correlation 0.826, MAE 6.9 u.
+
+**Still to do.**
+- The j's hook end curls; Geist's is a level foot.
+- The f's hook end has a tick.
+- The parentheses end in points where Geist's are cut level.
+- The a's join with the stem is a little heavy, where Geist has a thin
+  crotch by the spur.
+- & and @ differ in shape; # and < > differ in width.

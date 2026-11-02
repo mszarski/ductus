@@ -136,7 +136,8 @@ def compile_font(font: Font, params: dict[str, float] | None = None,
         for cname, spec in comps.items():
             if glyphs is not None and cname not in glyphs:
                 continue
-            needed = [p[0] for p in spec["parts"]] if "parts" in spec else [spec["base"], *spec["marks"]]
+            needed = ([p[0] for p in spec["parts"]] if "parts" in spec else [spec["turn"]] if "turn" in spec
+                  else [spec["base"], *spec["marks"]])
             if any(n not in font.glyphs for n in needed):
                 continue
             try:
@@ -163,6 +164,8 @@ def _compose(name, spec, compiled, metrics, font) -> CompiledGlyph:
     import dataclasses
     if "parts" in spec:
         return _combine(name, spec, compiled)
+    if "turn" in spec:
+        return _turn(name, spec, compiled)
     base = compiled(spec["base"])
     contours = [c.copy() for c in base.contours]
     bb = _bounds(base.contours)
@@ -215,6 +218,31 @@ def _combine(name, spec, compiled) -> CompiledGlyph:
         handles=[], strokes=[], primitives=["combine:" + "+".join(g for g, *_ in spec["parts"])],
         raw_signature="|".join(cg.raw_signature for cg, *_ in parts),
         signature="|".join(cg.signature for cg, *_ in parts))
+
+
+def _turn(name, spec, compiled) -> CompiledGlyph:
+    """The base glyph turned 180 degrees about its ink's centre (a half turn
+    keeps every contour's direction) and moved ``dy`` up; same advance, the
+    side bearings swapped."""
+    import dataclasses
+    base = compiled(spec["turn"])
+    bb = _bounds(base.contours)
+    contours = []
+    if bb:
+        # x -> advance - x: the ink spans rsb .. advance - lsb (side bearings
+        # swapped); y about the ink's centre, then up dy
+        sx = base.advance
+        sy = bb[1] + bb[3] + val(spec["dy"])
+        for c in base.contours:
+            cc = c.copy()
+            for p in cc.pts:
+                p[0], p[1] = sx - p[0], sy - p[1]
+            contours.append(cc)
+        contours = merge(contours)
+    return dataclasses.replace(
+        base, name=name, unicode=spec["unicode"], contours=contours, bounds=_bounds(contours),
+        skeleton=[], points={}, outline_points={}, stages={}, handles=[], strokes=[],
+        primitives=["turn:" + spec["turn"]])
 
 
 def _move(c: Contour, i: int, dx: float, dy: float):

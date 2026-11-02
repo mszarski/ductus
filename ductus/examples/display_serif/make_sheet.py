@@ -45,7 +45,7 @@ if "ampersand" in cf.glyphs:
     lines[6:6] = [("& * % # $ + < = > @ [ \\ ] ^ _ { | } ~ … • · ° × € £", 60)]
 if "comma" in cf.glyphs:     # punctuation, set in a sentence and on its own
     lines[1:1] = [("“Ah,” she sighs; “is it (so) — or not?” Oh! it is: ’tis/isn’t.", 60),
-                  (". , : ; - – — ' \" ‘ ’ “ ” ! ? ( ) /", 72)]
+                  (". , : ; - – — ' \" ‘ ’ “ ” ! ? ¡ ¿ ( ) /", 72)]
 text = [Image.open(render_text(otf, s, build / f"t{i}.png", size=sz)) for i, (s, sz) in enumerate(lines)]
 parts = text + glyph_view
 W = max(p.width for p in parts)

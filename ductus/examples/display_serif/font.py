@@ -166,7 +166,7 @@ P = kit.params(
     ae_dx=333, oe_dx=417, ss_top=494, ss_top_x=192, ss_lr_y=128, ss_bot_x=305, ss_end_y=112, ss_waist_x=160,
     ss_waist_y=372, tl_len=262, tl_amp=70, tl_w=58, tl_dir=80,
 )
-kit.define(font, P, glyphs="hamburgefonstivcdjklpqwxyz HOAGESBCDFIJKLMNPQRTUVWXYZ0123456789ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüýÿı´`¨¸˚ÆŒØæœøß&*%·#$+<=>@[\\]^_{|}~…•°×€£.,:;-–—'\"‘’“”!?()/", terminals=kit.bracketed_set(P), g_ear="flag",
+kit.define(font, P, glyphs="hamburgefonstivcdjklpqwxyz HOAGESBCDFIJKLMNPQRTUVWXYZ0123456789ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüýÿı´`¨¸˚ÆŒØæœøß&*%·#$+<=>@[\\]^_{|}~…•°×€£.,:;-–—'\"‘’“”!?¿¡()/", terminals=kit.bracketed_set(P), g_ear="flag",
            g_band="flat", b_style="lobe", E_serifs="wedge", G_jaw="serif")
 
 # side bearings (left, right) on top of sb_straight / sb_round, set from the

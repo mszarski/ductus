@@ -107,6 +107,13 @@ class Font:
         u = unicode if unicode is not None else _unicode_for(glyph)
         self.composites[glyph] = {"parts": [tuple(p) for p in parts], "unicode": u}
 
+    def turn(self, glyph: str, base: str, dy=0, unicode: int | None = None):
+        """``base``'s outline turned 180 degrees about its ink's centre, then
+        moved ``dy`` up (the inverted ¿ and ¡ from ? and !). The ink stays
+        where the base's is across the advance, so the side bearings swap."""
+        u = unicode if unicode is not None else _unicode_for(glyph)
+        self.composites[glyph] = {"turn": base, "dy": dy, "unicode": u}
+
     def slant(self, glyph: str, degrees):
         """Shear ``glyph``'s finished outline by ``degrees`` (an italic form
         within an upright face, e.g. Geist's @)."""

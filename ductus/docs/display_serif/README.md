@@ -908,3 +908,12 @@ counters met and the waist pinched to a point at the stem. Each bowl now
 keeps a full hairline wall there. With its waist flats re-tuned
 (`B_flat_m` 158), the B against Geist rose from 0.93 to 0.95. Kerning was
 regenerated.
+
+## 33 — ¿ ¡, and two clean-ups from the sans
+
+- **¿ and ¡:** ? and ! turned 180° (`font.turn`) and hung 162 units lower.
+- **N:** a compiler fix (cuts are now unioned one by one) removes a
+  fragment of its diagonal below the baseline, down to −42.
+- **2:** a small tick at the left end of the base is trimmed.
+
+Kerning was regenerated (5,400 pairs; ligatures are now included).

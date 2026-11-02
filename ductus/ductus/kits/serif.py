@@ -246,6 +246,7 @@ DEFAULTS: dict[str, tuple] = {
     "Q_bar_w": (88, (40, 130)), "N_dy": (0, (-30, 30)),
     "eight_overlap": (1.0, (0.3, 1.2)), "gs_dfar": (0, (-80, 40)),
     "gs_bowl_b": (-12, (-20, 120)),
+    "gs_bot_x": (0.45, (0.25, 0.7)), "gs_t": (1.0, (0.75, 1.5)),   # single-storey g: the hook's lowest point, tension
     # a_style="bowl": the oval's left edge, top, right edge past the stem's, its counter's right side left of
     # the stem's left edge, top/bottom thickness, tilt and fullness (outer, counter; h, v)
     "a_bowl_l": (44, (0, 120)), "a_bowl_t": (320, (240, 420)), "a_bowl_r": (0, (-60, 30)), "a_bowl_in": (0, (-20, 40)),
@@ -253,8 +254,20 @@ DEFAULTS: dict[str, tuple] = {
     "a_full_h": (0.6, (0.4, 0.9)), "a_full_v": (0.6, (0.4, 0.9)), "a_in_full_h": (0.6, (0.4, 0.9)),
     "a_in_full_v": (0.6, (0.4, 0.9)),
     "a_spur_len": (0, (0, 80)), "a_spur_h": (70, (30, 120)),
+    # a_style="stroke": the bowl as one stroke -- its weight (vertical, level), the straight top's centre
+    # height at the stem, tilt and left end, the left side's centre, the bottom's x, where it rejoins the
+    # stem (height, direction), and the curve's tension
+    "a_bs_thick": (88, (50, 120)), "a_bs_thin": (73, (20, 120)), "a_bt_y": (300, (220, 380)),
+    "a_bt_tilt": (10, (-5, 25)), "a_bt_x": (220, (120, 330)), "a_bl_x": (88, (40, 160)), "a_bl_y": (135, (80, 220)),
+    "a_bb_x": (227, (150, 320)), "a_bj_y": (120, (40, 220)), "a_bj_dir": (60, (20, 90)), "a_bs_t": (1.0, (0.75, 1.5)),
     # Hobby tension at the U's cup and the J's (J_style="base") hook: < 1 squarer, > 1 rounder
     "U_t": (1.0, (0.75, 1.5)), "J_t": (1.0, (0.75, 1.5)),
+    "ss_t": (1.0, (0.75, 1.5)),
+    "t_bot_dy": (0, (-10, 40)), "l_bot_dy": (0, (-10, 40)),   # t, tailed l: raise the tail's lowest point              # ß, ss_style="bar": tension where the bowls meet the bars
+    # brace: where the arm turns toward the beak (a share of the arm's height); brace_beak="point": the arms'
+    # angle off level at the beak, and how far short of the midline the strokes stop (the beak fills it)
+    "brace_low": (0.15, (0.0, 0.5)), "brace_beak_a": (35, (15, 60)), "brace_beak_len": (24, (8, 60)),
+    "inv_dy": (-162, (-220, 0)),             # ¿ ¡: how far below ? ! they hang (turned about their ink)
     # b_style="oval" (b and p): the oval's reach right of the stem's right edge, its left edge past the stem's
     # left edge, its counter's left side right of the stem's right edge, thickness, stress and fullness
     "b_ov_far": (400, (320, 520)), "b_ov_l": (0, (-60, 30)), "b_ov_in": (0, (-20, 40)), "b_ov_thin": (60, (8, 120)),
@@ -274,6 +287,7 @@ DEFAULTS: dict[str, tuple] = {
     "sans_cut_r": (90, (0, 180)), "sans_cut_f": (90, (0, 180)), "sans_cut_t": (90, (0, 180)),
     "sans_cut_ear": (0, (-90, 180)),
     "sans_cut_fig": (0, (-90, 180)),
+    "sans_cut_g": (0, (-90, 180)),           # the single-storey g's hook end
     # ---- the rest of the lowercase (starting values measured off Geist's bounds)
     "desc_stem": (-200, (-240, -160)),    # where descending stems (p q) end
     # d / q: the lobe on the stem's left (like the a's), rising to a crown
@@ -474,7 +488,7 @@ DEFAULTS: dict[str, tuple] = {
     "ae_dx": (328, (260, 400)), "oe_dx": (412, (340, 480)),
     "ss_top": (486, (400, 560)), "ss_top_x": (200, (140, 260)), "ss_ur_x": (353, (290, 420)),
     "ss_ur_y": (587, (520, 650)), "ss_waist_x": (152, (90, 220)), "ss_waist_y": (380, (320, 440)),
-    "ss_lr_x": (442, (380, 520)), "ss_lr_y": (144, (90, 220)), "ss_bot_x": (297, (230, 360)),
+    "ss_lr_x": (442, (380, 520)), "ss_lr_y": (144, (90, 220)), "ss_bot_x": (297, (120, 360)),
     "ss_end_x": (122, (80, 200)), "ss_end_y": (100, (40, 170)), "ss_end_dir": (120, (90, 160)),
     "ss_end_w": (1.0, (0.4, 1.6)),
     # punctuation. dot: radius (the period's, colon's, ! and ? dots)
@@ -647,7 +661,8 @@ def sans_set(P) -> TerminalSet:
         apex=hz, vertex=hz, b_foot=hz, G_foot=hz,
         s_top=cut(P.sans_cut_s1), s_bottom=cut(P.sans_cut_s2),
         hood=cut(P.sans_cut_hood), r_ear=cut(P.sans_cut_r), f_hook=cut(P.sans_cut_f),
-        t_tail=cut(P.sans_cut_t), ear=cut(P.sans_cut_ear), fig_end=cut(P.sans_cut_fig))
+        t_tail=cut(P.sans_cut_t), ear=cut(P.sans_cut_ear), fig_end=cut(P.sans_cut_fig),
+        g_end=cut(P.sans_cut_g))
 
 
 def didone_set(P) -> TerminalSet:
@@ -704,6 +719,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
            g_style: str = "double", l_style: str = "stem", J_style: str = "hook", R_leg: str = "line",
            Q_style: str = "wedge", seven_style: str = "poly", fig_ends: str = "wedge", face_serifs: bool = True, one_style: str = "flag",
            d_style: str = "lobe", a_style: str = "lobe", y_left: str = "stroke", level_trim: bool = False,
+           brace_beak: str = "square", ss_style: str = "spine",
            b_style: str = "bowl", E_serifs: str = "rect",
            G_jaw: str = "bar"):
     """Register the kit's glyphs on ``font``. ``g_ear``: ``"stroke"`` (a
@@ -736,13 +752,24 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     runs ``d_bowl_in`` left of the stem's left edge). ``a_style``: the a's
     bowl, ``"lobe"`` or ``"bowl"`` (an oval ``a_bowl_l``..stem, baseline to
     ``a_bowl_t``, tilted ``a_bowl_rot`` degrees, overlapping the stem; with
-    a square spur ``a_spur_len`` x ``a_spur_h`` off the stem's foot).
+    a square spur ``a_spur_len`` x ``a_spur_h`` off the stem's foot) or
+    ``"stroke"`` (one pen stroke with a straight top rising into the stem,
+    round below, rejoining the stem near the baseline; ``a_bs_*``, ``a_bt_*``,
+    ``a_bl_*``, ``a_bb_x``, ``a_bj_*``; with the same spur).
     ``y_left``: the y's thick arm -- ``"stroke"`` (with its top and vertex
     terminals) or ``"poly"`` (a parallelogram cut level at x-height and at
     the vertex: a flat-cut terminal there would cut through the tail too).
     ``level_trim``: cut the diagonal letters (A K M N V W X Y Z, k v w x z)
     level at the baseline and at cap/x-height, so no vertex or diagonal end
-    pokes past them (a grotesque's; the serif's vertices may overshoot)."""
+    pokes past them (a grotesque's; the serif's vertices may overshoot).
+    ``brace_beak``: ``"square"`` (both arms run level into the beak) or
+    ``"point"`` (they arrive ``brace_beak_a`` degrees off level and a filled
+    beak continues their edges: the outer ones meet in a point at
+    ``brace_beak_x``, the inner ones in a notch). ``ss_style``: the ß's
+    middle -- ``"spine"`` (one stroke swinging in to a waist) or ``"bar"``
+    (two strokes meeting square at ``ss_waist_x``: the upper bowl ends in a
+    level bar, the lower bowl starts from it and ends in a level foot cut at
+    ``ss_end_x``; a grotesque's)."""
     from ..handles import handle
     from ..junctions import contact, join, join_handles, notch_cut
     from ..parts import part
@@ -1002,6 +1029,22 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             # always end inside the stem, so hood and stem overlap
             .curve_to((sx, min(val(P.a_stem_top + (xh - P.a_stem_top) * (1 - P.a_out_y) * 0.5),
                                val(stem_top) - 6)), name="out", dir=-90))
+        if a_style == "stroke":
+            # one pen stroke: from inside the stem along a straight top (rising
+            # a_bt_tilt degrees to the stem), round the left and the bottom,
+            # back into the stem; thinner where it runs level, as the o
+            pen = Pen(angle=0, width=P.a_bs_thick, contrast=1 - P.a_bs_thin / P.a_bs_thick)
+            tilt = math.radians(val(P.a_bt_tilt))
+            y_l = P.a_bt_y - (sx - P.a_bt_x) * math.tan(tilt)
+            (gl.path(name="bowl", pen=pen)
+                .start((sx, P.a_bt_y), name="top_r", dir=180 + P.a_bt_tilt, terminal=False)
+                .line_to((P.a_bt_x, y_l), name="top_l", dir=180 + P.a_bt_tilt)
+                .curve_to((P.a_bl_x, P.a_bl_y), name="left", dir=270, tension=P.a_bs_t)
+                .curve_to((P.a_bb_x, -os_ + P.a_bs_thin / 2), name="bottom", dir=0, tension=P.a_bs_t)
+                .curve_to((sx, P.a_bj_y), name="join", dir=P.a_bj_dir, terminal=False))
+            sr = sx + P.stem * P.a_stem_w / 2
+            rect(gl, "spur", sr - 1, 0, sr + P.a_spur_len, P.a_spur_h)
+            return
         if a_style == "bowl":
             right = sx + P.stem * P.a_stem_w / 2 + P.a_bowl_r
             gl += bowl(x=P.a_bowl_l, width=right - P.a_bowl_l, bottom=-os_, top=P.a_bowl_t,
@@ -1035,8 +1078,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             bot = P.descender_g + P.hairline / 2
             (gl.path(name="hook", pen=hook_pen, profile=Profile((0, 1), (0.7, 1), (1, P.gs_end_w)))
                 .start((0, P.gs_bot + 2), name="root", dir=270, terminal=False)
-                .curve_to((-P.gs_w * 0.45, bot), name="bottom", dir=180)
-                .curve_to((-P.gs_w, P.gs_end_y), name="end", dir=P.gs_end_dir, terminal="ear"))
+                .curve_to((-P.gs_w * P.gs_bot_x, bot), name="bottom", dir=180, tension=P.gs_t)
+                .curve_to((-P.gs_w, P.gs_end_y), name="end", dir=P.gs_end_dir, terminal="g_end", tension=P.gs_t))
             return
         gl += bowl(x=P.g_bl, width=P.g_br - P.g_bl, bottom=P.g_bb, top=P.g_bt,
                    thick=P.stem * P.g_thick, thin=P.hairline, full=((P.g_full, P.g_full + P.g_full_dv),       # br, tr, tl, bl: the
@@ -1213,7 +1256,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
                  profile=Profile((0, 1), (0.55, 1), (0.8, P.t_turn_w), (1, P.t_end_w)))
             .start((0, P.t_top), name="top", terminal="t_top")
             .line_to((0, P.t_turn), name="turn")
-            .curve_to((P.t_tail * 0.55, -os_ + t_pen.width_at(0) / 2), name="bottom", dir=0, pen_angle=P.t_bottom_pa)
+            .curve_to((P.t_tail * 0.55, -os_ + t_pen.width_at(0) / 2 + P.t_bot_dy), name="bottom", dir=0,
+                      pen_angle=P.t_bottom_pa)
             .curve_to((P.t_tail, P.t_tail_y), name="end", dir=P.t_end_dir, terminal="t_tail", pen_angle=P.t_end_pa))
         tapered_bar(gl, -P.t_bar_l, xh - P.t_bar_t + P.t_bar_dy, P.t_bar_r, xh + P.t_bar_dy, -P.stem / 2)
 
@@ -1361,7 +1405,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             (gl.path(name="stem", bias=0.5, pen=pen, profile=Profile((0, 1), (0.6, 1), (1, P.l_end_w)))
                 .start((0, asc + P.head_top * 0.5 + P.h_top), name="top", terminal="t_top")
                 .line_to((0, P.l_turn), name="turn")
-                .curve_to((P.l_tail * 0.55, -os_ + pen.width_at(0) / 2), name="bottom", dir=0)
+                .curve_to((P.l_tail * 0.55, -os_ + pen.width_at(0) / 2 + P.l_bot_dy), name="bottom", dir=0)
                 .curve_to((P.l_tail, P.l_tail_y), name="end", dir=P.l_end_dir, terminal="t_tail"))
             return
         gl += stem_(x=0, top=asc + P.head_top * 0.5 + P.h_top, head="head")
@@ -2052,6 +2096,19 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         gl += stem_(x=0, top=P.ss_top, head=False, foot="foot_l")
         pen = Pen(angle=0, width=P.stem, contrast=1 - P.hairline / P.stem)
         top = asc - 28 - P.hairline / 2
+        if ss_style == "bar":
+            wy = P.ss_waist_y
+            (gl.path(name="upper", pen=pen)
+                .start((0, P.ss_top - 2), name="root", dir=90, terminal=False)
+                .curve_to((P.ss_top_x, top), name="top", dir=0)
+                .curve_to((P.ss_ur_x, P.ss_ur_y), name="upper", dir=270)
+                .curve_to((P.ss_waist_x, wy), name="waist", dir=180, terminal=False, tension=P.ss_t))
+            (gl.path(name="lower", pen=pen)
+                .start((P.ss_waist_x, wy), name="waist", dir=0, terminal=False)
+                .curve_to((P.ss_lr_x, P.ss_lr_y), name="lower", dir=270, tension=P.ss_t)
+                .curve_to((P.ss_bot_x, -os_ + P.hairline / 2), name="bottom", dir=180, tension=P.ss_t)
+                .line_to((P.ss_end_x, -os_ + P.hairline / 2), name="end", terminal=False))
+            return
         (gl.path(name="body", pen=pen, profile=Profile((0, 1), (0.9, 1), (1, P.ss_end_w)))
             .start((0, P.ss_top - 2), name="root", dir=90, terminal=False)
             .curve_to((P.ss_top_x, top), name="top", dir=0)
@@ -2154,13 +2211,49 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         pen = Pen(angle=0, width=P.brace_pen, contrast=1 - P.hairline / P.brace_pen)
         sx = (lambda x: W - x) if flip else (lambda x: x)
         sd = (lambda d: 180 - d) if flip else (lambda d: d)
+
+        def beak_end(da):
+            """Where an arm ends: level at the beak (square), or straight at
+            brace_beak_a degrees, brace_beak_len short of the midline (point)."""
+            if brace_beak != "point":
+                return (sx(P.brace_beak_x), mid), "beak", sd(180)
+            a, hw, L = beak_geom()
+            cx = val(P.brace_beak_x) + L * math.cos(a) + hw / math.sin(a)
+            return (sx(cx), mid + da * L * math.sin(a)), "beak", sd(180 + da * P.brace_beak_a)
+
+        def beak_geom():
+            """Beak angle, the arm's half-width there, and how far before the
+            midline the stroke stops: never so near that its inner edge has
+            crossed the midline (hw / tan a), plus brace_beak_len."""
+            a = math.radians(val(P.brace_beak_a))
+            hw = pen.width_at(180 + val(P.brace_beak_a)) * val(P.brace_beak_w) / 2
+            return a, hw, hw / math.tan(a) + val(P.brace_beak_len)
         xs = W * P.brace_x
         for nm, ya, yb, da in (("upper", top - P.hairline / 2, mid, 1), ("lower", bot + P.hairline / 2, mid, -1)):
             (gl.path(name=nm, pen=pen, profile=Profile((0, P.brace_end_w), (0.3, 1), (0.8, 1), (1, P.brace_beak_w)))
                 .start((sx(W - 10), ya), name="end", dir=sd(180), terminal=False)
                 .curve_to((sx(xs), ya - (ya - yb) * 0.3), name="upper", dir=sd(270 if da > 0 else 90))
-                .curve_to((sx(xs), yb + (ya - yb) * 0.15), name="lower", dir=sd(270 if da > 0 else 90))
-                .curve_to((sx(P.brace_beak_x), yb), name="beak", dir=sd(180), terminal=False))
+                .curve_to((sx(xs), yb + (ya - yb) * P.brace_low), name="lower", dir=sd(270 if da > 0 else 90))
+                .curve_to(*beak_end(da), terminal=False))
+        if brace_beak == "point":
+            # the beak: both arms' ends continued straight to the midline, so the
+            # outer edges meet in the tip and the inner ones in the notch
+            a, hw, L = beak_geom()
+            tip = val(P.brace_beak_x)
+            notch = tip + 2 * hw / math.sin(a)
+            cx = tip + L * math.cos(a) + hw / math.sin(a)
+            corners = {}
+            for da in (1, -1):
+                cy = val(mid) + da * L * math.sin(a)
+                # the stroke's square end: its centre +- hw across the arm's direction
+                corners[da] = ((cx - hw * math.sin(a), cy + da * hw * math.cos(a)),     # outer
+                               (cx + hw * math.sin(a), cy - da * hw * math.cos(a)))     # inner
+            (uo, ui), (lo, li) = corners[1], corners[-1]
+            pts = [((sx(tip), mid), "tip"), ((sx(lo[0]), lo[1]), "l_out"), ((sx(li[0]), li[1]), "l_in"),
+                   ((sx(notch), mid), "notch"), ((sx(ui[0]), ui[1]), "u_in"), ((sx(uo[0]), uo[1]), "u_out")]
+            if (val(sx(1.0)) < val(sx(0.0))):
+                pts = pts[::-1]
+            poly_(gl, "beak", pts)
 
     @g("braceleft", sb=(0, 0))
     def braceleft(gl):
@@ -2459,3 +2552,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     def space(gl):
         pass
 
+    # the inverted ¿ and ¡: ? and ! turned, hanging inv_dy below their place
+    for inv, src in (("questiondown", "question"), ("exclamdown", "exclam")):
+        from ..parts import _unicode_for
+        if src in font.glyphs and (want is None or chr(_unicode_for(inv)) in want):
+            font.turn(inv, src, dy=P.inv_dy)

@@ -279,3 +279,19 @@ def test_gpos_kerning_reaches_proofs(tmp_path):
     cf.kerning = {("T", "o"): -77}
     k = gpos_kerning(build_otf(cf, tmp_path / "k.otf"))
     assert k[("T", "o")] == -77 and ("T", "n") not in k
+
+
+def test_inverted_question_and_exclamation_are_turned_and_lowered():
+    """¿ and ¡ are ? and ! turned 180 degrees about their ink and hung
+    inv_dy lower: same ink size and advance, side bearings swapped."""
+    f = load_font(ROOT / "examples/sans/font.py")
+    cf = compile_font(f, glyphs=["question", "questiondown", "exclam", "exclamdown"])
+    dy = cf.params["inv_dy"]
+    for up, down in (("question", "questiondown"), ("exclam", "exclamdown")):
+        a, b = cf.glyphs[up], cf.glyphs[down]
+        assert b.unicode == {"questiondown": 0xBF, "exclamdown": 0xA1}[down]
+        assert b.advance == a.advance
+        (ax0, ay0, ax1, ay1), (bx0, by0, bx1, by1) = a.bounds, b.bounds
+        assert abs((bx1 - bx0) - (ax1 - ax0)) <= 1 and abs((by1 - by0) - (ay1 - ay0)) <= 1
+        assert abs(bx0 - (a.advance - ax1)) <= 1                 # side bearings swapped
+        assert abs(by0 - (ay0 + dy)) <= 1                         # hung inv_dy lower
