@@ -1,17 +1,13 @@
 # Handoff: Ductus (parametric font compiler)
 
-> **Note:** this handoff was written in the old `mszarski/claude_playground` monorepo, before the project moved here.
-> References to that repo, its `claude/...` branches, `trajectory_classifier`, the `bd` tracker, or "don't edit
-> CLAUDE.md" are out of date. Where this file and CLAUDE.md disagree, CLAUDE.md wins.
+Notes for a fresh session picking up the work. **Read CLAUDE.md first**: it
+holds the durable rules, and wins where the two disagree. Paths are
+relative to `ductus/` (the project inside this repo) unless they start
+with `/`.
 
-These notes are for a fresh session picking up the work. All of the work
-described here lives in `ductus/`. The repo root also holds an unrelated
-`trajectory_classifier` package that this work never touched. When `ductus/`
-moves to its own repo, take this file with it; paths below are relative to
-`ductus/` unless they start with `/`.
-
-Last state: branch `claude/quirky-darwin-eqmcsa`, 105 tests passing, working
-tree clean.
+Repo: `mszarski/ductus`. Work branch: `claude/quirky-darwin-eqmcsa`; no PR
+yet. History before the move lives in `mszarski/claude_playground` on the
+same branch name.
 
 ---
 
@@ -64,76 +60,60 @@ points:
 
 ### What works
 - **Compiler pipeline.** Params → parts/glyphs → Hobby skeletons → pen
-  expansion (turning pen, width profiles) → junctions and terminals →
-  skia-pathops merge (union minus cuts) → spacing → OTF with GPOS `kern`,
-  GSUB `liga` and a legacy `kern` table.
-- **CLI** (`ductus.cli`): `build`, `test`, `serve`, `kern`, `bench`, `fit`,
-  `proof`.
-- **Editor** (`ductus serve`): every M1 and M2 editor feature, including
-  primitive handles and the reference/heat views.
-- **Optical auto-kerner** (`ductus/kerning.py`, `ductus kern`), with
-  per-glyph style weights.
-- **Kit** (`ductus/kits/serif.py`, about 2,300 lines, one file): every construction
-  plus three terminal sets, `bracketed_set`, `didone_set` and `sans_set`.
-  Style switches on `kit.define(...)`:
-  - `g_style`, `l_style`, `J_style`, `R_leg`, `Q_style`, `seven_style`
-  - `g_ear`, `g_band`, `b_style`, `E_serifs`, `G_jaw`
-- **Composites and combines**: `font.composite` for accented letters,
-  `font.combine` for æ and œ, `font.slant`.
+  expansion → junctions and terminals → skia-pathops merge (union minus
+  cuts; cuts are unioned one by one) → spacing → CFF OTF. The font
+  carries GPOS `kern`, GSUB `liga`, and a legacy `kern` table capped at
+  10,920 pairs.
+- **CLI:** `build`, `test`, `serve`, `kern`, `bench`, `fit`, `proof`.
+- **Editor:** `ductus serve`.
+- **Optical auto-kerner:** per-glyph style weights plus per-side biases.
+- **Composites:**
+  - `font.composite` (accents);
+  - `font.combine` (æ œ);
+  - `font.turn` (¿ ¡: a half turn about the ink);
+  - `font.slant`.
+- **Kit** (`ductus/kits/serif.py`). Grotesque style switches on
+  `kit.define(...)`, all used by the sans:
+
+  | Switches | Glyphs |
+  |---|---|
+  | `g_style`, `l_style`, `J_style`, `R_leg`, `Q_style` | g l J R Q |
+  | `seven_style`, `fig_ends`, `one_style` | 7, 6 9, 1 |
+  | `face_serifs`, `level_trim` | wedge serifs; diagonal letters |
+  | `d_style`, `b_style="oval"`, `a_style="stroke"` | d q g, b p, a |
+  | `y_left`, `brace_beak`, `ss_style`, `j_style` | y, { }, ß, j |
+  | `paren_ends`, `chevron_style`, `amp_style` | ( ), < >, & |
+  | `dot_style`, `ligatures` | dots; the fi ligature |
+
+  Each has a serif-safe default.
 
 ### Fonts
 
-| Font | File | Glyphs | Status |
-|---|---|---|---|
-| Benchmark | `benchmarks/geist_serif/font.py` + `fitted.yaml` | 16 (`hamburgefonstiv` + `H`) plus the `f_i` ligature | Latest row (iteration 15, `docs/representability.md`): every glyph 0.96–0.995 IoU, 0 overrides. The README quotes mean 0.977 |
-| Ductus Display (serif) | `examples/display_serif/font.py` | 181 | Iterations 01–32 in `docs/display_serif/README.md`. Letters ≈ 0.944 mean IoU vs Geist Serif; accented ≈ 0.94; symbols ≈ 0.90; digits ≈ 0.89. Kerning: 5,187 pairs, style-fitted (letter-pair correlation with Geist 0.77, letter–punctuation 0.75) |
-| Ductus Sans | `examples/sans/font.py` | 181 (175 scored) | Iterations 01–02 in `docs/sans/README.md`. Mean IoU 0.916 (letters ≈ 0.94). Kerning: 9,094 pairs, clearance 60, min-abs 5. Correlation with Geist Sans: all pairs 0.71, letter pairs 0.68 |
-| Test font | `examples/test_font/font.py` | 7 | The M1 font |
+| Font | Glyphs | Status |
+|---|---|---|
+| Ductus Sans (`examples/sans/`) | 182, incl. ¿ ¡; no fi ligature | Iterations 01–06 (`docs/sans/README.md`, sheets `NN.png`). Mean IoU vs Geist Sans **0.931**. Kerning 16,127 pairs; agreement with Geist Sans corr 0.823, MAE 7.0 u |
+| Ductus Display (`examples/display_serif/`) | 183, incl. ¿ ¡ | Iterations 01–33. Letters ≈ 0.944 vs Geist Serif. Kerning 5,378 pairs |
+| Benchmark (`benchmarks/geist_serif/`) | 16 + fi | Every glyph 0.96–0.995, 0 overrides |
+| Test font (`examples/test_font/`) | 7 | The M1 font |
 
 ### Ductus Sans weakest glyphs (IoU)
 
 | Glyph | IoU |
 |---|---|
-| standalone cedilla | 0.46 (ç 0.87, Ç 0.89) |
+| standalone cedilla | 0.46 (ç Ç ≈ 0.88) |
 | ~ | 0.74 |
 | ^ | 0.77 |
-| @ | 0.80 |
-| g | 0.81 |
-| { } | 0.81 |
-| tilde mark | 0.82 |
-| ß | 0.83 |
-| = | 0.83 |
-| & | 0.83 |
+| @ | 0.82 (Geist's inner a leans; ours is upright) |
+| tilde mark, = | 0.82–0.83 |
+| quotes, comma | 0.83–0.84 (Geist's are wedges; ours are balls with tails) |
 | £ | 0.84 |
-| idieresis | 0.85 |
-| 9 | 0.85 |
-| period | 0.85 |
-| # | 0.85 |
-| ellipsis | 0.85 |
-| a | 0.86 |
-| J | 0.86 |
 
-Overlays show ~ ^ @ { } already close by eye.
+Every letter and figure is now ≥ about 0.90. The visible defects found at
+200–500 px have been fixed (see `docs/sans/README.md` 03–06).
 
-### Ductus Sans kerning against Geist Sans
-
-| Pair | Ours | Geist |
-|---|---|---|
-| AV | −105 | −106 |
-| P. | −110 | −110 |
-| To | −70 | −80 |
-| TA | −65 | −90 |
-| LT | −95 | −140 |
-| rn | 0 | −40 |
-| Fl | 0 | −20 |
-
-### Half-finished or not started
-- **SPEC M3–M7 have not been started**: no variable-font build, no opsz, no
-  italics.
-- **Display serif kerning outliers.** “A is −30 against −140, LT −50 against
-  −140, AV −160 against −110.
-- **Sans glyph and kerning gaps**: the weakest glyphs above, and pairs the
-  profile kerner can't see (rn, Fl).
+### In progress
+- **SPEC M3: a variable weight axis.** The user approved starting it; see
+  §7.
 
 ## 3. Decisions and reasons
 - **Open questions in SPEC §13** are answered in `README.md` ("Decisions on
@@ -184,6 +164,16 @@ Overlays show ~ ^ @ { } already close by eye.
   question in §7.**
 - **Ductus Sans.** The user picked "Sans-serif (grotesque)" and "Match a
   reference" (Geist Sans).
+
+- **Judge large, then on words.** Inspect glyphs at 200–500 px beside the
+  reference (`tools/fitting/look.py`, `vlook.py`): several glyphs with
+  decent IoU had visible defects there (notches, ticks, slivers, a white
+  hairline). Then confirm on words at 80–120 px.
+- **Rebuild to the reference's construction before tuning.** Read its
+  outline points (fontTools `RecordingPen`) to see how a glyph is built,
+  then add a kit option with that structure. Fitting values inside the
+  wrong construction plateaus. This is how the a, b d p q g, &, ß, braces,
+  6 9, 1, j, t and l were fixed.
 
 ## 4. Dead ends (don't repeat)
 - **"Sliver traps."** Changes that raise IoU through thin hairline extensions
@@ -253,8 +243,16 @@ Overlays show ~ ^ @ { } already close by eye.
   - Don't `git stash` while fits run.
 - **This environment's stop hook demands a clean, pushed tree** at the end
   of each turn. Commit after background jobs finish, not mid-run.
-- **The repo-level CLAUDE.md describes `trajectory_classifier`**, not Ductus.
-  Its `bd` issue-tracker instructions were never used for this work.
+- **Flat-cut terminals cut the whole glyph.** A terminal's cut is
+  subtracted from every stroke in the glyph, which once cut a white line
+  through the y's tail. Use a polygon or a separate terminal tag where
+  another stroke passes.
+- **Ranges set for the serif can clamp sans fits.** The J's ranges once
+  excluded the sans's values, so fits couldn't move it. When a fit pins a
+  bound, widen the range.
+- **This clone is shallow and tracks only `main`.** The work branch was
+  added to `remote.origin.fetch` so the stop hook sees
+  `origin/claude/quirky-darwin-eqmcsa`.
 
 ## 6. The user's preferences
 - **Show, don't just tell.** Send sheets and overlays as images
@@ -283,47 +281,38 @@ Overlays show ~ ^ @ { } already close by eye.
   - Work on `claude/quirky-darwin-eqmcsa`. No PRs unless asked.
   - Every commit ends with the session's `Co-Authored-By` and
     `Claude-Session` trailers, and model names appear nowhere else.
-  - Don't edit CLAUDE.md (it is updated separately).
 - **Docs.** Each iteration gets a numbered sheet `docs/<font>/NN.png` and a
   README section with a short self-critique and before/after numbers.
 
 ## 7. Next steps (priority order)
-1. **Open question for the user: licensing status of the two "matched"
-   fonts.** SPEC §8 says anything fitted closely to Geist is an internal
-   benchmark that must never be released, and that `examples/` holds
-   *original* designs. Yet:
-   - Ductus Display was fitted toward Geist Serif from iteration 18 on;
-   - Ductus Sans was fitted to Geist Sans, including side bearings copied
-     toward Geist's (`respace.py`) and kerning style fitted to Geist's.
-   Ask whether to move both under `benchmarks/` (or mark them
-   internal-only), or to diverge them deliberately before any release.
-2. **Fix `pyproject.toml`** to include `ductus.kits`, or use package
-   discovery.
-3. **Ductus Sans glyphs:** ~ ^ @ g { } & £ ß = and the cedilla mark. Use
-   `tools/fitting/cd2.py` per group, check overlays (`ov.sh`), lint
-   (`lintvar.py`, then `pytest tests`), then respace twice.
-4. **Sans kerning:** close the TA and LT gaps and pairs the profile kerner
-   misses (rn, Fl, Ke). Perhaps a per-pair or class exceptions file next to
-   `kern_style.json`, or a deeper `depth` for the arm of L.
-5. **Display serif kerning outliers:** “A, LT, AV.
-6. **SPEC M3, variable fonts.** Point compatibility is already enforced by
-   construction and tested at range extremes, so a weight axis via
-   `fontTools.varLib` from param ranges is the natural next milestone.
-   Ask the user before starting a new milestone.
-7. **Make `tools/fitting/` path-independent** (repo-relative paths, a
-   `--font` argument, a `--reference` argument) if fitting continues.
+1. **M3, variable weight axis** (approved; started after iteration 06).
+   - Masters are param settings, compiled and fed to `fontTools.varLib`.
+   - Merged outlines must have the same point structure across masters.
+     The raw strokes are compatible by construction; the merged outline is
+     not always (the lint already reports "merged outline topology
+     changes").
+2. **Open question for the user: licensing.** SPEC §8 says fitted fonts are
+   internal benchmarks. Ductus Sans is fitted to Geist Sans (shapes,
+   spacing, kerning style), yet it lives in `examples/`. Options: move it
+   to `benchmarks/`, or diverge it deliberately before any release.
+3. **Sans leftovers:**
+   - quotes and comma as Geist-style wedges;
+   - ~ ^ and the cedilla mark;
+   - @ with a leaning inner a;
+   - £ and =.
+4. **Display serif kerning outliers:** “A, LT, AV.
+5. **Later milestones:** M4 size-aware text cut, M6 italic by rules, or an
+   original third face.
 
 **Other open questions:**
-- Should `SPEC.md` be added to the new repo?
-- Is the next style (italics via M6 rules, a text cut via M4, or a bolder
-  weight) the user's priority over polishing the sans?
+- Should `SPEC.md` be added to the repo?
 
 ## 8. Pointers
 
 ### Commands (from `ductus/`)
 ```bash
 pip install -e ".[proof,validate,serve,bench,test]"
-python -m pytest tests -q            # 105 tests, ~50 s
+python -m pytest tests -q            # 111 tests, ~55 s
 python benchmarks/geist_serif/fetch_reference.py   # Geist Serif -> benchmarks/geist_serif/reference/ (git-ignored)
 python benchmarks/geist_sans/fetch_reference.py    # Geist Sans 1.9.0 (npm `geist`) -> benchmarks/geist_sans/reference/Geist-Regular.woff2
 ductus serve examples/display_serif/font.py --reference benchmarks/geist_serif/reference/GeistSerif-Regular.woff2
@@ -331,8 +320,8 @@ ductus bench benchmarks/geist_serif/font.py --glyphs o --note "what changed"
 ductus fit   benchmarks/geist_serif/font.py --glyph o --only-improve
 ductus kern  examples/display_serif/font.py                                # clearance 90, min-abs 10
 ductus kern  examples/sans/font.py --clearance 60 --min-abs 5
-python examples/display_serif/make_sheet.py 33   # next display sheet -> docs/display_serif/33.png
-python examples/sans/make_sheet.py 03            # next sans sheet -> docs/sans/03.png
+python examples/display_serif/make_sheet.py 34   # next display sheet -> docs/display_serif/34.png
+python examples/sans/make_sheet.py 07            # next sans sheet -> docs/sans/07.png
 ```
 
 ### Key files
@@ -351,31 +340,32 @@ python examples/sans/make_sheet.py 03            # next sans sheet -> docs/sans/
 - **Docs:**
   - `README.md` (usage, primitives, decisions)
   - `docs/representability.md` (benchmark table, iterations 01–15)
-  - `docs/display_serif/README.md` (iterations 01–32) and `NN.png`
-  - `docs/sans/README.md` (01–02)
+  - `docs/display_serif/README.md` (iterations 01–33) and `NN.png`
+  - `docs/sans/README.md` (01–06)
   - `docs/iterations/NN/` (benchmark overlays)
-- **Fitting scripts:** `tools/fitting/` (see its README).
+- **Fitting scripts:** `tools/fitting/` (see its README). `look.py`/`vlook.py` set words beside
+  Geist at any size and render parameter variants; `rs.py` is a lint-aware joint search
+  for coupled moves `cd2.py` can't make.
 - **Tests:** `tests/`. Fonts are parametrised in `test_contours.py`,
   `test_junctions.py` and `test_primitives.py`; `test_ends.py` covers
   punctuation, composites, slant, combine, autokern and GPOS in proofs.
 
-### Commits (branch `claude/quirky-darwin-eqmcsa`)
+### Commits (branch `claude/quirky-darwin-eqmcsa`, this repo)
 | Commit | What |
 |---|---|
-| `cdfc98a` | Display serif iteration 31 (kerning in Geist's style) |
-| `5fcd3af` | Ductus Sans 01 |
-| `21135a4` | Sans weakest-glyph fixes |
-| `179a97a` | Sans kerning style and sheet 02 |
-| `a63c122` | `tools/fitting` saved |
-| `3ac61e9` | Geist render removed from docs |
+| `0128201` | Packaging: every subpackage ships |
+| `7f6d69c` | Proof shaping: liga/rlig only |
+| `c74baec` | Sans 03: figures |
+| `f9d1d49` | Sans 03: bowls a b d g p q |
+| `f0e6f33` | Sans 03: capitals; cut-union compiler fix |
+| `89eb7a3` | Kerning biases; sheet 03 |
+| `45758cb` | Sans 04: a, braces, ß, ¿ ¡ |
+| `ef99ebc` | Sans 05: j, f, parentheses |
+| (latest) | Sans 06: leftovers |
 
 ### External resources
 - **Geist fonts:** npm package `geist`, pinned to 1.9.0 in
-  `benchmarks/geist_sans/fetch_reference.py`; https://registry.npmjs.org/geist.
-  SIL OFL 1.1. Measurement only.
-- **This session's transcript**, only while this container exists:
-  `/root/.claude/projects/-home-user-claude-playground/9fa36f9b-b558-5a88-94f2-47889dc83674.jsonl`.
-- **The scratchpad**
-  (`/tmp/claude-0/-home-user-claude-playground/9fa36f9b-b558-5a88-94f2-47889dc83674/scratchpad`)
-  holds the Geist .otf conversions, comparisons, overlays and the serif
-  fitting scripts (`near/`). It disappears with the container.
+  `benchmarks/geist_sans/fetch_reference.py`. SIL OFL 1.1. Measurement only.
+- **Helvetica comparison:** Helvetica isn't on the machine.
+  `/usr/share/fonts/truetype/freefont/FreeSans.ttf` (GNU FreeFont, from
+  URW Nimbus Sans) stands in. Comparisons stay in scratch.
