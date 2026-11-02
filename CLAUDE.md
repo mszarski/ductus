@@ -73,10 +73,6 @@ explicitly for the sans (`serve` shows no reference unless given one). `ductus f
 
 ## Gotchas
 
-- **Case-insensitive filesystems (macOS default):** bench overlays are named by glyph,
-  so `docs/iterations/NN/H.png` and `h.png` collide. On such a checkout one overwrites
-  the other and `git status` shows spurious modifications of `H.png`. Never
-  `git add -A`, `git add .` or `git commit -a`; stage files explicitly.
-- `trajectory_classifier/` at the repo root is leftover from the monorepo this was split
-  from; Ductus does not use it. `.claude/hooks/session-start.sh` still installs its
-  requirements and `bd` (no `.beads/` exists here).
+- **Case-insensitive filesystems (macOS default):** bench overlays are named by glyph, so uppercase glyphs
+  get a trailing underscore (`overlay_name()` in `cli.py`: `H_.png` next to `h.png`). Keep that rule for any
+  new per-glyph output file, or `H.png`/`h.png` collide and break checkouts on macOS.

@@ -31,6 +31,12 @@ def _parse_set(items: list[str]) -> dict[str, float]:
     return out
 
 
+
+def overlay_name(glyph: str) -> str:
+    """File stem for a glyph's overlay; uppercase glyphs get a trailing _ so H.png and h.png can't collide on
+    case-insensitive filesystems."""
+    return glyph + "_" if glyph != glyph.lower() else glyph
+
 @app.command()
 def build(font_py: Path,
           out: Path = typer.Option(Path("out"), "-o", "--out", help="output directory"),
@@ -189,7 +195,7 @@ def bench(font_py: Path,
                      "advance_delta": s.advance_delta, "overrides": n, "magnitude": mag,
                      "primitives": prims, "notes": note})
         if report:
-            overlay_image(s, docs / "iterations" / f"{it:02d}" / f"{g}.png", title=f"#{it:02d}  ")
+            overlay_image(s, docs / "iterations" / f"{it:02d}" / f"{overlay_name(g)}.png", title=f"#{it:02d}  ")
     # stroke ends by terminal style (mean outline distance near them, u)
     by: dict[str, list] = {}
     for s in scores.values():
