@@ -149,6 +149,26 @@ def test_fi_ligature_compiles_emits_and_shapes(tmp_path):
     assert len(idx) == 2 and idx[0] == face.get_name_index(b"f_i")
 
 
+
+def test_proof_shaping_applies_only_default_ligatures(tmp_path):
+    """Ligature lookups behind other features (a font's contextual or
+    discretionary sets) must not fire in proofs: they once turned a reference
+    font's brackets into its corner-bracket alternates."""
+    from ductus.emit import build_otf
+    from ductus.proof import _shape
+    from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
+    from fontTools.ttLib import TTFont
+    import freetype
+    cf = compile_font(load_font(ROOT / "examples/display_serif/font.py"))
+    otf = build_otf(cf, tmp_path / "l.otf")
+    tt = TTFont(otf)
+    addOpenTypeFeaturesFromString(tt, "feature liga { sub f i by f_i; } liga;\n"
+                                      "feature dlig { sub o n by f_i; } dlig;\n")
+    tt.save(otf)
+    face = freetype.Face(str(otf))
+    assert _shape(otf, face, "fi")[0] == face.get_name_index(b"f_i")
+    assert _shape(otf, face, "on") == [face.get_name_index(b"o"), face.get_name_index(b"n")]
+
 def test_punctuation_and_digit_glyphs_are_mapped_and_shaped():
     from fontTools.pens.boundsPen import BoundsPen
     from ductus.emit import build_otf

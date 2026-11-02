@@ -35,4 +35,5 @@ commit them, renders of them, or data extracted from them, such as
 | `kstyle.py [lambda]` | Fits per-glyph kerning style weights (alternating least squares, regularised toward 1) → `kern_weights.json`; copy it to `examples/sans/kern_style.json`. |
 | `kagree.py kerning.json ...` | Correlation and mean absolute error of a `kerning.json` against Geist's kerning. |
 | `cmpw.py "line§line" out.png SIZE` | Words rendered in ours and in Geist Sans, alternating rows. |
+| `look.py "line§line" out.png [SIZE] [font.py]` | Each line set in ours, then in Geist Sans, at a large size: the quickest way to spot shape defects that IoU hides. |
 | `weak.sh` | Example batch: a `cd2` + `apply` run per glyph group, then `tidy` and `exp`. |

@@ -103,17 +103,26 @@ def contact_sheet(rows: list[tuple[str, object]], out: Path, glyph_order=None, c
 
 
 def _shape(otf: Path, face, text: str) -> list[int]:
-    """Glyph indices for ``text``, with the font's GSUB ligatures applied
-    (greedily, longest first) -- enough shaping for proofs, without HarfBuzz."""
+    """Glyph indices for ``text``, with the font's ``liga``/``rlig`` GSUB
+    ligatures applied (greedily, longest first) -- enough shaping for proofs,
+    without HarfBuzz."""
     from fontTools.ttLib import TTFont
     tt = TTFont(str(otf))
     cmap = tt.getBestCmap()
     names = [cmap.get(ord(ch), ".notdef") for ch in text]
     ligs = []
     if "GSUB" in tt:
-        for lookup in tt["GSUB"].table.LookupList.Lookup:
+        gsub = tt["GSUB"].table
+        # only the default-on ligature features: other ligature lookups (case,
+        # contextual alternates...) must not fire on plain text
+        idx = sorted({i for fr in gsub.FeatureList.FeatureRecord if fr.FeatureTag in ("liga", "rlig")
+                      for i in fr.Feature.LookupListIndex})
+        for i in idx:
+            lookup = gsub.LookupList.Lookup[i]
             for st in lookup.SubTable:
-                if st.LookupType == 4:
+                if lookup.LookupType == 7:
+                    st = st.ExtSubTable
+                if getattr(st, "LookupType", lookup.LookupType) == 4:
                     for first, entries in st.ligatures.items():
                         for e in entries:
                             ligs.append(((first, *e.Component), e.LigGlyph))

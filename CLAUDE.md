@@ -90,7 +90,7 @@ ask the user if you need it. `trajectory_classifier` was removed; it is unrelate
   new per-glyph output file, or `H.png`/`h.png` collide and break checkouts on macOS.
 - **FreeType ignores the legacy `kern` table in CFF fonts.** Proofs must use `proof.gpos_kerning`
   / `render_text` (cached by path + mtime); proofs made before that fix were unkerned.
-- `proof._shape` applies every GSUB type-4 ligature lookup regardless of feature; distrust odd reference renders.
+- `proof._shape` applies only `liga`/`rlig` ligatures (it once applied every ligature lookup, which turned Geist's brackets into corner brackets in proofs; proofs before that fix are suspect).
 - Packages are discovered (`[tool.setuptools.packages.find]`, `ductus*`); `tests/test_packaging.py` fails if a subpackage would not ship.
 - Pinhole contours < 40 u² are dropped after merge (< 4 u² earlier); a real tiny mark can vanish.
 - Stems lint is skipped for slanted glyphs (`font.slants`), profiled strokes and strokes with node `dw`.
