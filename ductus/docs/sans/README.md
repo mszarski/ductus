@@ -589,3 +589,55 @@ and the bowl was refit under a no-fold constraint. Refit values:
 `a_bt_dw` −25, `a_bs_thick` 144.7, `a_bs_t` 0.82. The counter's outline is
 now smooth at Bold and Medium. The a scores 0.916 against Geist Bold (0.919
 with the kink).
+
+## 13 — cracks, marks, kerning per weight, and the figures
+
+![weights sheet](13_sheet.png)
+
+**Cracks.**
+- **K:** its leg was a separate contour stopping just short of the arm,
+  which left a hairline gap. Geist's leg runs into the arm, so now ours does
+  too (one contour at every weight; `K_leg_x0`/`K_leg_y0` refit). Regular K
+  0.922 → 0.982, Bold 0.906 → 0.968.
+- **£:** its curve ended heading down at a hard-coded −70°, which the cut
+  shaved into a needle. New parameter `pound_end_dir` (default −70); the
+  sans is refit at both weights. Regular 0.843 → 0.887, Bold 0.789 → 0.880.
+- **{ }:** the pointed beak left a cusp at Bold. Geist uses a square tab at
+  every weight, so the sans switches to `brace_beak="square"`. Regular
+  0.903, Bold 0.919. The 1 was clean.
+
+**Marks and symbols.** At Bold their thicknesses had grown with the stems
+(×1.79); Geist thickens them much less. They were refit glyph group by
+glyph group with `mfit.py cd`. Two construction changes:
+- **Bullet:** a true circle (it inherited the sans's square-ish dot).
+- **Comma and quotes:** a square head when dots are square, as Geist does,
+  with the tail leaving its bottom edge (new `comma_root`). Regular comma
+  0.841 → 0.959, Bold 0.819 → 0.941.
+
+The straight quotes, = and ° were set from Geist's measured sizes after the
+fit had widened them. Bold " 0.55 → 0.954, = 0.778 → 0.933.
+
+**Kerning per weight.** `ductus kern --master 700` (and 300) measures a
+master's own outlines and writes `kerning_<value>.json`; the sans loads them
+into `font.variable["kerning"]`. `build_variable` gives every master its own
+values over one shared set of pairs (0 where a master has none), and varLib
+merges them into variable GPOS kerning (`tests/test_variable.py`). Bold
+lines now set within 0.4–2.0% of Geist Bold's length.
+
+**Figures.** Fitted at Bold (each figure with its own parameters) and at
+Regular for 3, 5 and 7:
+
+| Bold | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|---|---|---|---|---|---|---|---|---|---|
+| before | 0.736 | 0.900 | 0.838 | 0.828 | 0.787 | 0.918 | 0.837 | 0.835 | 0.907 |
+| after | 0.930 | 0.934 | 0.875 | 0.907 | 0.853 | 0.944 | 0.930 | 0.897 | 0.948 |
+
+Regular 7: 0.877 → 0.917.
+
+Mean IoU: Regular 0.9311 → 0.9359, Bold 0.8823 → 0.9077, Light
+0.8906 → 0.8964.
+
+**Self-critique.**
+- The cedilla's form still differs from Geist's (Bold 0.61).
+- The Bold ellipsis' dots are too large (0.66).
+- There is no ¢.

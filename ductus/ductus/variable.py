@@ -15,7 +15,8 @@ cuts can re-segment the merged outline differently at another weight, so
 every glyph's masters are unified by :func:`ductus.compat.compatible` (exact:
 shapes are unchanged, only the point structure is matched). The masters are
 written as CFF fonts and merged by ``fontTools.varLib`` into a CFF2 variable
-font. Kerning is the default master's, static, for now.
+font. Each master carries its own kerning (font.variable["kerning"]), merged
+by varLib into variable GPOS kerning.
 """
 from __future__ import annotations
 
@@ -93,8 +94,16 @@ def build_variable(font, path, overrides=None) -> tuple[Path, dict]:
         ax.tag, ax.name = spec["tag"], spec.get("name", spec["tag"])
         ax.minimum, ax.default, ax.maximum = min(locs), spec["default"], max(locs)
         ds.addAxis(ax)
+        # kerning: each master its own (font.variable["kerning"][axis value], measured from
+        # that master's outlines by `ductus kern --master`; the default's otherwise), over
+        # one shared set of pairs (0 where a master has none) so varLib can merge them
+        mk = spec.get("kerning", {})
+        kerns = {loc: (default.kerning if loc == spec["default"] else mk.get(loc, default.kerning)) or {}
+                 for loc, _ in masters}
+        pairs = sorted(set().union(*[set(k) for k in kerns.values()]))
         for loc, cf in masters:
-            cf = dataclasses.replace(cf, kerning={}, ligatures=cf.ligatures)
+            kern = {p: kerns[loc].get(p, 0) for p in pairs}
+            cf = dataclasses.replace(cf, kerning=kern, ligatures=cf.ligatures)
             p = Path(tmp) / f"master_{loc}.otf"
             build_otf(cf, p, optimize=False)
             src = SourceDescriptor()
@@ -108,9 +117,5 @@ def build_variable(font, path, overrides=None) -> tuple[Path, dict]:
             inst.postScriptFontName = f"{ps_name(default).split('-')[0]}-{iname.replace(' ', '')}"
             ds.addInstance(inst)
         vf, _, _ = varLib.build(ds)
-    if default.kerning:
-        fea = "feature kern {\n" + "".join(f"  pos {a} {b} {v};\n" for (a, b), v in sorted(default.kerning.items())) \
-              + "} kern;\n"
-        addOpenTypeFeaturesFromString(vf, fea)
     vf.save(str(path))
     return path, failed

@@ -123,7 +123,8 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
     (`docs/sans/README.md` 09). Pen contrast now follows the horizontals'
     scale. Don't let IoU fits pull `n_shoulder_x` back toward 0.63 at Bold:
     that brings back the lopsided counter.
-  - Kerning is static (the Regular's).
+  - Each master has its own kerning (`kerning.json`, `kerning_700.json`,
+    `kerning_300.json`; `ductus kern --master 700`), interpolated in the variable font.
 
 ## 3. Decisions and reasons
 - **Open questions in SPEC §13** are answered in `README.md` ("Decisions on
@@ -330,6 +331,7 @@ ductus bench benchmarks/geist_serif/font.py --glyphs o --note "what changed"
 ductus fit   benchmarks/geist_serif/font.py --glyph o --only-improve
 ductus kern  examples/display_serif/font.py                                # clearance 90, min-abs 10
 ductus kern  examples/sans/font.py --clearance 60 --min-abs 5
+ductus kern  examples/sans/font.py --clearance 60 --min-abs 5 --master 700   # and --master 300
 python examples/display_serif/make_sheet.py 34   # next display sheet -> docs/display_serif/34.png
 python examples/sans/make_sheet.py 07            # next sans sheet -> docs/sans/07.png
 ```

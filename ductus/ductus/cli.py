@@ -136,14 +136,23 @@ def kern(font_py: Path,
          punct_strength: float = typer.Option(0.3, help="... for pairs with punctuation"),
          clearance: float = typer.Option(90, help="closest the outlines may come (font units)"),
          min_abs: int = typer.Option(10, help="drop smaller kerns"),
-         style: Optional[Path] = typer.Option(None, help="per-glyph style weights JSON (default: kern_style.json beside the font, if present)")):
+         style: Optional[Path] = typer.Option(None, help="per-glyph style weights JSON (default: kern_style.json beside the font, if present)"),
+         master: Optional[int] = typer.Option(None, help="kern a weight master of font.variable (its axis value); "
+                                                          "default output kerning_<value>.json beside the font")):
     """Optical auto-kerning: measure every letter/punctuation pair of the
-    compiled font and write the suggested kerns as data for the font to load."""
+    compiled font (or one of its weight masters) and write the suggested kerns
+    as data for the font to load."""
     import unicodedata
     from .kerning import autokern
     font = load_font(font_py)
     font.kerning = {}                      # measure the font as spaced, unkerned
     cf = compile_font(font, overrides=_overrides_for(font_py, None))
+    if master is not None:
+        from .variable import compile_master
+        spec = getattr(font, "variable", None)
+        if not spec or master not in spec["masters"]:
+            raise typer.BadParameter(f"no weight master at {master}")
+        cf = compile_master(font, cf.params, spec["masters"][master], _overrides_for(font_py, None))
     names = [n for n, g in cf.glyphs.items() if g.contours and g.unicode is not None
              and unicodedata.category(chr(g.unicode))[0] in "LP"]
     # style weights {glyph: [as left glyph, as right glyph(, bias as left, bias as right)]}; accented letters
@@ -173,7 +182,7 @@ def kern(font_py: Path,
     t0 = time.perf_counter()
     pairs = autokern(cf.glyphs, names, min_abs=min_abs, strength=strength, punct_strength=punct_strength,
                      clearance=clearance, weights=weights)
-    out = out or font_py.parent / "kerning.json"
+    out = out or font_py.parent / ("kerning.json" if master is None else f"kerning_{master}.json")
     out.write_text(json.dumps({
         "generated_by": "ductus kern",
         "settings": {"strength": strength, "punct_strength": punct_strength, "clearance": clearance,

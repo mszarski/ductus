@@ -41,6 +41,7 @@ pytest                                                  # all tests (testpaths =
 ductus build examples/sans/font.py -o out/              # .otf, validated by fontTools round-trip + OTS
 ductus test  examples/sans/font.py                      # lints + compatibility sweep of ranged params
 ductus kern  examples/sans/font.py --clearance 60 --min-abs 5   # rewrites examples/sans/kerning.json
+ductus kern  examples/sans/font.py --clearance 60 --min-abs 5 --master 700   # kerning_700.json (also 300); re-run all three after outline changes
 ductus build examples/sans/font.py --variable -o out/    # wght 300-700 variable .otf (font.variable)
 ductus kern  examples/display_serif/font.py             # defaults: clearance 90, min-abs 10
 ductus fit   benchmarks/geist_serif/font.py --glyph o --only-improve
@@ -108,6 +109,8 @@ ask the user if you need it. `trajectory_classifier` was removed; it is unrelate
   refuses real topology changes (a counter opening, two marks touching): fix those in the design, e.g. offsets in
   `kit.WEIGHT_PARAMS` (they scale with weight) or gaps in `kit.WEIGHT_GAPS`. Master charstrings must be written
   with `build_otf(..., optimize=False)` (the optimiser turns straight curves into lines in one master only).
+- `mfit.py cd|rs GLYPHS`: a name without a comma is split into letters (`degree` scores d, e, g, r...). Write
+  `degree,` for one glyph. A fit that silently ends with `{}` may be scoring the wrong glyphs.
 - Process handling: never `pkill -f` (kills its own shell); `pgrep -f` matches itself, use
   `ps -eo args | grep "^.../ductus fit"`; shell chains can hide a lint FAIL, check exit codes;
   don't `git stash` while fits run; commit after background jobs finish, not mid-run.

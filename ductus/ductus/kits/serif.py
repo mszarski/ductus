@@ -295,9 +295,9 @@ DEFAULTS: dict[str, tuple] = {
     "b_ov_stress": (0, (-20, 20)), "b_ov_full_h": (0.6, (0.4, 0.9)), "b_ov_full_v": (0.6, (0.4, 0.9)),
     "b_ov_in_full_h": (0.6, (0.4, 0.9)), "b_ov_in_full_v": (0.6, (0.4, 0.9)),          # d_style="bowl": the single-storey g's bowl bottom
     "seven_stem": (90, (50, 130)), "seven_top_dir": (240, (200, 270)), "seven_foot_dir": (250, (220, 290)),
-    "pound_foot_x": (0.3, (0.15, 0.5)), "pound_foot_dir": (90, (60, 120)), "pound_rise_x": (0.32, (0.15, 0.5)),
+    "pound_foot_x": (0.3, (0.15, 0.5)), "pound_foot_dir": (90, (50, 120)), "pound_rise_x": (0.32, (0.15, 0.5)),
     "pound_rise_y": (0.62, (0.4, 0.8)), "pound_top_x": (0.62, (0.4, 0.8)), "pound_end_x": (0.92, (0.75, 1.05)),
-    "pound_end_y": (0.83, (0.65, 0.95)), "pound_end_w": (0.6, (0.3, 1.4)), "pound_bar_l": (0.08, (-0.1, 0.3)),
+    "pound_end_y": (0.83, (0.65, 0.95)), "pound_end_dir": (-70, (-100, 20)), "pound_end_w": (0.6, (0.3, 1.4)), "pound_bar_l": (0.08, (-0.1, 0.3)),
     "pound_bar_r": (0.66, (0.45, 0.9)), "pound_base_k": (1.3, (0.6, 2.0)),
     # single-storey g (g_style="single"): stem foot, hook width, end height/direction/width
     "gs_bot": (60, (-80, 200)), "gs_w": (380, (280, 480)), "gs_end_y": (-110, (-180, 0)),
@@ -517,6 +517,7 @@ DEFAULTS: dict[str, tuple] = {
     # comma: tail depth below the baseline, tip offset from the ball's centre,
     # tip width, and how far below the ball's equator its outer curve bends
     "comma_tail": (157, (80, 240)), "comma_dx": (-15, (-60, 40)), "comma_tip_w": (50, (10, 100)),
+    "comma_root": (0.0, (-0.9, 0.9)),   # square comma: where the tail's left edge leaves the dot's bottom (share of r from its centre)
     "comma_bend": (52, (0, 120)),
     "semi_dx": (0, (-40, 40)), "colon_dy": (0, (-80, 20)),   # the colon's (and semicolon's) upper dot, lowered   # the semicolon's comma, right of its dot
     # curly quotes: the comma shape scaled by quote_k; ’ tops out at quote_top,
@@ -2258,7 +2259,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
 
     @g("bullet", sb=(0, 0))
     def bullet(gl):
-        dot(gl, "dot", 0, P.bullet_y, P.bullet_r, round_=True)     # the bullet stays round
+        dot(gl, "dot", 0, P.bullet_y, P.bullet_r, round_=True, circle=True)     # the bullet stays a circle
 
     @g("ellipsis", sb=(0, 0))
     def ellipsis(gl):
@@ -2491,7 +2492,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             .start((W * P.pound_foot_x, 40), name="foot", dir=P.pound_foot_dir, terminal=False)
             .curve_to((W * P.pound_rise_x, ch * P.pound_rise_y), name="rise", dir=85)
             .curve_to((W * P.pound_top_x, ch + os_ - P.hairline / 2), name="top", dir=0)
-            .curve_to((W * P.pound_end_x, ch * P.pound_end_y), name="end", dir=-70, terminal="ear"))
+            .curve_to((W * P.pound_end_x, ch * P.pound_end_y), name="end", dir=P.pound_end_dir, terminal="ear"))
         rect(gl, "cross", W * P.pound_bar_l, P.pound_bar_y - P.math_t / 2, W * P.pound_bar_r, P.pound_bar_y + P.math_t / 2)
         rect(gl, "base", 0, 0, W, P.E_arm_t * P.pound_base_k)
 
@@ -2513,13 +2514,13 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             .curve_to((L, hi + (hi - lo) * 0.3), name="r", dir=a, terminal=False))
 
     # ---- punctuation ----------------------------------------------------
-    def dot(gl, name, cx, cy, r, round_=False):
+    def dot(gl, name, cx, cy, r, round_=False, circle=False):
         if dot_style == "square" and not round_:
             # a grotesque's: a sharp square 2r wide
             (gl.contour(name).move((cx - r, cy - r), "bl").line((cx + r, cy - r), "br").line((cx + r, cy + r), "tr")
                 .line((cx - r, cy + r), "tl").close())
             return
-        k = r * (0.5523 + (1 - 0.5523) * P.dot_square)      # dot_square 1: a square with rounded corners
+        k = r * (0.5523 + (1 - 0.5523) * (0 if circle else P.dot_square))   # dot_square 1: a square with rounded corners
         (gl.contour(name).move((cx, cy - r), "bottom").curve((cx + k, cy - r), (cx + r, cy - k), (cx + r, cy), "right")
             .curve((cx + r, cy + k), (cx + k, cy + r), (cx, cy + r), "top")
             .curve((cx - k, cy + r), (cx - r, cy + k), (cx - r, cy), "left")
@@ -2540,6 +2541,12 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
                ("c", (cx + r, cy + k), (cx + k, cy + r), (cx, cy + r), "top"),
                ("c", (cx - k, cy + r), (cx - r, cy + k), (cx - r, cy), "left"),
                ("c", (cx - r, cy - k), (cx - k, cy - r), (cx, cy - r), "bottom")]
+        if dot_style == "square":
+            # a grotesque's comma: the square dot, its tail leaving the bottom edge (from the
+            # middle to the right corner) down-left to the tip
+            pts = [("p", tip_l, "tip_l"), ("p", tip, "tip"), ("p", tip_r, "tip_r"),
+                   ("p", (cx + r, cy - r), "br"), ("p", (cx + r, cy + r), "tr"), ("p", (cx - r, cy + r), "tl"),
+                   ("p", (cx - r, cy - r), "bl"), ("p", (cx + P.comma_root * r, cy - r), "root")]
         T = (lambda q: (2 * cx - q[0], 2 * cy - q[1])) if turn else (lambda q: q)
         c = gl.contour(name).move(T(pts[0][1]), pts[0][2])
         for it in pts[1:]:

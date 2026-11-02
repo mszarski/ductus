@@ -60,3 +60,30 @@ def test_sans_weight_axis_builds_with_every_glyph_varying(tmp_path):
     def ink(f, g):
         ap = AreaPen(f.getGlyphSet()); f.getGlyphSet()[g].draw(ap); return abs(ap.value)
     assert ink(bold, "n") > 1.3 * ink(inst, "n")
+
+
+def test_variable_kerning_is_each_masters_own(tmp_path):
+    # font.variable["kerning"] gives a master its own pairs; the variable font
+    # interpolates them (a pair only one master has is 0 in the others)
+    from fontTools.ttLib import TTFont
+    from fontTools.varLib.instancer import instantiateVariableFont
+    from ductus.loader import load_font
+    from ductus.proof import gpos_kerning
+    from ductus.variable import build_variable
+    font = load_font(ROOT / "examples/sans/font.py")
+    reg = dict(font.kerning)
+    pair = next(p for p, v in sorted(reg.items()) if v <= -20)
+    names = sorted({g for pr in reg for g in pr})
+    new = next((a, b) for a in names for b in names if (a, b) not in reg)    # a pair only the bold has
+    font.variable = dict(font.variable, kerning={700: {pair: reg[pair] - 40, new: -12}, 300: {}})
+    path, _ = build_variable(font, tmp_path / "vf.otf")
+    k = {}
+    for w in (300, 400, 550, 700):
+        p = tmp_path / f"i{w}.otf"
+        instantiateVariableFont(TTFont(path), {"wght": w}).save(str(p))
+        k[w] = gpos_kerning(p)
+    assert k[400].get(pair) == reg[pair]
+    assert k[700].get(pair) == reg[pair] - 40
+    assert k[700].get(new) == -12 and not k[400].get(new)
+    assert not k[300].get(pair)
+    assert reg[pair] - 40 < k[550][pair] < reg[pair]
