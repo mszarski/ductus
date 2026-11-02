@@ -712,3 +712,44 @@ Bold figures and symbols 0.8966 → 0.9249. Mean IoU: Regular 0.9381 →
 - The % rings are even-weight, where Geist's have heavier sides (0.862).
 - The ~ (0.84), @ (0.84) and € (0.86) remain the weakest symbols. They
   match in outline but not in fine curve.
+
+## 16 — the 3, 4, 5 and 6: terminals and joins
+
+![weights sheet](16_sheet.png)
+
+**Terminals.** The 3 and 5 ended in a pointed up-curling flick at every
+weight. Geist's lower terminal rises almost vertically at the end and is
+cut level across the top, about a quarter of the way up the figure.
+- New terminal `fig_low` for the 3 and 5 (used when `fig_ends="cut"`, the
+  sans only), with its own cut, `sans_cut_fig_low` (level). They had used
+  the `ear` terminal, which the sans also uses for the j and g.
+- The shape was set by eye, not IoU: the fitter kept returning flicks,
+  which score about the same. Held: the end at 95° with a level cut.
+  Fitted: where the end sits and the bowl leading into it.
+
+**Joins** (where the strokes meet):
+- **4:** Geist's diagonal comes down flush with the bar's left end; ours
+  stopped short, so the bar stuck out. New `four_diag_dx` (moves the
+  diagonal's foot) and `four_bar_l` (where the bar starts).
+- **5:** the bowl left the stem low and at 40°, so its underside dipped
+  below the stem's foot into a V. New `five_start_dy` / `five_start_dir`
+  (25 / 25): the foot now runs straight into the bowl's inner edge, as
+  Geist's does. The stem's lean and sloped foot, hard-coded at 28 and 20,
+  are now `five_lean` / `five_foot_dy`. At Bold the foot is lower (305) and
+  `five_w`'s range is widened to 640.
+- **6 and 9:** Geist's bowl sweeps up into the hook, which leaves a low,
+  sharp crotch. Ours was fuller at that corner, so a wedge filled the
+  crotch. `fig_bowl` now takes a per-corner fullness: `six_join_dfull` /
+  `nine_join_dfull` (−0.2 Regular, −0.3 Bold) apply only at the corner the
+  hook leaves from.
+
+| vs Geist | 3 | 4 | 5 | 6 | 9 |
+|---|---|---|---|---|---|
+| Regular before | 0.895 | 0.911 | 0.893 | 0.948 | 0.943 |
+| Regular after | 0.915 | 0.919 | 0.921 | 0.942 | 0.949 |
+| Bold before | 0.886 | 0.917 | 0.867 | 0.944 | 0.948 |
+| Bold after | 0.903 | 0.971 | 0.919 | 0.956 | 0.958 |
+
+The Regular 6 dips slightly because its crotch is sharper, which is how
+Geist's looks. Mean IoU: Regular 0.9390 → 0.9393, Bold 0.9226 → 0.9234,
+Light 0.8994 → 0.8995. Kerning re-run.

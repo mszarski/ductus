@@ -307,7 +307,7 @@ DEFAULTS: dict[str, tuple] = {
     "sans_cut_s1": (90, (0, 180)), "sans_cut_s2": (90, (0, 180)), "sans_cut_hood": (90, (0, 180)),
     "sans_cut_r": (90, (0, 180)), "sans_cut_f": (90, (0, 180)), "sans_cut_t": (90, (0, 180)),
     "sans_cut_ear": (0, (-90, 180)),
-    "sans_cut_fig": (0, (-90, 180)),
+    "sans_cut_fig": (0, (-90, 180)), "sans_cut_fig_low": (180, (-180, 180)),   # the 3 and 5 lower ends (fig_ends="cut")
     "sans_cut_g": (0, (-90, 180)),           # the single-storey g's hook end
     # ---- the rest of the lowercase (starting values measured off Geist's bounds)
     "desc_stem": (-200, (-240, -160)),    # where descending stems (p q) end
@@ -414,12 +414,15 @@ DEFAULTS: dict[str, tuple] = {
     "three_ur_dx": (-20, (-80, 40)), "three_bot_x": (0.5, (0.3, 0.7)), "three_end_x": (0.12, (0.0, 0.3)),
     "three_end2_y": (110, (40, 200)), "three_end_dir": (110, (60, 160)),
     "four_x": (410, (340, 480)), "four_bar_y": (200, (140, 260)), "four_bar_t": (40, (20, 70)),
+    "four_diag_dx": (0, (-80, 60)), "four_bar_l": (0, (-40, 80)),
     "four_bar_r": (580, (500, 640)), "four_thin": (36, (15, 120)), "four_top": (725, (690, 760)),
-    "five_w": (480, (400, 560)), "five_top_l": (130, (80, 200)), "five_top_r": (501, (420, 560)),
+    "five_w": (480, (400, 640)), "five_top_l": (130, (80, 200)), "five_top_r": (501, (420, 560)),
+    "five_lean": (28, (0, 60)), "five_foot_dy": (20, (0, 40)), "five_start_dy": (0, (-20, 80)), "five_start_dir": (40, (0, 80)),
     "five_bar_t": (85, (40, 120)), "five_stem_bot": (395, (330, 460)), "five_stem_w": (44, (20, 80)),
     "five_bowl_top": (430, (380, 500)), "five_end_x": (60, (20, 140)), "five_end_y": (80, (30, 160)),
     "five_end_dir": (135, (100, 170)),
     "six_w": (507, (440, 580)), "six_bowl_h": (458, (380, 520)), "six_hook_x": (0.85, (0.6, 1.0)),
+    "six_join_dfull": (0, (-0.3, 0.2)), "nine_join_dfull": (0, (-0.3, 0.2)),
     "six_face_y": (537, (460, 640)), "six_hook_w": (0.4, (0.2, 1.0)), "six_wedge": (60, (0, 140)),
     "six_end_dir": (-60, (-120, 0)),
     # where the hook leaves the bowl's wall (x: of fig_stem, y: of the bowl's height) and its top's x (of the width)
@@ -688,6 +691,7 @@ def sans_set(P) -> TerminalSet:
         s_top=cut(P.sans_cut_s1), s_bottom=cut(P.sans_cut_s2),
         hood=cut(P.sans_cut_hood), r_ear=cut(P.sans_cut_r), f_hook=cut(P.sans_cut_f),
         t_tail=cut(P.sans_cut_t), ear=cut(P.sans_cut_ear), fig_end=cut(P.sans_cut_fig),
+        fig_low=cut(P.sans_cut_fig_low),
         g_end=cut(P.sans_cut_g), paren_end=hz)
 
 
@@ -1895,9 +1899,15 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     # ---- digits -----------------------------------------------------------
     fig_pen = Pen(angle=0, width=P.fig_stem, contrast=1 - P.hairline * P.fig_thin_k / P.fig_stem)
 
-    def fig_bowl(x, width, bottom, top, thick_k=1.0, name="bowl"):
+    def fig_bowl(x, width, bottom, top, thick_k=1.0, name="bowl", corner=None, dfull=0):
+        """``corner`` (0 br, 1 tr, 2 tl, 3 bl) takes ``dfull`` more (or less) outer fullness: the
+        corner a 6's or 9's hook leaves from (Geist's bowl sweeps up into the hook there)."""
+        full = (P.o_full_h, P.o_full_v)
+        if corner is not None:
+            full = tuple((P.o_full_h + dfull, P.o_full_v + dfull) if i == corner else (P.o_full_h, P.o_full_v)
+                         for i in range(4))
         return bowl(name=name, x=x, width=width, bottom=bottom, top=top, thick=P.fig_stem * P.round_gain * thick_k,
-                    thin=P.hairline * P.fig_thin_k, stress=P.o_stress, full=(P.o_full_h, P.o_full_v),
+                    thin=P.hairline * P.fig_thin_k, stress=P.o_stress, full=full,
                     in_full=(P.o_in_full_h, P.o_in_full_v))
 
     @g("zero", sb=(0, 0))
@@ -1957,16 +1967,18 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             .start((mx, P.three_mid_y), name="mid", dir=0, terminal=False)
             .curve_to((W - P.fig_stem / 2, P.three_lr_y), name="right", dir=270)
             .curve_to((W * P.three_bot_x, bot), name="bottom", dir=180)
-            .curve_to((W * P.three_end_x, P.three_end2_y), name="end", dir=P.three_end_dir, terminal="ear"))
+            .curve_to((W * P.three_end_x, P.three_end2_y), name="end", dir=P.three_end_dir,
+                      terminal="fig_low" if fig_ends == "cut" else "ear"))
 
     @g("four", sb=(0, 0))
     def four(gl):
         x, w = P.four_x, P.fig_stem
         gl += stem_(x=x, top=P.four_top, foot="cap_foot", head=False,
                     pen=Pen(angle=0, width=w, contrast=1 - P.hairline / w))
-        rect(gl, "bar", 0, P.four_bar_y - P.four_bar_t / 2, P.four_bar_r, P.four_bar_y + P.four_bar_t / 2)
+        rect(gl, "bar", P.four_bar_l, P.four_bar_y - P.four_bar_t / 2, P.four_bar_r, P.four_bar_y + P.four_bar_t / 2)
         thin = Pen(angle=0, width=P.four_thin, contrast=0)
-        gl.line((x + w / 2 - P.four_thin * 0.7, P.four_top), (P.four_thin * 0.7, P.four_bar_y), name="diag",
+        # four_diag_dx moves the diagonal's foot along the bar (Geist's runs flush into the bar's left end)
+        gl.line((x + w / 2 - P.four_thin * 0.7, P.four_top), (P.four_thin * 0.7 + P.four_diag_dx, P.four_bar_y), name="diag",
                 names=("top", "foot"), terminal=("apex", False), pen=thin)
 
     @g("five", sb=(0, 0))
@@ -1975,16 +1987,19 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         bt = P.five_bar_t
         poly_(gl, "bar", [((P.five_top_l, P.capheight), "tl"), ((P.five_top_r, P.capheight + os_), "tr"),
                           ((P.five_top_r - 18, P.capheight - bt), "br"), ((P.five_top_l + P.five_stem_w, P.capheight - bt), "bl")])
-        poly_(gl, "stem", [((P.five_top_l - 28, P.five_stem_bot), "bl"), ((P.five_top_l - 28 + P.five_stem_w, P.five_stem_bot + 20), "br"),
+        lean, fdy = P.five_lean, P.five_foot_dy        # the stem leans out lean units at its foot; the foot rises fdy
+        poly_(gl, "stem", [((P.five_top_l - lean, P.five_stem_bot), "bl"), ((P.five_top_l - lean + P.five_stem_w, P.five_stem_bot + fdy), "br"),
                            ((P.five_top_l + P.five_stem_w, P.capheight - 1), "tr"), ((P.five_top_l, P.capheight - 1), "tl")])
         top = P.five_bowl_top
         bot = -os_ * 1.5 + P.hairline * P.fig_thin_k / 2
         (gl.path(name="bowl", pen=fig_pen)
-            .start((P.five_top_l - 28 + P.five_stem_w * 0.5, P.five_stem_bot + 10), name="start", dir=40, terminal=False)
+            .start((P.five_top_l - lean + P.five_stem_w * 0.5, P.five_stem_bot + fdy / 2 + P.five_start_dy), name="start",
+                   dir=P.five_start_dir, terminal=False)
             .curve_to((W * 0.55, top), name="top", dir=0)
             .curve_to((W - P.fig_stem / 2, top * 0.48), name="right", dir=270)
             .curve_to((W * 0.5, bot), name="bottom", dir=180)
-            .curve_to((P.five_end_x, P.five_end_y), name="end", dir=P.five_end_dir, terminal="ear"))
+            .curve_to((P.five_end_x, P.five_end_y), name="end", dir=P.five_end_dir,
+                      terminal="fig_low" if fig_ends == "cut" else "ear"))
 
     def six_like(gl, turn):
         """The 6 (and, turned 180 degrees about its centre, the 9, with its own
@@ -1998,7 +2013,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         bt, bb = k("bowl_h"), -os_
         if turn:
             bt, bb = 2 * cy - bb, 2 * cy - bt
-        gl += fig_bowl(0, W, bb, bt, k("bowl_thick_k"))
+        gl += fig_bowl(0, W, bb, bt, k("bowl_thick_k"), corner=0 if turn else 2, dfull=k("join_dfull"))
         top = h - P.hairline * P.fig_thin_k / 2
         xf = W * k("hook_x")
         cut_end = fig_ends == "cut"
