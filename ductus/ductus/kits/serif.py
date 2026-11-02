@@ -258,6 +258,7 @@ DEFAULTS: dict[str, tuple] = {
     "sans_cut_s1": (90, (0, 180)), "sans_cut_s2": (90, (0, 180)), "sans_cut_hood": (90, (0, 180)),
     "sans_cut_r": (90, (0, 180)), "sans_cut_f": (90, (0, 180)), "sans_cut_t": (90, (0, 180)),
     "sans_cut_ear": (0, (-90, 180)),
+    "sans_cut_fig": (0, (-90, 180)),
     # ---- the rest of the lowercase (starting values measured off Geist's bounds)
     "desc_stem": (-200, (-240, -160)),    # where descending stems (p q) end
     # d / q: the lobe on the stem's left (like the a's), rising to a crown
@@ -344,6 +345,10 @@ DEFAULTS: dict[str, tuple] = {
     "zero_w": (549, (440, 620)), "zero_thick_k": (1.0, (0.7, 1.3)),
     "one_top": (725, (690, 760)), "one_fy": (626, (560, 690)), "one_flag": (182, (100, 260)),
     "one_flag_t": (5, (0, 40)),
+    # one_style="arm": the arm's thickness, centre height, where it starts curving up (a fraction of the way
+    # from its tip to the stem's centre) and that curve's tension
+    "one_arm_t": (80, (40, 120)), "one_arm_y": (600, (480, 690)), "one_arm_x": (0.5, (0.05, 0.95)),
+    "one_arm_tn": (1.0, (0.75, 2.0)),
     "two_w": (440, (360, 520)), "two_end_y": (474, (380, 560)), "two_right_y": (535, (420, 640)),
     "two_mid_x": (0.5, (0.3, 0.7)), "two_mid_y": (290, (180, 380)), "two_mid_dir": (225, (190, 260)),
     "two_bar_l": (0, (-40, 60)), "two_bar_r": (470, (380, 540)), "two_bar_t": (84, (30, 110)),
@@ -360,9 +365,15 @@ DEFAULTS: dict[str, tuple] = {
     "five_end_dir": (135, (100, 170)),
     "six_w": (507, (440, 580)), "six_bowl_h": (458, (380, 520)), "six_hook_x": (0.85, (0.6, 1.0)),
     "six_face_y": (537, (460, 640)), "six_hook_w": (0.4, (0.2, 1.0)), "six_wedge": (60, (0, 140)),
+    "six_end_dir": (-60, (-120, 0)),
+    # where the hook leaves the bowl's wall (x: of fig_stem, y: of the bowl's height) and its top's x (of the width)
+    "six_root_x": (0.55, (0.5, 0.8)), "six_root_w": (1.0, (0.5, 1.2)), "six_root_dir": (90, (60, 100)), "six_root_t": (1.0, (0.75, 2.5)), "six_root_y": (0.55, (0.25, 0.8)), "six_top_x": (0.55, (0.4, 0.7)),
     "six_bowl_thick_k": (1.0, (0.7, 1.3)),
     "nine_w": (507, (440, 580)), "nine_bowl_h": (458, (380, 520)), "nine_hook_x": (0.85, (0.6, 1.0)),
     "nine_face_y": (537, (460, 640)), "nine_hook_w": (0.4, (0.2, 1.0)), "nine_wedge": (60, (0, 140)),
+    "nine_end_dir": (-60, (-120, 0)),
+    # where the hook leaves the bowl's wall (x: of fig_stem, y: of the bowl's height) and its top's x (of the width)
+    "nine_root_x": (0.55, (0.5, 0.8)), "nine_root_w": (1.0, (0.5, 1.2)), "nine_root_dir": (90, (60, 100)), "nine_root_t": (1.0, (0.75, 2.5)), "nine_root_y": (0.55, (0.25, 0.8)), "nine_top_x": (0.55, (0.4, 0.7)),
     "nine_bowl_thick_k": (1.0, (0.7, 1.3)),
     "seven_w": (460, (380, 540)), "seven_bar_t": (84, (40, 120)), "seven_foot_l": (153, (60, 260)),
     "seven_foot_r": (277, (180, 360)), "seven_top_w": (57, (30, 100)), "seven_serif": (203, (100, 280)),
@@ -616,7 +627,7 @@ def sans_set(P) -> TerminalSet:
         apex=hz, vertex=hz, b_foot=hz, G_foot=hz,
         s_top=cut(P.sans_cut_s1), s_bottom=cut(P.sans_cut_s2),
         hood=cut(P.sans_cut_hood), r_ear=cut(P.sans_cut_r), f_hook=cut(P.sans_cut_f),
-        t_tail=cut(P.sans_cut_t), ear=cut(P.sans_cut_ear))
+        t_tail=cut(P.sans_cut_t), ear=cut(P.sans_cut_ear), fig_end=cut(P.sans_cut_fig))
 
 
 def didone_set(P) -> TerminalSet:
@@ -671,7 +682,7 @@ def didone_set(P) -> TerminalSet:
 
 def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "stroke", g_band: str = "none",
            g_style: str = "double", l_style: str = "stem", J_style: str = "hook", R_leg: str = "line",
-           Q_style: str = "wedge", seven_style: str = "poly",
+           Q_style: str = "wedge", seven_style: str = "poly", fig_ends: str = "wedge", face_serifs: bool = True, one_style: str = "flag",
            b_style: str = "bowl", E_serifs: str = "rect",
            G_jaw: str = "bar"):
     """Register the kit's glyphs on ``font``. ``g_ear``: ``"stroke"`` (a
@@ -686,7 +697,17 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     under a flat bar) or ``"serif"`` (a stem with a bracketed head serif for
     the bar, standing to the baseline and cut off there on a diagonal; the
     bowl is trimmed at the stem's outer edge; the upper terminal is the bowl's
-    wall cut off by a vertical face at G_face of the width, with no beard)."""
+    wall cut off by a vertical face at G_face of the width, with no beard).
+    ``fig_ends``: the 6's and 9's hooks -- ``"wedge"`` (level into a
+    vertical face, as a serif's beak) or ``"cut"`` (turning down to
+    ``six_face_y``/``nine_face_y`` at ``*_end_dir`` and ending in the
+    ``fig_end`` terminal: a grotesque's plain cut). ``face_serifs=False``
+    drops every vertical-face wedge serif (E F L T Z z 2 7 Æ Œ arm ends), which
+    a sans has none of; even at zero wedge length one leaves a thin tick.
+    ``one_style``: ``"flag"`` (the stem's top cut off on a diagonal) or
+    ``"arm"`` (the stem stands to ``one_top``; a monoline arm ``one_arm_t``
+    thick runs from a square-cut tip at ``-one_flag``, centred at
+    ``one_arm_y``, and curves up into the stem)."""
     from ..handles import handle
     from ..junctions import contact, join, join_handles, notch_cut
     from ..parts import part
@@ -1253,7 +1274,10 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     def face_wedge(gl, name, x, ya, yb, L, sw, opens=-1):
         """A wedge serif: a vertical face sw wide at x from the arm edge ya to
         the tip yb, its inner edge sloping back L along the arm (opens=-1:
-        the arm runs left of x, as on an E; +1: right)."""
+        the arm runs left of x, as on an E; +1: right). Not drawn at all
+        without ``face_serifs`` (a sans: the arm simply ends square)."""
+        if not face_serifs:
+            return
         pts = [((x + opens * L, ya), "root"), ((x, ya), "a"), ((x, yb), "tip"), ((x + opens * sw, yb), "tip_in")]
         if (val(yb) > val(ya)) == (opens < 0):     # counter-clockwise either way
             pts = pts[::-1]
@@ -1647,6 +1671,17 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     @g("one", sb=(0, 0))
     def one(gl):
         w = P.fig_stem
+        if one_style == "arm":
+            gl += stem_(x=0, top=P.one_top, foot="cap_foot", head=False,
+                        pen=Pen(angle=0, width=w, contrast=1 - P.hairline / w))
+            at = P.one_arm_t
+            tip_x = -P.one_flag + at / 2
+            (gl.path(name="flag", pen=Pen(angle=0, width=at, contrast=0))
+                .start((tip_x, P.one_arm_y), name="tip", dir=0, terminal=False)
+                # the arm turns up one_arm_x of the way from the tip to the stem's centre
+                .curve_to((tip_x * (1 - P.one_arm_x), P.one_arm_y), name="mid", dir=0, tension=P.one_arm_tn)
+                .curve_to((0, P.one_top - at * 0.5), name="root", dir=90, terminal=False))
+            return
         gl += stem_(x=0, top=P.one_fy, foot="cap_foot", head=False,
                     pen=Pen(angle=0, width=w, contrast=1 - P.hairline / w))
         # the flag: the stem's top, cut off on a diagonal running down-left
@@ -1665,6 +1700,10 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             .curve_to((W * P.two_mid_x, P.two_mid_y), name="mid", dir=P.two_mid_dir)
             .curve_to((P.two_bar_l + P.fig_stem * 0.4, P.two_bar_t * 0.5), name="foot", dir=250, terminal=False))
         rect(gl, "bar", P.two_bar_l, 0, P.two_bar_r, P.two_bar_t)
+        # the diagonal's square end must not poke out past the base's left end or below the baseline
+        (gl.cut("foot_trim").move((P.two_bar_l, P.two_bar_t), "a").line((P.two_bar_l, 0), "b")
+            .line((P.two_bar_r, 0), "c").line((P.two_bar_r, -200), "d").line((P.two_bar_l - 200, -200), "e")
+            .line((P.two_bar_l - 200, P.two_bar_t), "f").close())
         face_wedge(gl, "serif", P.two_bar_r, P.two_bar_t - 1, P.two_serif, P.two_wedge, P.E_serif_w)
 
     @g("three", sb=(0, 0))
@@ -1726,10 +1765,21 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         gl += fig_bowl(0, W, bb, bt, k("bowl_thick_k"))
         top = h - P.hairline * P.fig_thin_k / 2
         xf = W * k("hook_x")
-        (gl.path(name="hook", pen=fig_pen, profile=Profile((0, 1), (0.6, 1), (1, k("hook_w"))))
-            .start(T((P.fig_stem * 0.55, k("bowl_h") * 0.55)), name="root", dir=D(90), terminal=False)
-            .curve_to(T((W * 0.55, top)), name="top", dir=D(0))
-            .curve_to(T((xf, top - 8)), name="end", dir=D(-10), terminal=False))
+        cut_end = fig_ends == "cut"
+        # "wedge": the hook runs level into a vertical face (a serif's beak);
+        # "cut": it turns down and ends in a plain cut (a grotesque's)
+        end = (xf, k("face_y")) if cut_end else (xf, top - 8)
+        # the root's centre stands root_x of its own width in from the bowl's
+        # outer edge (>= 0.5: the stroke never steps out past the bowl)
+        rw = k("root_w")
+        (gl.path(name="hook", pen=fig_pen, profile=Profile((0, rw), (0.3, 1), (0.6, 1), (1, k("hook_w"))))
+            .start(T((P.fig_stem * rw * k("root_x"), k("bowl_h") * k("root_y"))), name="root", dir=D(k("root_dir")),
+                   terminal=False, tension=k("root_t"))
+            .curve_to(T((W * k("top_x"), top)), name="top", dir=D(0))
+            .curve_to(T(end), name="end", dir=D(k("end_dir") if cut_end else -10),
+                      terminal="fig_end" if cut_end else False))
+        if cut_end:
+            return
         if turn:
             face_wedge(gl, "face", 2 * cx - xf, 2 * cy - (top + 6), 2 * cy - k("face_y"), k("wedge"), P.E_serif_w,
                        opens=+1)

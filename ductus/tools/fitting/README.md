@@ -36,4 +36,5 @@ commit them, renders of them, or data extracted from them, such as
 | `kagree.py kerning.json ...` | Correlation and mean absolute error of a `kerning.json` against Geist's kerning. |
 | `cmpw.py "line§line" out.png SIZE` | Words rendered in ours and in Geist Sans, alternating rows. |
 | `look.py "line§line" out.png [SIZE] [font.py]` | Each line set in ours, then in Geist Sans, at a large size: the quickest way to spot shape defects that IoU hides. |
+| `vlook.py TEXT out.png SIZE "k=v,..." ...` | Geist Sans, the current font, then each parameter variant, one row each; for judging a change by eye before applying it. |
 | `weak.sh` | Example batch: a `cd2` + `apply` run per glyph group, then `tidy` and `exp`. |
