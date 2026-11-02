@@ -753,3 +753,24 @@ cut level across the top, about a quarter of the way up the figure.
 The Regular 6 dips slightly because its crotch is sharper, which is how
 Geist's looks. Mean IoU: Regular 0.9390 → 0.9393, Bold 0.9226 → 0.9234,
 Light 0.8994 → 0.8995. Kerning re-run.
+
+## 17 — the 5's step and the % rings
+
+![weights sheet](17_sheet.png)
+
+- **The 5's step.** Geist's stem foot is level, and the bowl's underside
+  rises straight from its right end. Ours had a sloped foot, which left a
+  small step at Regular; at Bold the bowl's underside dipped 31 units below
+  the foot into a V. Now `five_foot_dy` is 0, and the bowl starts where its
+  underside leaves exactly at foot level (`five_start_dy` 35 Regular, 60
+  Bold). This was measured as the dip below the foot just right of the
+  stem: Regular −5 → −1, Bold 31 → −1.
+- **The % rings.** Their top and bottom used the font's hairline, which at
+  Bold (118) outweighed their sides (89): the inverse of Geist's rings,
+  which are heavy at the sides and light at top and bottom. New
+  `pct_thin_k` scales the rings' hairline: 0.79 Regular, 0.7 Bold. The
+  rings are refit at both weights. % Regular 0.884 → 0.936, Bold
+  0.862 → 0.932.
+
+Mean IoU: Regular 0.9393 → 0.9396, Bold 0.9234 → 0.9238, Light
+0.8995 → 0.8997. Kerning re-run.

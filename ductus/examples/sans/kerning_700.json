@@ -45222,7 +45222,7 @@
 [
 "ellipsis",
 "percent",
--35
+-40
 ],
 [
 "ellipsis",
@@ -62787,12 +62787,12 @@
 [
 "percent",
 "quotedbl",
--25
+-30
 ],
 [
 "percent",
 "quotesingle",
--25
+-30
 ],
 [
 "percent",
@@ -63227,7 +63227,7 @@
 [
 "period",
 "percent",
--45
+-50
 ],
 [
 "period",
@@ -63647,7 +63647,7 @@
 [
 "periodcentered",
 "percent",
--25
+-30
 ],
 [
 "periodcentered",
@@ -68362,7 +68362,7 @@
 [
 "s",
 "percent",
--10
+-15
 ],
 [
 "s",

@@ -481,6 +481,7 @@ DEFAULTS: dict[str, tuple] = {
     "hash_gap": (230, (160, 300)), "hash_bar_t": (44, (20, 70)), "hash_y0": (236, (160, 320)),
     "hash_y1": (474, (400, 560)),
     "pct_w": (688, (600, 780)), "pct_ring_w": (240, (180, 300)), "pct_ring_h": (330, (260, 400)),
+    "pct_thin_k": (1.0, (0.3, 1.5)),
     "pct_thick": (60, (30, 90)), "pct_slash_w": (44, (20, 80)), "pct_s0": (130, (0, 260)), "pct_s1": (110, (0, 260)),
     "deg_w": (280, (200, 340)), "deg_t": (50, (25, 80)),
     "dollar_bar": (30, (15, 50)), "dollar_h": (710, (640, 820)), "dollar_y0": (0, (-60, 40)),
@@ -2413,8 +2414,9 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     def percent(gl):
         W, rw, rh, th = P.pct_w, P.pct_ring_w, P.pct_ring_h, P.pct_thick
         ch = P.capheight
-        gl += bowl(name="ring_top", x=0, width=rw, bottom=ch + os_ - rh, top=ch + os_, thick=th, thin=P.hairline)
-        gl += bowl(name="ring_bottom", x=W - rw, width=rw, bottom=-os_, top=-os_ + rh, thick=th, thin=P.hairline)
+        tn = P.hairline * P.pct_thin_k        # the rings' top and bottom (a bold's hairline would outweigh their sides)
+        gl += bowl(name="ring_top", x=0, width=rw, bottom=ch + os_ - rh, top=ch + os_, thick=th, thin=tn)
+        gl += bowl(name="ring_bottom", x=W - rw, width=rw, bottom=-os_, top=-os_ + rh, thick=th, thin=tn)
         sw = P.pct_slash_w
         x0, x1 = P.pct_s0, W - P.pct_s1
         poly_(gl, "slash", [((x0, -os_), "bl"), ((x0 + sw, -os_), "br"), ((x1, ch + os_), "tr"),

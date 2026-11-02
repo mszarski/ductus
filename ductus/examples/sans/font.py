@@ -14,13 +14,14 @@ from ductus.kits import serif as kit
 font = Font("Ductus Sans", upm=1000)
 
 P = kit.params(
+    pct_thin_k=0.79,
     nine_join_dfull=-0.2,
     six_join_dfull=-0.2,
     five_start_dir=25,
-    five_start_dy=25,
+    five_start_dy=35,
     four_bar_l=18,
     four_diag_dx=-6,
-    five_foot_dy=23,
+    five_foot_dy=0,
     five_lean=43,
     six_root_dir=90,
     sans_cut_fig_low=90,
@@ -146,7 +147,7 @@ P = kit.params(
     under_y=-39, brk_w=239, brk_stem=82, brk_arm=70, brk_top=750, brk_bot=-109, brace_w=335, brace_pen=80,
     brace_x=0.42, brace_end_w=1.05, brace_beak_w=1.02, brace_beak_x=0, hash_w=447, hash_slant=132, hash_t=72,
     brace_low=0.43, brace_beak_a=42, brace_beak_len=39,
-    hash_bar_t=70, hash_y0=232, hash_gap=198, pct_w=712, pct_ring_w=300, pct_ring_h=362, pct_thick=64,
+    hash_bar_t=70, hash_y0=232, hash_gap=198, pct_w=712, pct_ring_w=305, pct_ring_h=357, pct_thick=70,
     hash_y1=475, hash_bar_shift=1,
     pct_slash_w=77, pct_s0=70, pct_s1=70, deg_w=310, deg_t=77, dollar_bar=48, dollar_h=700, dollar_bar_dx=4.0,
     ast_tip_w=70, ast_root_w=38, amp_w=540, amp_arm_x=0.96, amp_arm_y=314, amp_loop_x=0.45, amp_loop_w=300,
