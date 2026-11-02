@@ -66,6 +66,31 @@ python docs/make_proofs.py                                       # regenerate do
 pytest
 ```
 
+## Variable fonts (M3, started)
+
+A font module declares an axis and how its masters differ from the
+default; `ductus build font.py --variable` compiles every master, makes each
+glyph's outlines point-compatible across them, and merges them with
+`fontTools.varLib` into a CFF2 variable font:
+
+```python
+font.variable = {
+    "tag": "wght", "name": "Weight", "default": 400,
+    "masters": {300: 0.7, 700: 1.45},                 # axis value -> master setting
+    "params": kit.weight_master,                       # (default params, setting) -> overrides
+    "instances": {"Light": 300, "Regular": 400, "Bold": 700},
+}
+```
+
+Raw strokes are compatible by construction, but overlap removal and cuts
+can re-segment a merged outline differently at another weight.
+`ductus/compat.py` unifies the masters exactly: contours matched, corners
+aligned (position and tangents, dynamic programming), then segments
+converted to cubics and split by de Casteljau at shared arc-length positions.
+Shapes are unchanged; real topology changes (a counter opening) are
+refused and reported as "held static". Ductus Sans builds with all 182
+glyphs varying (`docs/sans/README.md`, 07).
+
 ## The preview editor (`ductus serve`)
 
 - **Sliders** for every ranged parameter (number fields for the rest),

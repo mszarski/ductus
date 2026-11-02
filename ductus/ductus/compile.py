@@ -43,6 +43,12 @@ class CompiledGlyph:
     stages: dict = field(default_factory=dict)            # per-stage debug geometry (svg paths)
     handles: list = field(default_factory=list)           # primitive handles (spaced coords)
     strokes: list[Stroke] = field(default_factory=list, repr=False)
+    # with compile_font(..., pieces=True): the outline left un-merged -- each
+    # stroke/part's contours minus the cuts, overlapping one another (what a
+    # variable build interpolates when the merged outline's structure changes
+    # across masters; (A u B) - C = (A - C) u (B - C), so it fills the same)
+    pieces: list[Contour] | None = field(default=None, repr=False)
+    piece_signature: str = ""
 
     def to_json(self) -> dict:
         return {
@@ -93,7 +99,35 @@ def resolve_params(font: Font, params: dict[str, float] | None) -> dict[str, flo
 
 def compile_font(font: Font, params: dict[str, float] | None = None,
                  overrides: dict[str, Override] | None = None,
-                 terminals=None, glyphs: list[str] | None = None) -> CompiledFont:
+                 terminals=None, glyphs: list[str] | None = None, pieces: bool = False) -> CompiledFont:
+    """``pieces``: also keep each glyph's un-merged outline (``CompiledGlyph.pieces``)."""
+    token = _PIECES.set(pieces)
+    try:
+        return _compile_font(font, params, overrides, terminals, glyphs)
+    finally:
+        _PIECES.reset(token)
+
+
+import contextvars
+_PIECES: contextvars.ContextVar[bool] = contextvars.ContextVar("ductus_pieces", default=False)
+
+
+def _moved(contours, f):
+    """Copies of ``contours`` with every point mapped by ``f(x, y) -> (x, y)``."""
+    out = []
+    for c in contours:
+        cc = c.copy()
+        for p in cc.pts:
+            p[0], p[1] = f(p[0], p[1])
+        out.append(cc)
+    return out
+
+
+def _sig(contours) -> str:
+    return "|".join(c.signature() for c in contours)
+
+
+def _compile_font(font, params, overrides, terminals, glyphs) -> CompiledFont:
     t0 = time.perf_counter()
     values = resolve_params(font, params)
     overrides = overrides or {}
@@ -189,8 +223,21 @@ def _compose(name, spec, compiled, metrics, font) -> CompiledGlyph:
                 p[1] += dy
             contours.append(cc)
     contours = merge(contours)          # one outline: overlaps removed, directions fixed
+    pieces = None
+    if base.pieces is not None:
+        pieces = [c.copy() for c in base.pieces]
+        for m in spec["marks"]:
+            mk = compiled(m)
+            mb = _bounds(mk.contours)
+            if mb is None:
+                continue
+            dx = cx - (mb[0] + mb[2]) / 2
+            top = mb[1] > metrics["xheight"] * 0.5
+            dy = (lift + (val(spec["gap"]) if spec["gap"] is not None else 0.0)) if top else 0.0
+            pieces += _moved(mk.pieces or [], lambda x, y, dx=dx, dy=dy: (x + dx, y + dy))
     return dataclasses.replace(
         base, name=name, unicode=spec["unicode"], contours=contours, bounds=_bounds(contours),
+        pieces=pieces, piece_signature=_sig(pieces) if pieces is not None else "",
         skeleton=[], points={}, outline_points={}, stages={}, handles=[], strokes=[],
         primitives=[f"composite:{spec['base']}+" + "+".join(spec["marks"])],
         raw_signature=base.raw_signature + "|" + "|".join(compiled(m).raw_signature for m in spec["marks"]),
@@ -211,9 +258,13 @@ def _combine(name, spec, compiled) -> CompiledGlyph:
                 p[1] += dy
             contours.append(cc)
     contours = merge(contours)
+    pieces = None
+    if all(cg.pieces is not None for cg, *_ in parts):
+        pieces = [c for cg, dx, dy in parts for c in _moved(cg.pieces, lambda x, y, dx=dx, dy=dy: (x + dx, y + dy))]
     first, last = parts[0][0], parts[-1]
     return dataclasses.replace(
         first, name=name, unicode=spec["unicode"], contours=contours, bounds=_bounds(contours),
+        pieces=pieces, piece_signature=_sig(pieces) if pieces is not None else "",
         advance=int(round(last[1] + last[0].advance)), skeleton=[], points={}, outline_points={}, stages={},
         handles=[], strokes=[], primitives=["combine:" + "+".join(g for g, *_ in spec["parts"])],
         raw_signature="|".join(cg.raw_signature for cg, *_ in parts),
@@ -239,10 +290,14 @@ def _turn(name, spec, compiled) -> CompiledGlyph:
                 p[0], p[1] = sx - p[0], sy - p[1]
             contours.append(cc)
         contours = merge(contours)
+    pieces = None
+    if base.pieces is not None:
+        pieces = _moved(base.pieces, lambda x, y: (sx - x, sy - y)) if bb else []
     return dataclasses.replace(
         base, name=name, unicode=spec["unicode"], contours=contours, bounds=_bounds(contours),
         skeleton=[], points={}, outline_points={}, stages={}, handles=[], strokes=[],
-        primitives=["turn:" + spec["turn"]])
+        primitives=["turn:" + spec["turn"]], signature=_sig(contours),
+        pieces=pieces, piece_signature=_sig(pieces) if pieces is not None else "")
 
 
 def _move(c: Contour, i: int, dx: float, dy: float):
@@ -375,11 +430,12 @@ def _compile_glyph_inner(font, gdef, overrides, used, terminals, handles) -> Com
     stage["cuts"] = list(cuts)
     # 7. remove overlaps, subtract cuts, fix direction (outer CCW), round
     final = merge(flat, cuts=cuts)
+    pieces = [c for g in groups for c in merge(g, cuts=cuts)] if _PIECES.get() else None
     # an optional slant: the finished outline sheared (``font.slant(glyph, degrees)``)
     sl = getattr(font, "slants", {}).get(gdef.name)
     if sl is not None and val(sl):
         k = math.tan(math.radians(val(sl)))
-        for c in final:
+        for c in final + (pieces or []):
             for p in c.pts:
                 p[0] += p[1] * k
 
@@ -412,7 +468,7 @@ def _compile_glyph_inner(font, gdef, overrides, used, terminals, handles) -> Com
                     rsb += o.dx
         shift = float(round(lsb - bounds[0]))
         advance = round(val(adv_spec)) if adv_spec is not None else round(bounds[2] - bounds[0] + lsb + rsb)
-        for c in final:
+        for c in final + (pieces or []):
             for p in c.pts:
                 p[0] += shift
         bounds = (bounds[0] + shift, bounds[1], bounds[2] + shift, bounds[3])
@@ -437,6 +493,7 @@ def _compile_glyph_inner(font, gdef, overrides, used, terminals, handles) -> Com
         signature="|".join(c.signature() for c in final), shift=shift,
         lsb=round(lsb, 2), rsb=round(rsb, 2), primitives=sorted(prims),
         stages=stage, handles=list(handles), strokes=r.strokes,
+        pieces=pieces, piece_signature=_sig(pieces) if pieces is not None else "",
     )
 
 

@@ -271,9 +271,9 @@ DEFAULTS: dict[str, tuple] = {
     "amb_leg_x": (550, (420, 680)), "amb_diag": (129, (100, 160)), "amb_cx": (265, (150, 380)),
     "amb_cy": (350, (250, 450)), "amb_lr_x": (403, (300, 520)), "amb_lr_y": (574, (480, 660)),
     "amb_top_x": (282, (180, 380)), "amb_ll_x": (153, (60, 260)), "amb_ll_y": (562, (480, 660)),
-    "amb_wx": (205, (100, 320)), "amb_wy": (400, (320, 480)), "amb_wdir": (250, (200, 320)),
+    "amb_wdx": (-80, (-150, 60)), "amb_wdy": (80, (-60, 150)), "amb_wdir": (250, (200, 320)),
     "amb_bl_x": (85, (30, 180)), "amb_bl_y": (174, (100, 260)), "amb_bb_x": (265, (160, 380)),
-    "amb_bj_x": (434, (330, 540)), "amb_bj_y": (75, (20, 160)), "amb_bj_dir": (45, (0, 90)),
+    "amb_bj_t": (120, (40, 260)), "amb_bj_off": (48, (-20, 100)), "amb_bj_dir": (45, (0, 90)),
     "amb_a0_x": (480, (380, 600)), "amb_a0_y": (130, (60, 220)), "amb_a0_dir": (60, (20, 90)),
     "amb_arm_x": (540, (440, 640)), "amb_arm_y": (314, (220, 420)),
     "lt_tip": (100, (20, 200)),              # chevron_style="level": the < >'s flat tip
@@ -2402,16 +2402,23 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             top = ch + os_ - P.hairline / 2
             leg = (P.amb_leg_x, P.hairline * 0)
             cross = (P.amb_cx, P.amb_cy)
+            # the lower bowl rejoins the diagonal amb_bj_t along it from the leg, amb_bj_off
+            # to its side -- an offset that scales with the weight, so they overlap at every weight
+            th = math.radians(val(P.amb_diag))
+            bj = (P.amb_leg_x + math.cos(th) * P.amb_bj_t - math.sin(th) * P.amb_bj_off,
+                  math.sin(th) * P.amb_bj_t + math.cos(th) * P.amb_bj_off)
             (gl.path(name="stroke", pen=pen)
                 .start(leg, name="leg", dir=P.amb_diag, terminal="vertex")
                 .line_to(cross, name="cross", dir=P.amb_diag)
                 .curve_to((P.amb_lr_x, P.amb_lr_y), name="loop_r", dir=90)
                 .curve_to((P.amb_top_x, top), name="top", dir=180)
                 .curve_to((P.amb_ll_x, P.amb_ll_y), name="loop_l", dir=270)
-                .curve_to((P.amb_wx, P.amb_wy), name="waist", dir=P.amb_wdir)
+                # the waist is placed from the crossing, by an offset that scales with
+                # the weight (in WEIGHT_PARAMS): the strokes overlap there at every weight
+                .curve_to((P.amb_cx + P.amb_wdx, P.amb_cy + P.amb_wdy), name="waist", dir=P.amb_wdir)
                 .curve_to((P.amb_bl_x, P.amb_bl_y), name="bowl_l", dir=270)
                 .curve_to((P.amb_bb_x, -os_ + P.hairline / 2), name="bottom", dir=0)
-                .curve_to((P.amb_bj_x, P.amb_bj_y), name="bowl_r", dir=P.amb_bj_dir, terminal=False))
+                .curve_to(bj, name="bowl_r", dir=P.amb_bj_dir, terminal=False))
             # the arm branches off the diagonal and rises to a level cut
             (gl.path(name="arm", pen=pen)
                 .start((P.amb_a0_x, P.amb_a0_y), name="root", dir=P.amb_a0_dir, terminal=False)
@@ -2642,3 +2649,42 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         from ..parts import _unicode_for
         if src in font.glyphs and (want is None or chr(_unicode_for(inv)) in want):
             font.turn(inv, src, dy=P.inv_dy)
+
+
+# ---- weight ------------------------------------------------------------------
+# Every param that is an absolute stroke thickness (a pen width, a stem, a bar,
+# a hairline, a dot), so a weight master can scale them together. Ratios,
+# tensions, positions and glyph widths are left alone: a heavier master also
+# wants wider glyphs and opened counters, which are design decisions on top.
+WEIGHT_PARAMS = frozenset("""
+stem hairline cap_stem fig_stem seven_stem brk_stem bar_t
+A_thick A_thin AE_thick AE_bar_t E_arm_t H_bar_t K_thick K_thin M_thick M_thin N_thick N_thin
+Q_bar_w R_leg_w U_thick U_thin V_thick V_thin X_thick X_thin Y_thick Y_thin Z_thick
+a_bs_thick a_bs_thin a_bowl_thin a_bowl_thin_b a_lobe_thick a_lobe_thin_b a_top_thin a_bot_thin
+b_lobe_thick b_lobe_thin_b b_top_thin b_bot_thin b_crown_t b_ov_thin
+d_lobe_thick d_lobe_thin_b d_top_thin d_bot_thin d_crown_t d_bowl_thin
+e_bar_t f_bar_t t_bar_t k_thick k_thin v_thick v_thin w_thick w_thin x_thick x_thin z_thick z_bar_t
+n_join_thin u_join_thin r_join_thin one_arm_t two_bar_t five_bar_t five_stem_w four_bar_t four_thin
+seven_bar_t amp_pen brace_pen at_ring_t caret_t dash_t deg_t eq_t math_t hash_t hash_bar_t lt_t under_t
+pct_thick pct_slash_w slash_w oslash_w paren_w excl_w quest_w quest_thin quote_w tl_w ring_thick ring_thin
+ced_thin dot_r i_dot_r diaer_r
+B_th B_hair D_th bar_w dollar_bar lt_tip A_apex acute_top_w acute_bot_w circ_top_w circ_leg_w tilde_w
+ast_tip_w ast_root_w comma_tip_w excl_tip_w quote_tip_w ced_w amb_wdx amb_wdy amb_bj_off
+""".split())
+
+
+# Spacings between two strokes that must grow with them, or the strokes
+# touch at heavy weights: gap -> (the thickness it separates, how many of it)
+WEIGHT_GAPS = {"quote_gap": ("quote_w", 1), "ellipsis_gap": ("dot_r", 2), "diaer_gap": ("diaer_r", 2)}
+
+
+def weight_master(params: dict, k: float) -> dict:
+    """Param overrides for a weight master: every absolute stroke thickness in
+    ``params`` (an evaluated parameter set, e.g. ``CompiledFont.params``)
+    scaled by ``k``, and the gaps between paired strokes widened by what the
+    strokes gained, so the white between them stays."""
+    out = {n: float(params[n]) * k for n in WEIGHT_PARAMS if n in params}
+    for gap, (t, mult) in WEIGHT_GAPS.items():
+        if gap in params and t in params:
+            out[gap] = float(params[gap]) + (k - 1) * float(params[t]) * mult
+    return out

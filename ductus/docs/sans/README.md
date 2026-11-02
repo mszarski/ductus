@@ -331,3 +331,50 @@ pairs, agreement with Geist Sans correlation 0.823, MAE 7.0 u.
 **Still to do.** The weakest are now marks and small symbols: the
 standalone cedilla (0.46), ~ (0.74), ^ (0.77), @ (0.82), =, the quotes and
 comma (0.83–0.84), £ (0.84).
+
+## 07 — a variable weight axis (SPEC M3, started)
+
+![weights 300-700](07_weights.png)
+
+`ductus build examples/sans/font.py --variable` writes a CFF2 variable font
+with a `wght` axis from 300 to 700. It has named instances Light, Regular,
+Medium, SemiBold and Bold, and all 182 glyphs vary. The ramp above is that
+font instantiated at seven weights, including in-between ones no master
+defines.
+
+**Masters.**
+- Light is the regular with every stroke thickness ×0.7, and Bold ×1.45
+  (`kit.weight_master` over `kit.WEIGHT_PARAMS`). Ratios, tensions,
+  positions and glyph widths are left alone.
+- A few gaps grow with the strokes they separate, so the white between
+  them stays (`WEIGHT_GAPS`: the quotes, ellipsis and diaeresis).
+- In the &, the waist's offset from the crossing and the lower bowl's
+  offset from the diagonal scale with the weight. At ×0.7 the strokes
+  otherwise stopped overlapping and the counters opened.
+
+**Compatibility.** The raw strokes are point-compatible by construction.
+The merged outline is not: as strokes thicken, overlap removal and cuts
+re-segment the curves, which changed the structure of 40 glyphs at ×0.7
+and 55 at ×1.45. `ductus/compat.py` unifies the masters exactly:
+1. Contours are matched between masters.
+2. Each master's corners are aligned to the reference's, using position
+   and in/out tangents, by dynamic programming over cyclic offsets.
+3. Between aligned corners, every segment becomes a cubic and segments are
+   split by de Casteljau at a shared set of arc-length positions.
+
+Shapes are unchanged (area identical); only the point structure is
+matched. It refuses real topology changes, such as a counter opening; the
+&'s at ×0.7 was one, found this way and fixed in the design. Master
+charstrings are written unoptimised, because the CFF optimiser turned
+straight curves into lines in one master only.
+
+**Not yet.**
+- The Bold is only the regular made heavier:
+  - glyph widths and side bearings don't grow, so it sets tight;
+  - counters close up in a e s;
+  - the t's foot kinks.
+
+  A real Bold master needs its own widths, spacing and a few structural
+  values; the axis machinery takes any param overrides per master.
+- Kerning is the regular's, static, at every weight.
+- The display serif has no axis yet.

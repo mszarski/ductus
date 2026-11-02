@@ -43,10 +43,24 @@ def build(font_py: Path,
           set_: list[str] = typer.Option([], "--set", help="override a parameter, e.g. --set stem=120"),
           sweep: list[str] = typer.Option([], "--sweep", help="check compatibility, e.g. --sweep stem=40,160"),
           overrides: Optional[Path] = typer.Option(None, help="overrides.yaml (default: next to font.py)"),
-          debug_json: bool = typer.Option(False, "--json", help="also write CompiledFont JSON")):
-    """Compile FONT_PY to a static .otf."""
+          debug_json: bool = typer.Option(False, "--json", help="also write CompiledFont JSON"),
+          variable: bool = typer.Option(False, "--variable",
+                                        help="build the font's declared axis (font.variable) as a variable .otf")):
+    """Compile FONT_PY to a static .otf (or, with --variable, a variable one)."""
     font = load_font(font_py)
     ovs = _overrides_for(font_py, overrides)
+    if variable:
+        from .variable import build_variable
+        path, held = build_variable(font, out / f"{font.family.replace(' ', '')}-VF.otf", ovs)
+        problems = validate_otf(path)
+        typer.echo(f"wrote {path}  (axis {font.variable['tag']} "
+                   f"{min([font.variable['default'], *font.variable['masters']])}-"
+                   f"{max([font.variable['default'], *font.variable['masters']])})")
+        for g, why in held.items():
+            typer.secho(f"held static (masters incompatible): {g}: {why}", fg="yellow")
+        for p in problems:
+            typer.secho(f"invalid: {p}", fg="red")
+        raise typer.Exit(1 if problems else 0)
     cf = compile_font(font, _parse_set(set_), ovs)
     for w in cf.warnings:
         typer.secho(f"warning: {w}", fg="yellow")

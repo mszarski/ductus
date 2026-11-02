@@ -112,8 +112,10 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 200–500 px have been fixed (see `docs/sans/README.md` 03–06).
 
 ### In progress
-- **SPEC M3: a variable weight axis.** The user approved starting it; see
-  §7.
+- **SPEC M3, variable weight axis: started.** `ductus build --variable`
+  builds Ductus Sans as a CFF2 font, `wght` 300–700, with all 182 glyphs
+  varying (`ductus/variable.py`, `ductus/compat.py`; `docs/sans/README.md`
+  07). The masters are naive (thicknesses scaled); see §7.
 
 ## 3. Decisions and reasons
 - **Open questions in SPEC §13** are answered in `README.md` ("Decisions on
@@ -285,12 +287,13 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
   README section with a short self-critique and before/after numbers.
 
 ## 7. Next steps (priority order)
-1. **M3, variable weight axis** (approved; started after iteration 06).
-   - Masters are param settings, compiled and fed to `fontTools.varLib`.
-   - Merged outlines must have the same point structure across masters.
-     The raw strokes are compatible by construction; the merged outline is
-     not always (the lint already reports "merged outline topology
-     changes").
+1. **M3, finish the weight axis.**
+   - Design a real Bold master on top of `kit.weight_master`: per-master
+     glyph widths and side bearings (it sets tight), counters in a e s,
+     and the t's foot.
+   - Vary the kerning per master (it is static now).
+   - Check the Light against a reference light.
+   - Possibly an axis for the display serif.
 2. **Open question for the user: licensing.** SPEC §8 says fitted fonts are
    internal benchmarks. Ductus Sans is fitted to Geist Sans (shapes,
    spacing, kerning style), yet it lives in `examples/`. Options: move it

@@ -41,6 +41,7 @@ pytest                                                  # all tests (testpaths =
 ductus build examples/sans/font.py -o out/              # .otf, validated by fontTools round-trip + OTS
 ductus test  examples/sans/font.py                      # lints + compatibility sweep of ranged params
 ductus kern  examples/sans/font.py --clearance 60 --min-abs 5   # rewrites examples/sans/kerning.json
+ductus build examples/sans/font.py --variable -o out/    # wght 300-700 variable .otf (font.variable)
 ductus kern  examples/display_serif/font.py             # defaults: clearance 90, min-abs 10
 ductus fit   benchmarks/geist_serif/font.py --glyph o --only-improve
 python examples/sans/make_sheet.py NN                   # -> docs/sans/NN.png
@@ -100,6 +101,11 @@ ask the user if you need it. `trajectory_classifier` was removed; it is unrelate
 - Sans pitfalls from inherited serif defaults: needs `N_dy=12` (N tick drops below baseline), `at_slant=0`
   (default 14), `ced_w 55` (cedilla lint). Check inherited serif defaults when adding sans glyphs.
 - Open strokes are oriented by construction (clockwise), not signed area (area flipped `r` at a sweep corner).
+- Variable builds: merged outlines are NOT point-compatible across weights (overlap removal re-segments); never
+  interpolate them directly -- `ductus/compat.py` unifies them exactly (corners aligned, de Casteljau splits). It
+  refuses real topology changes (a counter opening, two marks touching): fix those in the design, e.g. offsets in
+  `kit.WEIGHT_PARAMS` (they scale with weight) or gaps in `kit.WEIGHT_GAPS`. Master charstrings must be written
+  with `build_otf(..., optimize=False)` (the optimiser turns straight curves into lines in one master only).
 - Process handling: never `pkill -f` (kills its own shell); `pgrep -f` matches itself, use
   `ps -eo args | grep "^.../ductus fit"`; shell chains can hide a lint FAIL, check exit codes;
   don't `git stash` while fits run; commit after background jobs finish, not mid-run.

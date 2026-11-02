@@ -14,8 +14,10 @@ def ps_name(cf: CompiledFont) -> str:
     return re.sub(r"[^A-Za-z0-9]", "", cf.family) + "-" + re.sub(r"[^A-Za-z0-9]", "", cf.style)
 
 
-def build_otf(cf: CompiledFont, path):
-    """Write to ``path`` (str/Path) or a binary file object."""
+def build_otf(cf: CompiledFont, path, optimize: bool = True):
+    """Write to ``path`` (str/Path) or a binary file object. ``optimize=False``
+    keeps every segment's command as drawn (the charstring optimiser turns
+    straight curves into lines, which differs between variable masters)."""
     if isinstance(path, (str, Path)):
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -43,7 +45,7 @@ def build_otf(cf: CompiledFont, path):
         pen = T2CharStringPen(g.advance, None)
         for c in g.contours:
             c.draw(pen)
-        charstrings[g.name] = pen.getCharString()
+        charstrings[g.name] = pen.getCharString(optimize=optimize)
         metrics[g.name] = (g.advance, int(round(g.bounds[0])) if g.bounds else 0)
 
     fb.setupCFF(ps_name(cf), {"FullName": f"{cf.family} {cf.style}", "FamilyName": cf.family,
@@ -60,7 +62,9 @@ def build_otf(cf: CompiledFont, path):
                 sxHeight=m["xheight"], sCapHeight=m["capheight"], achVendID="NONE",
                 fsType=0)
     fb.setupPost()
-    fb.setupHead(unitsPerEm=upm)
+    from fontTools.misc.timeTools import timestampNow
+    now = timestampNow()
+    fb.setupHead(unitsPerEm=upm, created=now, modified=now)
     kerning = getattr(cf, "kerning", None) or {}
     ligatures = getattr(cf, "ligatures", None) or {}
     fea = ""
@@ -98,10 +102,11 @@ def validate_otf(path) -> list[str]:
     problems = []
     try:
         f = TTFont(str(path))
-        for tag in ("CFF ", "cmap", "head", "hhea", "hmtx", "maxp", "name", "OS/2", "post"):
+        cff = "CFF2" if "CFF2" in f else "CFF "              # a variable font carries CFF2
+        for tag in (cff, "cmap", "head", "hhea", "hmtx", "maxp", "name", "OS/2", "post"):
             if tag not in f:
                 problems.append(f"missing table {tag!r}")
-        cs = f["CFF "].cff.topDictIndex[0].CharStrings
+        cs = f[cff].cff.topDictIndex[0].CharStrings
         for name in f.getGlyphOrder():
             cs[name].decompile()
     except Exception as e:

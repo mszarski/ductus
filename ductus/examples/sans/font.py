@@ -147,9 +147,13 @@ P = kit.params(
     sans_cut_t=0, endash_len=503,
     sans_cut_g=105, descender_g=-162,
     sans_cut_f=0, amb_leg_x=548, amb_diag=125, amb_cx=284, amb_cy=324, amb_lr_x=410, amb_lr_y=550,
-    amb_top_x=258, amb_ll_x=154, amb_ll_y=543, amb_wx=201, amb_wy=409, amb_wdir=257, amb_bl_x=84, amb_bl_y=167,
-    amb_bb_x=238, amb_bj_x=440, amb_bj_y=71, amb_bj_dir=40, amb_a0_x=482, amb_a0_y=125, amb_a0_dir=57,
+    amb_top_x=258, amb_ll_x=154, amb_ll_y=543, amb_wdir=257, amb_bl_x=84, amb_bl_y=167,
+    amb_bb_x=238, amb_bj_dir=40, amb_a0_x=482, amb_a0_y=125, amb_a0_dir=57,
     amb_arm_x=540, amb_arm_y=314,
+    amb_wdx=-83,
+    amb_wdy=85,
+    amb_bj_t=120,
+    amb_bj_off=48,
 )
 kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
                            "ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüýÿı´`¨¸˚ÆŒØæœøß"
@@ -260,3 +264,12 @@ _kern = _Path(__file__).with_name("kerning.json")
 if _kern.exists():
     for _l, _r, _v in _json.loads(_kern.read_text())["pairs"]:
         font.kern(_l, _r, _v)
+
+# a weight axis (SPEC M3): masters are the regular with every stroke thickness
+# scaled (kit.weight_master); `ductus build --variable` interpolates them
+font.variable = {
+    "tag": "wght", "name": "Weight", "default": 400,
+    "masters": {300: 0.7, 700: 1.45},
+    "params": kit.weight_master,
+    "instances": {"Light": 300, "Regular": 400, "Medium": 500, "SemiBold": 600, "Bold": 700},
+}
