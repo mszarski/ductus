@@ -470,3 +470,35 @@ widths found nothing better.
 
 **Self-critique.** The u's bowl is still a little flat on the right where
 it meets the stem. The Bold also sets slightly wider than Geist Bold.
+
+## 10 — the Bold's s, r, v, w
+
+At Medium and Bold the s, r, v and w still looked wrong. Geist Sans Medium
+and SemiBold are now fetched too, for measurement only, so the Medium can be
+checked against the real thing.
+
+The Medium matched Geist Medium closely. It only carried the Bold's faults
+at half strength, so the fixes are all in `master_bold.json`:
+
+- **s.** The stroke was too heavy for its tight turns. The inner offset
+  folded where the bowls turn, leaving kinks inside them. These read as
+  facets and nubs, and the Medium inherits them. Fixes:
+  - rounder sides (`s_left_t`/`s_right_t` 0.85);
+  - the top node moved right and the bottom node left (0.55 / 0.45),
+    which widens the turns;
+  - terminals refit lower and higher (`s_t1_y` 0.68, `s_t2_y` 0.315).
+
+  The s goes from 0.872 to 0.944 against Geist Bold.
+- **r.** The arm is higher and thicker (`r_y` 0.875, `r_end_w` 1.15), with
+  a shorter taper. A fit pushed `r_dir` to −11, which put a wave in the
+  arm's top edge; it is kept at −6. The r scores 0.943 (was 0.927).
+- **v, w.** Diagonal thicknesses and vertex height were refit. The w is
+  narrower (662).
+
+The Bold scores 0.8800 → 0.8816 against Geist Bold.
+
+**Self-critique.**
+- The s keeps a short vertical flat inside each bowl. It is invisible at
+  text sizes.
+- The e's terminal is still a wedge where Geist cuts it level.
+- Lines still set slightly long at Medium and Bold.
