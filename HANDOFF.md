@@ -115,10 +115,14 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 - **SPEC M3, variable weight axis.** `ductus build --variable`
   builds Ductus Sans as a CFF2 font, `wght` 300–700, with all 182 glyphs
   varying (`ductus/variable.py`, `ductus/compat.py`; `docs/sans/README.md`
-  07–08).
+  07–09).
   - The Bold and Light masters are designed against Geist Bold and Light
     (`examples/sans/master_*.json`, fitted with `tools/fitting/mfit.py`):
     Bold 0.880, Light 0.890.
+  - The Bold's arches (n m h u r) were reshaped by eye against Geist Bold
+    (`docs/sans/README.md` 09). Pen contrast now follows the horizontals'
+    scale. Don't let IoU fits pull `n_shoulder_x` back toward 0.63 at Bold:
+    that brings back the lopsided counter.
   - Kerning is static (the Regular's).
 
 ## 3. Decisions and reasons

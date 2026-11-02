@@ -180,7 +180,7 @@ DEFAULTS: dict[str, tuple] = {
     "A_foot_in_dl": (0, (-60, 80)),     # ... and the inner serifs' (between the feet), added again
     "A_os_k": (1.0, (0.0, 1.5)),        # the apex's overshoot above the cap height, x overshoot
     # display / test-word glyphs
-    "m_width": (330, (250, 450)), "b_width": (500, (400, 620)), "b_bowl_l": (0.3, (0.0, 0.6)),
+    "m_width": (330, (250, 450)), "m_join_dx": (0, (-60, 10)), "b_width": (500, (400, 620)), "b_bowl_l": (0.3, (0.0, 0.6)),
     "u_width": (410, (300, 520)), "u_bias": (0.5, (0.1, 0.9)),
     # the u's cup has its own join and shoulder (it is not just the n rotated)
     "u_join_at": (0.78, (0.45, 0.95)), "u_join_thin": (30, (4, 120)), "u_join_angle": (45, (0, 85)),
@@ -861,9 +861,13 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     def head_inset_cut(p, edge_x, crotch_y, inset, name="head_inset"):
         """Cut a strip `inset` wide off the right edge of a headed stem, from
         `head_inset_y` above the join's crotch to well above the head."""
-        y0 = crotch_y + P.head_inset_y
+        y0, y1 = crotch_y + P.head_inset_y, xh + 400
+        if val(inset) <= 0:
+            # no inset: the strip would only leave a 1-unit slit (a crack at display sizes);
+            # keep the cut (the outline structure must not depend on the value) but off the glyph
+            y0, y1 = xh + 400, xh + 410
         (p.cut(name).move((edge_x - inset, y0), "a").line((edge_x + 1, y0), "b")
-            .line((edge_x + 1, xh + 400), "c").line((edge_x - inset, xh + 400), "d").close())
+            .line((edge_x + 1, y1), "c").line((edge_x - inset, y1), "d").close())
 
     def n_join(top):
         # val(top): the join height must be (number x param) to get a handle
@@ -1213,7 +1217,9 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         gl += stem_(x=0, top=xh + P.head_top, head="head")
         gl += arch(x=0, width=w, name="arch1", inset=True)
         gl += stem_(x=w, top=xh * P.n_out_y * P.n_leg_top, name="leg1", head=False)
-        gl += arch(x=w, width=w, name="arch2")
+        # m_join_dx: the second arch meets the first one's leg, still curving at the join
+        # height when the leg stem starts low (a bold): set its join onto that curve
+        gl += arch(x=w, width=w, name="arch2", edge_half=P.stem / 2 + P.m_join_dx)
         gl += stem_(x=2 * w, top=xh * P.n_out_y * P.n_leg_top, name="leg2", head=False)
 
     @g("u")
@@ -2686,7 +2692,7 @@ WEIGHT_H = frozenset("""
 hairline bar_t E_arm_t H_bar_t AE_bar_t e_bar_t f_bar_t t_bar_t z_bar_t two_bar_t five_bar_t four_bar_t
 seven_bar_t hash_bar_t dash_t eq_t under_t one_arm_t a_bs_thin a_bowl_thin a_bowl_thin_b b_ov_thin d_bowl_thin
 a_top_thin a_bot_thin b_top_thin b_bot_thin d_top_thin d_bot_thin b_crown_t d_crown_t a_lobe_thin_b b_lobe_thin_b
-d_lobe_thin_b
+d_lobe_thin_b n_join_thin u_join_thin r_join_thin
 """.split()) & WEIGHT_PARAMS
 
 
@@ -2694,10 +2700,17 @@ def weight_master(params: dict, k: float, kh: float | None = None) -> dict:
     """Param overrides for a weight master: every absolute stroke thickness in
     ``params`` (an evaluated parameter set, e.g. ``CompiledFont.params``)
     scaled by ``k`` -- the horizontal ones (``WEIGHT_H``) by ``kh`` when
-    given -- and the gaps between paired strokes widened by what the strokes
+    given, pens' contrasts adjusted so their thin widths follow ``kh`` too --
+    and the gaps between paired strokes widened by what the strokes
     gained, so the white between them stays."""
     kh = k if kh is None else kh
     out = {n: float(params[n]) * (kh if n in WEIGHT_H else k) for n in WEIGHT_PARAMS if n in params}
+    # a pen's contrast sets its thin (level) width as a share of its thick one:
+    # keep the thin width following the horizontals (kh), not the stems (k) --
+    # else a bold's arches are as heavy at the top as its stems
+    for n, c in params.items():
+        if n.endswith("_contrast") and k > 0:
+            out[n] = max(0.0, 1 - (1 - float(c)) * kh / k)
     for gap, (t, mult) in WEIGHT_GAPS.items():
         if gap in params and t in params:
             out[gap] = float(params[gap]) + (k - 1) * float(params[t]) * mult

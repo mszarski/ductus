@@ -428,3 +428,45 @@ All 182 glyphs stay compatible across the three masters.
 - The Bold's weakest glyphs are marks and symbols (", cedilla, bullet, °,
   quotes, ~, _).
 - The Light got only a short pass.
+
+## 09 — the Bold's arches (n m h u r)
+
+![Bold arches before and after](09_bold_arches.png)
+
+The Bold's arch tops were too heavy, and the r's arm was a thick flag.
+Close-ups against Geist Bold showed several causes:
+
+- **The arch nib kept the Regular's contrast.** A pen's thin width is a
+  share of its thick one, so the thin parts scaled with the stems (×1.79)
+  instead of the horizontals (×1.49). `kit.weight_master` now adjusts every
+  `*_contrast` so the thin width follows `kh`. The join thicknesses
+  (`n/u/r_join_thin`, `d_lobe_thin_b`) moved into `WEIGHT_H`.
+- **A lopsided counter.** The shoulder sat far right (`n_shoulder_x` 0.625).
+  At Bold the thick nib can't follow so tight a turn, so the counter rose
+  in a straight line and then turned sharply into the leg. Bold now uses
+  `n_shoulder_x` 0.52, `n_tension` 0.85 and `n_join_angle` 65.
+- **A hook where the arch met the leg.** The leg stem's square top stood
+  above the point where the arch turns vertical, so it cut into the curve.
+  Bold now uses `n_leg_top` 0.5, so the stem starts where the arch ends,
+  and `n_out_y` 0.7. The u had the same problem mirrored (`u_leg_top`).
+  Its cup nib is now level (`u_angle` 0), which removes a dimple at the
+  join.
+- **A 1-unit crack.** `head_inset_cut` ran even with `head_inset` 0 and
+  left a 1-unit slit between the stem and the arch (n, m, r). It was
+  invisible in the Regular but showed in the Bold. With no inset, the cut
+  now sits above the glyph and removes nothing. It isn't skipped, because the
+  outline structure must not depend on a parameter's value. The Regular's score is unchanged (0.9311).
+- **A tooth on the m.** Its second arch joined the first one's leg while
+  that leg was still curving. The new kit parameter `m_join_dx` (default 0;
+  −20 at Bold) moves the join onto the curve.
+- **The r's arm.** It now leaves the stem lower (`r_join_at` 0.62, angle
+  65), with a long taper (0.9) and a level end (`r_dir` −5). The underside
+  is now a smooth concave curve.
+
+These choices were made by eye. The fitter preferred the old shapes on
+IoU: n/m/h/u lost about 0.03 each, and the Bold went from 0.8804 to
+0.8800 against Geist Bold. Light stays at 0.8903. A refit of the arch
+widths found nothing better.
+
+**Self-critique.** The u's bowl is still a little flat on the right where
+it meets the stem. The Bold also sets slightly wider than Geist Bold.
