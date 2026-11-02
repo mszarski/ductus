@@ -14,7 +14,7 @@ import urllib.request
 from pathlib import Path
 
 VERSION = "1.9.0"
-WANT = {"package/dist/fonts/geist-sans/Geist-Regular.woff2", "package/LICENSE.txt"}
+WANT = {f"package/dist/fonts/geist-sans/Geist-{w}.woff2" for w in ("Regular", "Light", "Bold")} | {"package/LICENSE.txt"}
 
 here = Path(__file__).resolve().parent / "reference"
 here.mkdir(exist_ok=True)

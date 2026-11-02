@@ -112,10 +112,14 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 200–500 px have been fixed (see `docs/sans/README.md` 03–06).
 
 ### In progress
-- **SPEC M3, variable weight axis: started.** `ductus build --variable`
+- **SPEC M3, variable weight axis.** `ductus build --variable`
   builds Ductus Sans as a CFF2 font, `wght` 300–700, with all 182 glyphs
   varying (`ductus/variable.py`, `ductus/compat.py`; `docs/sans/README.md`
-  07). The masters are naive (thicknesses scaled); see §7.
+  07–08).
+  - The Bold and Light masters are designed against Geist Bold and Light
+    (`examples/sans/master_*.json`, fitted with `tools/fitting/mfit.py`):
+    Bold 0.880, Light 0.890.
+  - Kerning is static (the Regular's).
 
 ## 3. Decisions and reasons
 - **Open questions in SPEC §13** are answered in `README.md` ("Decisions on
@@ -288,10 +292,9 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 
 ## 7. Next steps (priority order)
 1. **M3, finish the weight axis.**
-   - Design a real Bold master on top of `kit.weight_master`: per-master
-     glyph widths and side bearings (it sets tight), counters in a e s,
-     and the t's foot.
-   - Vary the kerning per master (it is static now).
+   - Vary the kerning per master (it is static now). Run `ductus kern` on
+     each compiled master; varLib needs the same pairs in every master.
+   - The Bold's marks and symbols; a longer pass on the Light.
    - Check the Light against a reference light.
    - Possibly an axis for the display serif.
 2. **Open question for the user: licensing.** SPEC §8 says fitted fonts are

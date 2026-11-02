@@ -2675,15 +2675,29 @@ ast_tip_w ast_root_w comma_tip_w excl_tip_w quote_tip_w ced_w amb_wdx amb_wdy am
 
 # Spacings between two strokes that must grow with them, or the strokes
 # touch at heavy weights: gap -> (the thickness it separates, how many of it)
-WEIGHT_GAPS = {"quote_gap": ("quote_w", 1), "ellipsis_gap": ("dot_r", 2), "diaer_gap": ("diaer_r", 2)}
+WEIGHT_GAPS = {"quote_gap": ("quote_w", 1), "quote_dbl_gap": ("quote_w", 1), "ellipsis_gap": ("dot_r", 2),
+               "diaer_gap": ("diaer_r", 2)}
 
 
-def weight_master(params: dict, k: float) -> dict:
+# The horizontal ones among them (the hairline, bars, bowls' tops and bottoms):
+# a bold thickens them less than its stems, so its counters stay open
+# (Geist Sans Bold: stems x1.79, horizontals x1.49)
+WEIGHT_H = frozenset("""
+hairline bar_t E_arm_t H_bar_t AE_bar_t e_bar_t f_bar_t t_bar_t z_bar_t two_bar_t five_bar_t four_bar_t
+seven_bar_t hash_bar_t dash_t eq_t under_t one_arm_t a_bs_thin a_bowl_thin a_bowl_thin_b b_ov_thin d_bowl_thin
+a_top_thin a_bot_thin b_top_thin b_bot_thin d_top_thin d_bot_thin b_crown_t d_crown_t a_lobe_thin_b b_lobe_thin_b
+d_lobe_thin_b
+""".split()) & WEIGHT_PARAMS
+
+
+def weight_master(params: dict, k: float, kh: float | None = None) -> dict:
     """Param overrides for a weight master: every absolute stroke thickness in
     ``params`` (an evaluated parameter set, e.g. ``CompiledFont.params``)
-    scaled by ``k``, and the gaps between paired strokes widened by what the
-    strokes gained, so the white between them stays."""
-    out = {n: float(params[n]) * k for n in WEIGHT_PARAMS if n in params}
+    scaled by ``k`` -- the horizontal ones (``WEIGHT_H``) by ``kh`` when
+    given -- and the gaps between paired strokes widened by what the strokes
+    gained, so the white between them stays."""
+    kh = k if kh is None else kh
+    out = {n: float(params[n]) * (kh if n in WEIGHT_H else k) for n in WEIGHT_PARAMS if n in params}
     for gap, (t, mult) in WEIGHT_GAPS.items():
         if gap in params and t in params:
             out[gap] = float(params[gap]) + (k - 1) * float(params[t]) * mult

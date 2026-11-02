@@ -30,6 +30,25 @@ from .emit import build_otf, ps_name
 from .parts import DuctusError
 
 
+def compile_master(font, default_params, setting, overrides=None, glyphs=None):
+    """One master: the font compiled with ``font.variable["params"](default
+    params, setting)``; a dict setting may also carry ``"spacing"``, per-glyph
+    (dl, dr) side-bearing deltas added to ``font.spacing`` for this master."""
+    spec = font.variable
+    extra = setting.get("spacing", {}) if isinstance(setting, dict) else {}
+    saved = dict(getattr(font, "spacing", {}))
+    try:
+        if extra:
+            sp = font.spacing
+            for g, (dl, dr) in extra.items():
+                l0, r0 = sp.get(g, (0, 0))
+                sp[g] = (l0 + dl, r0 + dr)
+        return compile_font(font, spec["params"](default_params, setting), overrides, glyphs=glyphs)
+    finally:
+        font.spacing.clear()
+        font.spacing.update(saved)
+
+
 def compile_masters(font, overrides=None):
     """[(axis value, CompiledFont)] with the default first, every glyph's
     outlines made point-compatible across them; and the glyphs that could
@@ -38,7 +57,7 @@ def compile_masters(font, overrides=None):
     default = compile_font(font, overrides=overrides)
     masters = [(spec["default"], default)]
     for loc, setting in sorted(spec["masters"].items()):
-        masters.append((loc, compile_font(font, spec["params"](default.params, setting), overrides)))
+        masters.append((loc, compile_master(font, default.params, setting, overrides)))
     failed = {}
     unified: dict[str, list] = {}
     for name in default.glyphs:

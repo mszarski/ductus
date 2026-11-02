@@ -55,7 +55,9 @@ python docs/make_proofs.py                              # regenerate docs/ proof
 `ductus bench`/`fit` fall back to the Geist **Serif** reference; pass `--reference`
 explicitly for the sans (`serve` shows no reference unless given one). `ductus fit` tunes parameters only, never overrides;
 always use `--only-improve` (saves only if every glyph improves and none falls off target).
-Fitting helpers live in `tools/fitting/` (see its README): repo-relative paths via `fitpaths.py`, scratch in
+Weight masters of the sans: `python tools/fitting/mfit.py score|cd|rs|respace [--loc 700|300]` fits
+`examples/sans/master_<bold|light>.json` against Geist Bold/Light (fetched by the same fetcher; candidates must keep
+each glyph's contour count). Fitting helpers live in `tools/fitting/` (see its README): repo-relative paths via `fitpaths.py`, scratch in
 git-ignored `tools/fitting/_scratch/` (or `$DUCTUS_SCRATCH`), thousands of temp fonts written to its `sw/`.
 
 This clone uses a sparse checkout excluding `ductus/docs/iterations/` (case-collision workaround).

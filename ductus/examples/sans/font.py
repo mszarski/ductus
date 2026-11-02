@@ -265,11 +265,27 @@ if _kern.exists():
     for _l, _r, _v in _json.loads(_kern.read_text())["pairs"]:
         font.kern(_l, _r, _v)
 
-# a weight axis (SPEC M3): masters are the regular with every stroke thickness
-# scaled (kit.weight_master); `ductus build --variable` interpolates them
+# a weight axis (SPEC M3). A master is the regular with its stroke thicknesses
+# scaled (verticals by k, horizontals by kh: kit.weight_master), plus its own
+# designed values and side-bearing deltas (master_bold.json, master_light.json)
+def _designed(name):
+    p = _Path(__file__).with_name(f"master_{name}.json")
+    return _json.loads(p.read_text()) if p.exists() else {}
+
+
+_bold, _light = _designed("bold"), _designed("light")
+
+
+def _master(params, setting):
+    ov = kit.weight_master(params, setting["k"], setting.get("kh"))
+    ov.update(setting.get("params", {}))
+    return ov
+
+
 font.variable = {
     "tag": "wght", "name": "Weight", "default": 400,
-    "masters": {300: 0.7, 700: 1.45},
-    "params": kit.weight_master,
+    "masters": {300: {"k": 0.79, "params": _light.get("params", {}), "spacing": _light.get("spacing", {})},
+                700: {"k": 1.79, "kh": 1.49, "params": _bold.get("params", {}), "spacing": _bold.get("spacing", {})}},
+    "params": _master,
     "instances": {"Light": 300, "Regular": 400, "Medium": 500, "SemiBold": 600, "Bold": 700},
 }

@@ -378,3 +378,53 @@ straight curves into lines in one master only.
   values; the axis machinery takes any param overrides per master.
 - Kerning is the regular's, static, at every weight.
 - The display serif has no axis yet.
+
+## 08 — a designed Bold (and Light)
+
+![weights 300-700](08_weights.png)
+
+Geist Sans Bold and Light were fetched for measurement only (git-ignored,
+like the Regular). Geist's Bold is not the Regular scaled:
+
+| | Light | Regular | Bold |
+|---|---|---|---|
+| Stems | 66 (×0.79) | 84 | 150 (×1.79) |
+| Horizontals | 63 (×0.79) | 80 | 119 (×1.49) |
+| n / o side bearings | 82 / 46 | 80 / 44 | 66 / 37 |
+
+The Bold thickens its horizontals less than its stems, which keeps the
+counters open. Its glyphs are wider, its side bearings tighter, its
+x-height 6 units taller, and its word space narrower (228 against 250).
+
+**Masters now carry a design.**
+- `kit.weight_master(params, k, kh)` scales stems by `k` and horizontals
+  (`WEIGHT_H`) by `kh`.
+- A master's own values and per-glyph side-bearing deltas live in
+  `examples/sans/master_bold.json` and `master_light.json`.
+- `variable.compile_master()` applies both.
+
+**Fitting** (`tools/fitting/mfit.py`, `bold.sh`, `bold2.sh`). Each master
+is scored against the matching Geist weight. Candidates are refused if they
+change any glyph's contour count, so the masters stay interpolable.
+1. Weights and proportions on the core letters (stem 150, hairline 118,
+   x-height 536).
+2. Every glyph's width.
+3. Dots and marks.
+4. The t and l tails: longer, with wider turns at Bold.
+5. The a.
+6. The ring.
+7. The @: at ×1.79 its ring touched the inner stem and enclosed a sliver.
+8. Respacing toward Geist Bold's side bearings, and the space set to 228.
+
+| Master | Score against the matching Geist weight |
+|---|---|
+| Bold | 0.820 → 0.880 |
+| Light | 0.887 → 0.890 |
+
+All 182 glyphs stay compatible across the three masters.
+
+**Still to do.**
+- Kerning is the Regular's at every weight; Bold lines run slightly long.
+- The Bold's weakest glyphs are marks and symbols (", cedilla, bullet, °,
+  quotes, ~, _).
+- The Light got only a short pass.
