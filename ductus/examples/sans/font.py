@@ -26,7 +26,7 @@ P = kit.params(
     t_bot_dy=10.5,
     # widths (stem centres), measured off Geist Sans
     n_width=337, u_width=331, m_width=315, o_width=485, e_width=476, c_width=480, s_width=414,
-    c_face=0.96, c_top_y=350, c_term_y=200, c_cut_x=0.35, c_cut_y=134, c_cut_angle=190, c_cut_h2=0.1,
+    c_face=0.96, c_top_y=350, e_vcut_x=0.96, e_vcut_dx=-8, c_vcut_x=0.96, c_term_y=200, c_cut_x=0.35, c_cut_y=134, c_cut_angle=190, c_cut_h2=0.1,
     o_full_h=0.62, o_in_full_h=0.62,
     H_width=445, O_width=637,
     # monoline: the serif kit's hairline parts at near-stem weight
@@ -65,7 +65,7 @@ P = kit.params(
     a_foot_dy=10.7, a_tail=91, a_turn=98,
     s_ends=1.04, s_swell=1.02, z_bar_t=76, S_swell_k=1.0, e_thin_bottom=1.0, C_right_k=1.0, C_bottom_k=1.0,
     C_width=631, C_face=0.96, C_term_y=250, C_cut_x=0.32, C_cut_y=116, C_cut_h2=0.4, C_cut_h1=0.4,
-    C_cut_angle=175, z_serif=70, z_width=440, e_term_y=175, e_cut_angle=190, e_cut_y=140, e_cut_x=0.6,
+    C_cut_angle=175, z_serif=70, z_width=440, e_term_y=167, e_cut_angle=190, e_cut_y=140, e_cut_x=0.6,
     e_bar_y=0.52, e_thick_dl=-2.0, e_full_h=0.61, e_in_full_h=0.63, e_in_full_v=0.59, e_cut_h1=0.3,
     e_cut_h2=0.3, S_t1_dw=0.0, S_top_dw=6.0, S_left_dw=6.0, S_mid_dw=6.0, S_right_dw=6.0, S_bot_dw=6.0,
     e_bar_rin=4,
@@ -159,7 +159,7 @@ kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
                            "ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüýÿı´`¨¸˚ÆŒØæœøß"
                            "&*%·#$+<=>@[\\]^_{|}~…•°×€£.,:;-–—'\"‘’“”!?¿¡()/",
            terminals=kit.sans_set(P), g_style="single", l_style="tail", J_style="base",
-           R_leg="curve", Q_style="bar", seven_style="curve", fig_ends="cut", face_serifs=False, one_style="arm", d_style="bowl", a_style="stroke", y_left="poly", level_trim=True, brace_beak="point", ss_style="bar", j_style="foot", paren_ends="level", chevron_style="level", amp_style="branch", dot_style="square", ligatures=False, g_ear="flag", b_style="oval", r_style="arch")
+           R_leg="curve", Q_style="bar", seven_style="curve", fig_ends="cut", face_serifs=False, one_style="arm", d_style="bowl", a_style="stroke", y_left="poly", level_trim=True, brace_beak="point", ss_style="bar", j_style="foot", paren_ends="level", chevron_style="level", amp_style="branch", dot_style="square", ligatures=False, g_ear="flag", b_style="oval", r_style="arch", ec_aperture="vertical")
 
 # side bearings (left, right) on top of sb_straight / sb_round, set from the
 # glyphs' measured side bearings in Geist Sans

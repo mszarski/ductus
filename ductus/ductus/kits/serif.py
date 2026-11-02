@@ -107,6 +107,9 @@ DEFAULTS: dict[str, tuple] = {
     "e_bar_y": (0.57, (0.4, 0.7)), "e_bar_t": (35, (5, 120)),
     "e_term_y": (150, (40, 260)), "e_cut_angle": (200, (150, 260)), "e_cut_y": (60, (-20, 200)),
     "e_cut_h1": (0.4, (0.05, 1.2)), "e_cut_h2": (0.4, (0.05, 1.2)), "e_cut_x": (0.5, (0.25, 0.85)),
+    # ec_aperture="vertical": the e's and the c's lower terminal end in a near-vertical cut at
+    # x = width * *_vcut_x (at the baseline), leaning *_vcut_dx units right at the top of the cut
+    "e_vcut_x": (0.9, (0.5, 1.1)), "e_vcut_dx": (0, (-80, 80)), "c_vcut_x": (0.9, (0.5, 1.1)), "c_vcut_dx": (0, (-80, 80)),
     # a
     "a_stem_x": (420, (300, 520)), "a_stem_top": (360, (250, 500)),
     "a_term_x": (110, (40, 220)), "a_term_y": (400, (300, 500)), "a_term_dir": (80, (30, 120)),
@@ -258,7 +261,7 @@ DEFAULTS: dict[str, tuple] = {
     # height at the stem, tilt and left end, the left side's centre, the bottom's x, where it rejoins the
     # stem (height, direction), and the curve's tension
     "a_bs_thick": (88, (50, 120)), "a_bs_thin": (73, (20, 120)), "a_bt_y": (300, (220, 380)),
-    "a_bt_dw": (0, (-60, 30)), "a_bl_dw": (0, (-50, 30)),   # the a bowl: width at the bar's stem end, at the left
+    "a_bt_dw": (0, (-60, 30)), "a_bl_dw": (0, (-50, 30)), "a_bb_dw": (0, (-50, 30)),   # the a bowl: width at the bar's stem end, at the left
     "a_bt_tilt": (10, (-5, 25)), "a_bt_x": (220, (120, 330)), "a_bl_x": (88, (40, 160)), "a_bl_y": (135, (80, 220)),
     "a_turn": (110, (40, 250)), "a_tail": (90, (40, 160)), "a_foot_dy": (0, (-10, 40)),   # its stem's foot
     "a_bb_x": (227, (150, 320)), "a_bj_y": (120, (40, 220)), "a_bj_dir": (60, (20, 90)), "a_bs_t": (1.0, (0.75, 1.5)),
@@ -741,7 +744,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
            paren_ends: str = "square", chevron_style: str = "stroke", amp_style: str = "stroke",
            dot_style: str = "round", ligatures: bool = True,
            b_style: str = "bowl", E_serifs: str = "rect",
-           G_jaw: str = "bar", r_style: str = "ear"):
+           G_jaw: str = "bar", r_style: str = "ear", ec_aperture: str = "tip"):
     """Register the kit's glyphs on ``font``. ``g_ear``: ``"stroke"`` (a
     short stroke taking the ``ear`` terminal, e.g. a ball) or ``"flag"`` (a
     four-sided flag). ``g_band``: ``"flat"`` puts a flat bar across the top of
@@ -1051,6 +1054,11 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         L = math.hypot(val(d_[0]) - val(tip[0]), val(d_[1]) - val(tip[1]))
         c1 = (tip[0] + math.cos(a1) * L * P.e_cut_h1, tip[1] + math.sin(a1) * L * P.e_cut_h1)
         c2 = (d_[0] + L * P.e_cut_h2, d_[1])        # arrives at the counter travelling left
+        if ec_aperture == "vertical":
+            # the terminal's tip is truncated by a near-vertical face (below the aperture cut)
+            xb = w * P.e_vcut_x
+            (gl.cut("term_face").move((xb, -200), "a").line((R, -200), "b").line((R, P.e_term_y + 1), "c")
+                .line((xb + P.e_vcut_dx, P.e_term_y + 1), "d").close())
         (gl.cut("aperture").move((w * P.e_cut_x, y - t / 2), "a").line((R, y - t / 2), "b")
             .line((R, P.e_term_y), "c").line(tip, "tip").curve(c1, c2, d_, "d").close())
 
@@ -1092,7 +1100,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
                 .start((sx, P.a_bt_y), name="top_r", dir=180 + P.a_bt_tilt, terminal=False, width=P.a_bt_dw)
                 .line_to((P.a_bt_x, y_l), name="top_l", dir=180 + P.a_bt_tilt)
                 .curve_to((P.a_bl_x, P.a_bl_y), name="left", dir=270, tension=P.a_bs_t, width=P.a_bl_dw)
-                .curve_to((P.a_bb_x, -os_ + P.a_bs_thin / 2), name="bottom", dir=0, tension=P.a_bs_t)
+                .curve_to((P.a_bb_x, -os_ + (P.a_bs_thin + P.a_bb_dw) / 2), name="bottom", dir=0, tension=P.a_bs_t,
+                          width=P.a_bb_dw)
                 .curve_to((sx, P.a_bj_y), name="join", dir=P.a_bj_dir, terminal=False))
             return
         if a_style == "bowl":
@@ -1524,6 +1533,11 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         L = math.hypot(val(d_[0]) - val(tip[0]), val(d_[1]) - val(tip[1]))
         c1 = (tip[0] + math.cos(a1) * L * P.c_cut_h1, tip[1] + math.sin(a1) * L * P.c_cut_h1)
         c2 = (d_[0] + L * P.c_cut_h2, d_[1])
+        if ec_aperture == "vertical":
+            # the lower terminal's tip is truncated by a near-vertical face, as the upper one is
+            xb = w * P.c_vcut_x
+            (gl.cut("term_face").move((xb, -200), "a").line((R, -200), "b").line((R, P.c_term_y + 1), "c")
+                .line((xb + P.c_vcut_dx, P.c_term_y + 1), "d").close())
         (gl.cut("aperture").move((w * P.c_cut_x, P.c_top_y), "a").line((xf, P.c_top_y), "face")
             .line((xf, xh + 200), "b").line((R, xh + 200), "c").line((R, P.c_term_y), "d")
             .line(tip, "tip").curve(c1, c2, d_, "e").close())

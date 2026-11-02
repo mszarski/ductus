@@ -538,31 +538,47 @@ Light 0.8903 → 0.8904. Kerning re-run.
 **Self-critique.** The Bold a's counter looks pinched in words ("rar").
 That is next.
 
-## 12 — the Bold a
+## 12 — the Bold a, and the e and c terminals
 
-In words the Bold a's counter read as a squinting wedge. Its bottom edge
-rose in a straight diagonal into the stem, and its left end had a kink.
-Geist Bold's counter is a D: round on the left, with the stem as its right
-side for most of its height.
+**The a.** In words the Bold a still looked odd. Measured against Geist
+Bold:
 
-- **A lower join.** The bowl entered the stem at 110, and the stroke's upper
-  edge sits about 50 above that, so the counter met the stem at about 0.3 of
-  the x-height. Now the bowl meets the stem at 85 at 40°, with its bottom
-  node further left (`a_bb_x` 220).
-- **A thinner left side.** New kit parameter `a_bl_dw` (default 0) is the
-  bowl's width at its left node. At Bold it is −25, with the node moved out
-  to `a_bl_x` 74 so the outer edge stays put. With rounder turns
-  (`a_bs_t` 0.85), this removes the kink in the counter's lower left.
-- **A tapered bar.** New kit parameter `a_bt_dw` (default 0) is the width at
-  the bar's stem end. At Bold, −10 lifts the counter's top at the stem.
-- **Refit:** the hood (`a_hood_thin` 1.16, `a_bias` 0.5) and the bar
-  (`a_bt_y` 295, `a_bt_x` 264, `a_bs_thin` 96).
+- **Hood:** its pen was angled 36°, which keeps its top heavy, so the upper
+  counter was about 35 units short. At Bold `a_hood_angle` is now 10 and
+  `a_hood_thin` 1.0.
+- **Bowl counter:** Geist's is a lens whose point meets the stem at about a
+  third of the x-height, like the Regular's. A D-shaped counter (a steep,
+  low join) was tried and rejected: it doesn't match Geist. The counter is
+  now matched to Geist's by its box. New kit parameters, all default 0:
+  - `a_bl_dw`: width at the bowl's left node;
+  - `a_bb_dw`: width at its bottom node, outer edge kept on the baseline;
+  - `a_bt_dw`: width at the bar's stem end.
 
-Judged by eye: the a scores 0.885 against Geist Bold (0.904 before), and
-the Bold 0.8816 → 0.8809.
+  At Bold they are +15, +8 and −30, with `a_bl_x` 91, `a_bt_y` 300, and
+  the join at 170 / 65°, bottom node 290. The rendered counter is now
+  2,974 px against Geist's 3,006, with the same box.
+- **Foot:** it turns later (`a_turn` 160, `a_tail` 120), so it flicks out
+  instead of stepping.
 
-**Self-critique.**
-- The Medium a sits halfway between the Regular's pointed counter (which
-  matches Geist Regular) and the Bold's D, so it is still a little pointed.
-  Geist Medium's is already a D.
-- The counter's corner at the stem is sharp, where Geist's is rounded.
+The a scores 0.919 against Geist Bold (0.904 at the start).
+
+**e and c terminals.** Our e and c ended in wedges whose tip sat on the
+bowl's outer edge. Geist truncates the tip with a short, near-vertical face.
+New kit option `ec_aperture="vertical"` (default `"tip"`) adds that face
+cut at `width * e_vcut_x` / `c_vcut_x`, leaning `*_vcut_dx` units at the
+top. The sans uses it at every weight:
+
+| vs Geist | before | after |
+|---|---|---|
+| Regular e / c | ~0.955 | 0.973 / 0.961 |
+| Bold e / c | ~0.91 | 0.944 / 0.954 |
+
+The s was checked too: its level terminal cuts already sit on Geist's.
+
+Mean IoU: Regular 0.9310 → 0.9311, Bold 0.8809 → 0.8824, Light
+0.8904 → 0.8906. Kerning re-run.
+
+**Self-critique.** The Bold a keeps a small kink at its counter's lower
+left. The turn from the thick left side into the bottom is tighter than the
+stroke's half-width, and no parameter setting removed it. A rounder
+construction for that turn would.
