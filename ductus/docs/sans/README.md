@@ -578,7 +578,14 @@ The s was checked too: its level terminal cuts already sit on Geist's.
 Mean IoU: Regular 0.9310 → 0.9311, Bold 0.8809 → 0.8824, Light
 0.8904 → 0.8906. Kerning re-run.
 
-**Self-critique.** The Bold a keeps a small kink at its counter's lower
-left. The turn from the thick left side into the bottom is tighter than the
-stroke's half-width, and no parameter setting removed it. A rounder
-construction for that turn would.
+**The kink, fixed.** The Bold a had a small kink at its counter's lower
+left. Measured on the bowl's centre line, the left-to-bottom turn had a
+radius of 72.8 units at its tightest, but the stroke's inner half there was
+about 79, so the inner edge folded. New kit parameter `a_bs_bias` (default
+0.5) sets the share of the stroke's extra (thick minus thin) weight on the
+counter side. At Bold it is 0.2, which puts the weight outside the curve,
+and the bowl was refit under a no-fold constraint. Refit values:
+`a_bl_x` 99, `a_bl_y` 147, `a_bl_dw` 5, `a_bb_x` 274, `a_bb_dw` 12,
+`a_bt_dw` −25, `a_bs_thick` 144.7, `a_bs_t` 0.82. The counter's outline is
+now smooth at Bold and Medium. The a scores 0.916 against Geist Bold (0.919
+with the kink).

@@ -261,7 +261,7 @@ DEFAULTS: dict[str, tuple] = {
     # height at the stem, tilt and left end, the left side's centre, the bottom's x, where it rejoins the
     # stem (height, direction), and the curve's tension
     "a_bs_thick": (88, (50, 120)), "a_bs_thin": (73, (20, 120)), "a_bt_y": (300, (220, 380)),
-    "a_bt_dw": (0, (-60, 30)), "a_bl_dw": (0, (-50, 30)), "a_bb_dw": (0, (-50, 30)),   # the a bowl: width at the bar's stem end, at the left
+    "a_bt_dw": (0, (-60, 30)), "a_bl_dw": (0, (-50, 30)), "a_bb_dw": (0, (-50, 30)), "a_bs_bias": (0.5, (0.0, 1.0)),   # the a bowl: width at the bar's stem end, at the left
     "a_bt_tilt": (10, (-5, 25)), "a_bt_x": (220, (120, 330)), "a_bl_x": (88, (40, 160)), "a_bl_y": (135, (80, 220)),
     "a_turn": (110, (40, 250)), "a_tail": (90, (40, 160)), "a_foot_dy": (0, (-10, 40)),   # its stem's foot
     "a_bb_x": (227, (150, 320)), "a_bj_y": (120, (40, 220)), "a_bj_dir": (60, (20, 90)), "a_bs_t": (1.0, (0.75, 1.5)),
@@ -1096,7 +1096,9 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             pen = Pen(angle=0, width=P.a_bs_thick, contrast=1 - P.a_bs_thin / P.a_bs_thick)
             tilt = math.radians(val(P.a_bt_tilt))
             y_l = P.a_bt_y - (sx - P.a_bt_x) * math.tan(tilt)
-            (gl.path(name="bowl", pen=pen)
+            # a_bs_bias: the share of the stroke's extra (thick - thin) weight on the counter side;
+            # below 0.5 the weight goes outside, so the inner edge can follow a tight turn
+            (gl.path(name="bowl", pen=pen, bias=P.a_bs_bias)
                 .start((sx, P.a_bt_y), name="top_r", dir=180 + P.a_bt_tilt, terminal=False, width=P.a_bt_dw)
                 .line_to((P.a_bt_x, y_l), name="top_l", dir=180 + P.a_bt_tilt)
                 .curve_to((P.a_bl_x, P.a_bl_y), name="left", dir=270, tension=P.a_bs_t, width=P.a_bl_dw)
