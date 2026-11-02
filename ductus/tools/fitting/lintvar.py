@@ -1,19 +1,19 @@
 # lintvar.py glyphs "k=v,k=v" ... : lint errors + IoU for each variant
 import sys, re, uuid
-sys.path.insert(0, '/home/user/claude_playground/ductus')
+from fitpaths import FONT, REF, SW
 from ductus.loader import load_font; from ductus.compile import compile_font
 from ductus.lint import check_self_intersections, check_direction, check_stems
 from ductus.bench.reference import Reference; from ductus.bench.run import score_font
 from ductus.params import evaluating
-ref = Reference('/home/user/claude_playground/ductus/benchmarks/geist_sans/reference/Geist-Regular.woff2')
-src = open('/home/user/claude_playground/ductus/examples/sans/font.py').read()
+ref = Reference(REF)
+src = open(FONT).read()
 gl = sys.argv[1].split(',')
 for var in sys.argv[2:]:
     s = src
     ch = dict(kv.split('=') for kv in var.split(',')) if var else {}
     for k, v in ch.items():
         s = re.sub(rf"\b{k}=[-0-9.]+", f"{k}={v}", s, count=1) if re.search(rf"\b{k}=", s) else s.replace("P = kit.params(", f"P = kit.params({k}={v},", 1)
-    fn = f'/tmp/claude-0/-home-user-claude-playground/9fa36f9b-b558-5a88-94f2-47889dc83674/scratchpad/sans/sw/_l{uuid.uuid4().hex[:6]}.py'
+    fn = f'{SW}/_l{uuid.uuid4().hex[:6]}.py'
     open(fn, 'w').write(s)
     f = load_font(fn); cf = compile_font(f, glyphs=gl)
     def exp(st):

@@ -1,6 +1,6 @@
 # tidy.py: merge runs of one-param lines in the display font's params into wrapped lines
 import re
-FP='/home/user/claude_playground/ductus/examples/sans/font.py'
+from fitpaths import FONT as FP
 s=open(FP).read()
 def merge(m):
     items=[l.strip() for l in m.group(0).splitlines() if l.strip()]

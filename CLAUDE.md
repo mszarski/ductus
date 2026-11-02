@@ -54,8 +54,8 @@ python docs/make_proofs.py                              # regenerate docs/ proof
 `ductus bench`/`fit` fall back to the Geist **Serif** reference; pass `--reference`
 explicitly for the sans (`serve` shows no reference unless given one). `ductus fit` tunes parameters only, never overrides;
 always use `--only-improve` (saves only if every glyph improves and none falls off target).
-Fitting helpers live in `tools/fitting/` (see its README): hard-coded absolute paths, thousands
-of temp fonts written to `sw/`, and `exp.py`'s words image compares against Geist **Serif** even for the sans.
+Fitting helpers live in `tools/fitting/` (see its README): repo-relative paths via `fitpaths.py`, scratch in
+git-ignored `tools/fitting/_scratch/` (or `$DUCTUS_SCRATCH`), thousands of temp fonts written to its `sw/`.
 
 This clone uses a sparse checkout excluding `ductus/docs/iterations/` (case-collision workaround).
 Do not change sparse-checkout settings or touch that folder. `SPEC.md` (rev 2) is not in the repo;

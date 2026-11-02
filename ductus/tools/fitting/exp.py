@@ -5,16 +5,15 @@ from PIL import Image, ImageDraw
 from ductus.loader import load_font; from ductus.compile import compile_font
 from ductus.emit import build_otf; from ductus.proof import render_text
 from ductus.bench.reference import Reference; from ductus.bench.run import score_font
-R = Path('/home/user/claude_playground/ductus')
-SP = Path(__file__).parent
+from fitpaths import ROOT as R, SCRATCH as SP, REF, geist_otf
 fp, tag = sys.argv[1], sys.argv[2]
 f = load_font(fp); cf = compile_font(f)
-ref = Reference(R / 'benchmarks/geist_sans/reference/Geist-Regular.woff2')
+ref = Reference(REF)
 names = [n for n, g in cf.glyphs.items() if g.contours and ref.name_for(g.unicode, n) is not None]
 sc = score_font(cf, ref, names)
 print(" ".join(f"{g}:{s.iou:.2f}" for g, s in sc.items()))
 print(f"MEAN IoU {np.mean([s.iou for s in sc.values()]):.4f}  mean|dadv| {np.mean([abs(s.advance_delta) for s in sc.values()]):.0f}")
-otf = build_otf(cf, SP / f"{tag}.otf"); geist = SP.parent / 'vs/geist.otf'
+otf = build_otf(cf, SP / f"{tag}.otf"); geist = geist_otf()
 ims = []
 for t in ("hamburgefonstiv", "HOAGES the shoe is on"):
     for o in (otf, geist):

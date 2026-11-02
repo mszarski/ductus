@@ -1,6 +1,6 @@
-N=/tmp/claude-0/-home-user-claude-playground/9fa36f9b-b558-5a88-94f2-47889dc83674/scratchpad/sans
-cd /home/user/claude_playground/ductus
-run() { g=$1; shift; out=$(python $N/cd2.py $g "$@" 2>&1 | tail -1); echo "$g: $out"; d=$(echo "$out" | sed -n 's/^end [0-9.]* //p'); if [ -n "$d" ] && [ "$d" != "{}" ]; then python $N/apply.py "$d"; fi; }
+# example batch: one cd2 search per glyph group, applied to the font if it improved, then tidy + exp
+T=$(cd "$(dirname "$0")" && pwd); cd "$T/../.."
+run() { g=$1; shift; out=$(python $T/cd2.py $g "$@" 2>&1 | tail -1); echo "$g: $out"; d=$(echo "$out" | sed -n 's/^end [0-9.]* //p'); if [ -n "$d" ] && [ "$d" != "{}" ]; then python $T/apply.py "$d"; fi; }
 run eight eight_overlap:0.05 eight_waist:8 eight_top_w:10 eight_w:8 eight_thick_k:0.03 eight_sp_w:0.05
 run seven seven_stem:4 seven_top_dir:5 seven_foot_dir:5 seven_foot_l:8 seven_foot_r:8 seven_w:8 seven_bar_t:4
 run g gs_dfar:6 gs_bot:8 gs_w:8 gs_end_y:8 gs_end_dir:6 gs_end_w:0.1 descender_g:6
@@ -12,5 +12,5 @@ run question, quest_width:8 quest_w:4 quest_thin:3 quest_end_y:8 quest_neck_x:0.
 run at, at_w:10 at_h:10 at_bot:6 at_ring_t:3 at_in_w:8 at_in_h:8 at_in_x:0.02 at_in_y:8 at_root_dir:6 at_end_x:0.03 at_end_y:0.02 at_end_dir:6 at_right_x:0.02 at_pen_k:0.05
 run braceleft,braceright brace_w:8 brace_pen:4 brace_x:0.02 brace_end_w:0.1 brace_beak_w:0.1 brace_beak_x:4
 run ampersand, amp_w:8 amp_arm_x:0.02 amp_arm_y:8 amp_loop_x:0.02 amp_loop_w:8 amp_waist_y:8 amp_leg_x:0.02 amp_pen:3 amp_loop_y:8 amp_loop_lx:6 amp_left_y:8 amp_bot_x:0.02 amp_waist_dir:4 amp_leg_dir:3
-python $N/tidy.py
-python $N/exp.py examples/sans/font.py w3 2>&1 | tail -1
+python $T/tidy.py
+python $T/exp.py examples/sans/font.py w3 2>&1 | tail -1

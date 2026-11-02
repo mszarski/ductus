@@ -1,13 +1,18 @@
 #!/bin/bash
-# ov.sh tag : overlay grid for variant
-N=/tmp/claude-0/-home-user-claude-playground/9fa36f9b-b558-5a88-94f2-47889dc83674/scratchpad/sans
-cd /home/user/claude_playground/ductus
-rm -rf $N/docs_$1; cp $N/$1.py $N/f_$1.py
-python -m ductus.cli bench $N/f_$1.py --reference benchmarks/geist_sans/reference/Geist-Regular.woff2 --docs $N/docs_$1 --iteration 1 ${2:+--glyphs $2} >/dev/null 2>&1
-python -c "
-from PIL import Image; import glob
-fs=sorted(glob.glob('$N/docs_$1/iterations/01/*.png')); ims=[Image.open(f) for f in fs]
-w=max(i.width for i in ims); h=max(i.height for i in ims); cols=min(6,len(ims)); rows=(len(ims)+cols-1)//cols
-out=Image.new('RGB',(w*cols,h*rows),'white')
-for k,i in enumerate(ims): out.paste(i,((k%cols)*w,(k//cols)*h))
-out.save('$N/ov_$1.png')"
+# ov.sh GLYPHS [FONT_PY] : overlay grid, ours vs Geist Sans, -> $DUCTUS_SCRATCH/ov.png
+# GLYPHS is comma-separated glyph names (e.g. at,g,seven); FONT_PY defaults to examples/sans/font.py.
+T=$(cd "$(dirname "$0")" && pwd); R=$(cd "$T/../.." && pwd); S=${DUCTUS_SCRATCH:-$T/_scratch}; mkdir -p "$S"
+F=$(realpath "${2:-$R/examples/sans/font.py}")
+cd "$R" && rm -rf "$S/ov_docs"
+python -m ductus.cli bench "$F" --reference benchmarks/geist_sans/reference/Geist-Regular.woff2 --docs "$S/ov_docs" --iteration 1 --glyphs "$1" >/dev/null 2>&1 || { echo "bench failed"; exit 1; }
+python - "$S" <<'PY'
+import sys, glob
+from PIL import Image
+S = sys.argv[1]
+ims = [Image.open(f) for f in sorted(glob.glob(f"{S}/ov_docs/iterations/01/*.png"))]
+w = max(i.width for i in ims); h = max(i.height for i in ims); cols = min(6, len(ims)); rows = (len(ims) + cols - 1) // cols
+out = Image.new("RGB", (w * cols, h * rows), "white")
+for k, i in enumerate(ims):
+    out.paste(i, ((k % cols) * w, (k // cols) * h))
+out.save(f"{S}/ov.png"); print(f"{S}/ov.png")
+PY

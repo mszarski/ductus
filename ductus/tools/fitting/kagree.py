@@ -1,7 +1,7 @@
 import json, sys, numpy as np
 from fontTools.agl import UV2AGL
-N='/tmp/claude-0/-home-user-claude-playground/9fa36f9b-b558-5a88-94f2-47889dc83674/scratchpad'
-d=json.load(open(N+'/sans/geist_kern.json')); pairs=[tuple(p) for p in d["pairs"]]; gk=np.array(d["gk"])
+from fitpaths import SCRATCH
+d=json.load(open(str(SCRATCH)+'/geist_kern.json')); pairs=[tuple(p) for p in d["pairs"]]; gk=np.array(d["gk"])
 nm=lambda c: c if c.isascii() and c.isalpha() else UV2AGL.get(ord(c))
 for path in sys.argv[1:]:
     raw=json.load(open(path)); K={}

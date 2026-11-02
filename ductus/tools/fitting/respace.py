@@ -1,15 +1,15 @@
 import sys, re
 from fontTools.ttLib import TTFont
 from fontTools.pens.boundsPen import BoundsPen
-N='/tmp/claude-0/-home-user-claude-playground/9fa36f9b-b558-5a88-94f2-47889dc83674/scratchpad/sans'
+from fitpaths import FONT, geist_otf
 def sb(path):
     t=TTFont(path); gs=t.getGlyphSet(); cm=t.getBestCmap(); out={}
     for c in "hamburgefonstivHOAGEScdjklpqwxyzBCDFIJKLMNPQRTUVWXYZ0123456789" + "ÆŒØæœøß" + "&*%·#$+<=>@[\\]_{|}~…•°×€" + ".,:;-–—'\"‘’“”!?()/":
         if ord(c) not in cm: continue
         g=gs[cm[ord(c)]]; p=BoundsPen(gs); g.draw(p); b=p.bounds; out[c]=(b[0], g.width-b[2], b[2]-b[0])
     return out
-a=sb(sys.argv[1]); b=sb(N+'/../sans/geist_sans.otf')
-FP='/home/user/claude_playground/ductus/examples/sans/font.py'
+a=sb(sys.argv[1]); b=sb(geist_otf())
+FP=FONT
 src=open(FP).read()
 from fontTools.agl import UV2AGL
 def gname(c): return c if (c.isascii() and c.isalpha()) else UV2AGL.get(ord(c), c)
