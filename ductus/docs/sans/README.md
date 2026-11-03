@@ -810,3 +810,56 @@ both measured against Geist's outline:
   Geist's.
 
 The Bold 9 scores 0.943 → 0.966; Bold mean 0.9237 → 0.9239.
+
+## 19 — glyph-by-glyph refit, round 1
+
+![weights sheet](19_sheet.png)
+
+Every glyph was refit on its own, at Regular and then Bold, using the
+method from the Bold 9. The order was worst Hausdorff first. Each glyph
+went through new `tools/fitting/gfit.py`:
+- a joint search over that glyph's parameters;
+- scored against Geist on every glyph those parameters touch;
+- with Hausdorff in the objective, so a local bump costs, not only lost
+  overlap.
+
+Each result was then checked by eye as before/after overlays on Geist's
+outline.
+
+Glyphs fitted: Q M B @ Ø ø w G £ m n r € Œ Æ h 8 & u y s R g N H a W 7 4
+ß f S 5 3 $ q d p b P C j x k v Y.
+
+Largest gains (IoU, Hausdorff in units):
+
+| Glyph | Regular | Bold |
+|---|---|---|
+| Q | 0.934 → 0.957, 74 → 10 | 0.880 → 0.943, 87 → 11 |
+| M | 0.894 → 0.947, 58 → 26 | 0.875 → 0.958, 119 → 35 |
+| N | 0.951 → 0.997, 25 → 1 | 0.903 → 0.955, 28 → 8 |
+| H | 0.932 → 0.984, 24 → 2 | 0.956 → 0.990, 29 → 2 |
+| Æ | 0.934 → 0.957, 33 → 14 | 0.862 → 0.984, 36 → 4 |
+| u | 0.945 → 0.975, 31 → 9 | 0.914 → 0.976, 52 → 19 |
+| w | 0.900 → 0.952, 45 → 12 | 0.928 → 0.934, 58 → 22 |
+| j | 0.960 → 0.962, 14 → 14 | 0.780 → 0.945, 39 → 14 |
+| k | 0.974 → 0.983, 7 → 7 | 0.941 → 0.982, 36 → 8 |
+| Y | 0.969 → 0.983, 12 → 3 | 0.946 → 0.989, 35 → 5 |
+
+Two results reverted by eye:
+- **The Bold 5's dip under the foot came back** (18 units). Its join
+  values from section 17 were restored.
+- **The Bold a refolded at its bowl.** Its fit was reverted.
+
+The values set by eye in sections 11–18 are now locked in `gfit.py`. A
+fit also rejects any candidate that adds clustered on-curve points, which
+is how folds and kinks show up.
+
+The Light is pinned, so it is unchanged.
+
+Not fixed by parameters:
+- **ø's slash** (Bold Hausdorff 77).
+- **€** (Bold 58).
+
+These need construction changes.
+
+Mean IoU: Regular 0.9396 → 0.9443, Bold 0.9239 → 0.9352, Light 0.8997
+(unchanged). Kerning re-run at all three masters.
