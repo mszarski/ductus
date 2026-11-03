@@ -91,7 +91,7 @@ points:
 
 | Font | Glyphs | Status |
 |---|---|---|
-| Ductus Sans (`examples/sans/`) | 183, incl. ¿ ¡ ¢; no fi ligature | Iterations 01–24 (`docs/sans/README.md`, sheets `NN.png` / `NN_sheet.png`; 19–24 are the per-glyph refits with `tools/fitting/gfit.py`). Mean IoU vs Geist Sans **0.9551** (Bold 0.9506, Light 0.9314). Kerning per master (`kerning.json`, `kerning_700.json`, `kerning_300.json`); agreement with Geist Sans corr 0.823, MAE 7.0 u |
+| Ductus Sans (`examples/sans/`) | 183, incl. ¿ ¡ ¢; no fi ligature | Iterations 01–25 (`docs/sans/README.md`, sheets `NN.png` / `NN_sheet.png`; 19–25 are the per-glyph refits with `tools/fitting/gfit.py`). Mean IoU vs Geist Sans **0.9557** (Bold 0.9508, Light 0.9394). Kerning per master (`kerning.json`, `kerning_700.json`, `kerning_300.json`); agreement with Geist Sans corr 0.823, MAE 7.0 u |
 | Ductus Display (`examples/display_serif/`) | 183, incl. ¿ ¡ | Iterations 01–33. Letters ≈ 0.944 vs Geist Serif. Kerning 5,378 pairs |
 | Benchmark (`benchmarks/geist_serif/`) | 16 + fi | Every glyph 0.96–0.995, 0 overrides |
 | Test font (`examples/test_font/`) | 7 | The M1 font |
