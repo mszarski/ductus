@@ -219,7 +219,7 @@ DEFAULTS: dict[str, tuple] = {
     "t_turn_w": (1.0, (0.3, 1.6)), "t_end_w": (0.6, (0.1, 1.6)),
     "t_wedge_len": (40, (0, 140)), "t_wedge_rise": (100, (0, 200)), "t_wedge_drop": (10, (0, 100)),
     "t_angle": (0, (-60, 60)), "t_contrast": (None, (0.0, 0.95)), "t_bar_t": (None, (5, 120)), "t_bar_dy": (0, (-40, 40)),
-    "f_end_dir": (-60, (-120, 0)), "f_end_w": (1.0, (0.2, 1.6)), "f_bar_t": (None, (5, 120)), "f_bar_dy": (0, (-40, 40)),
+    "f_end_dir": (-60, (-120, 0)), "f_end_w": (1.0, (0.2, 1.6)), "f_bar_t": (None, (5, 120)), "f_bar_dy": (0, (-40, 40)), "f_root_dy": (2, (2, 80)),
     "u_leg_t": (1.0, (0.6, 2.5)),
     "t_top": (660, (560, 740)), "t_turn": (110, (40, 200)), "t_tail": (170, (80, 360)), "t_tail_y": (60, (20, 150)),
     "t_bar_l": (90, (30, 160)), "t_bar_r": (140, (60, 320)), "t_cut": (30, (-10, 70)),
@@ -488,7 +488,7 @@ DEFAULTS: dict[str, tuple] = {
     "dollar_bar_dx": (0, (-40, 40)), "dollar_top": (800, (740, 860)), "dollar_bot": (-90, (-150, -40)),
     "ast_r": (177, (130, 220)), "ast_y": (551, (480, 620)), "ast_tip_w": (70, (30, 110)),
     "ast_root_w": (14, (0, 40)), "ast_rot": (0, (-30, 30)),
-    "at_w": (909, (800, 1000)), "at_in_k": (1.0, (0.6, 1.3)), "at_h": (915, (820, 1000)), "at_bot": (-190, (-240, -120)),
+    "at_w": (909, (800, 1000)), "at_in_k": (1.0, (0.6, 1.3)), "at_lean": (0, (-20, 80)), "at_h": (915, (820, 1000)), "at_bot": (-190, (-240, -120)),
     "at_ring_t": (50, (25, 80)), "at_in_w": (330, (260, 420)), "at_in_h": (430, (360, 500)),
     "at_in_x": (0.33, (0.25, 0.45)), "at_in_y": (90, (40, 160)), "at_slant": (14, (0, 25)),
     "at_root_dir": (300, (250, 350)), "at_end_x": (0.85, (0.6, 1.0)), "at_end_y": (0.12, (0.0, 0.3)),
@@ -1314,7 +1314,9 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         y0 = xh + (top - xh) * 0.35
         gl += stem_(x=0, top=y0, head=False, foot="foot_wide")
         (gl.path(name="hook", pen=hook_pen, bias=P.n_bias, profile=Profile((0, 1), (0.6, 1), (1, P.f_end_w)))
-            .start((0, y0 - 2), name="root", dir=90, terminal=False)
+            # f_root_dy: how far down the stem the hook starts (a deeper overlap keeps the stem's top corner
+            # inside the hook when its inner edge leaves the stem low)
+            .start((0, y0 - P.f_root_dy), name="root", dir=90, terminal=False)
             .curve_to((hook * 0.45, top + os_ - hook_pen.width_at(0) / 2), name="top", dir=0,
                       width=P.f_top_dw, pen_angle=P.f_top_pa)
             .curve_to((hook, top * P.f_end_y), name="end", dir=P.f_end_dir, terminal="f_hook",
@@ -2506,8 +2508,9 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         st = P.stem * P.at_in_k
         sx = ix + iw + st / 2                       # the inner stem's centre
         gl += bowl(name="inner", x=ix, width=iw, bottom=iy, top=iy + ih, thick=st, thin=P.hairline * P.at_in_k)
-        gl += stem_(x=sx - st / 2, bottom=iy, top=iy + ih, head=False, foot=False, name="stem",
-                    pen=Pen(angle=0, width=st, contrast=0))
+        # at_lean: the inner stem's top moves right by this much (Geist's leans like an italic a)
+        gl.line((sx - st / 2, iy), (sx - st / 2 + P.at_lean, iy + ih), name="stem", names=("bottom", "top"),
+                terminal=(False, False), pen=Pen(angle=0, width=st, contrast=0))
         cy = bot + H / 2
         (gl.path(name="ring", pen=pen)
             .start((sx - st / 2, iy + P.at_root_dy), name="root", dir=P.at_root_dir, terminal=False)

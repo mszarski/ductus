@@ -1055,3 +1055,35 @@ Mean IoU: Regular 0.9457 → 0.9512, Bold 0.9413 → 0.9457, Light
 
 Mean IoU: Regular 0.9512 → 0.9535, Bold 0.9457 → 0.9496, Light
 0.9253 → 0.9295. Kerning re-run at all three masters.
+
+## 24 — round 6: the f's hook join, O, and a sweep of the next-weakest
+
+![weights sheet](24_sheet.png)
+
+- **Bold f.** The hook started only 2 units below the stem's top, so a
+  longer hook (Geist's runs about 25 further) left the stem's top corner
+  poking out of the hook's inner edge, enclosing a pinhole. New
+  `f_root_dy` (default 2) starts the hook further down inside the stem.
+  Bold 0.940 → 0.979 (Hausdorff 29 → 16), Light 0.970 → 0.981.
+- **O.** The Regular O was about 5 units narrower than Geist's on each
+  side: 0.917 → 0.965. Q was refit after it (0.957 → 0.939 → 0.950).
+  Ø 0.921 → 0.947.
+- **@.** New `at_lean` (the inner stem's top offset, default 0; Geist's
+  leans like an italic a). It needs the inner bowl moved as well, so it
+  stays 0 for now. @ Bold 0.866 → 0.873, Light 0.822 → 0.839.
+- **Sweep of the next-weakest glyphs per weight.**
+
+  | Glyph | Weight | IoU |
+  |---|---|---|
+  | X | Light | 0.894 → 0.961 |
+  | 0 | Light | 0.895 → 0.958 |
+  | % | Light | 0.804 → 0.875 |
+  | 9 | Light | 0.902 → 0.934 |
+  | 2 | Light | 0.900 → 0.920 |
+  | G | Light | 0.899 → 0.913 |
+  | ( ) | Bold | 0.920 → 0.961 |
+  | ^ | Bold | 0.921 → 0.928 (Hausdorff 30 → 11) |
+  | × * $ 3 8 | various | small gains |
+
+Mean IoU: Regular 0.9535 → 0.9551, Bold 0.9496 → 0.9506, Light
+0.9295 → 0.9314. Kerning re-run at all three masters.
