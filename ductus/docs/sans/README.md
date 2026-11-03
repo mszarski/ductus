@@ -774,3 +774,20 @@ Light 0.8994 → 0.8995. Kerning re-run.
 
 Mean IoU: Regular 0.9393 → 0.9396, Bold 0.9234 → 0.9238, Light
 0.8995 → 0.8997. Kerning re-run.
+
+## 18 — the Bold 9's lower stroke
+
+The Bold 9's descending stroke slanted down-left from the crotch, so the
+gap under the bowl was a narrow diagonal V. Its inner edge also wavered as
+the stroke widened, and the terminal had a small notch on its inner side.
+Geist's stroke drops nearly vertically and rounds into a bowl-shaped gap,
+and its terminal's top slopes into that curve.
+
+- The stroke's lowest point moved (`nine_top_x` 0.42, from 0.49) and its
+  end turns to −80°, so it descends steeply and rounds at the bottom.
+- The rest of the 9 was refit around that by joint search (root, hook,
+  width).
+
+The Bold 9 scores 0.958 → 0.943 against Geist Bold; it reads closer in
+words, so it was set by eye. The Regular is unchanged; only the Bold's
+kerning was re-run.
