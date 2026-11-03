@@ -308,7 +308,7 @@ DEFAULTS: dict[str, tuple] = {
     "sans_cut_r": (90, (0, 180)), "sans_cut_f": (90, (0, 180)), "sans_cut_t": (90, (0, 180)),
     "sans_cut_ear": (0, (-90, 180)),
     "sans_cut_fig": (0, (-90, 180)), "sans_cut_fig_low": (180, (-180, 180)),   # the 3 and 5 lower ends (fig_ends="cut")
-    "sans_cut_g": (0, (-90, 180)),           # the single-storey g's hook end
+    "sans_cut_g": (0, (-90, 180)), "sans_cut_pound": (90, (0, 180)),           # the single-storey g's hook end
     # ---- the rest of the lowercase (starting values measured off Geist's bounds)
     "desc_stem": (-200, (-240, -160)),    # where descending stems (p q) end
     # d / q: the lobe on the stem's left (like the a's), rising to a crown
@@ -449,14 +449,14 @@ DEFAULTS: dict[str, tuple] = {
     "circ_w": (306, (220, 380)), "circ_top_w": (100, (50, 150)), "circ_leg_w": (25, (10, 50)),
     "circ_in": (40, (10, 90)),
     "tilde_len": (302, (220, 380)), "tilde_lo": (627, (580, 680)), "tilde_hi": (691, (640, 740)),
-    "tilde_w": (46, (20, 80)), "tilde_dir": (55, (20, 80)),
+    "tilde_w": (46, (20, 80)), "tilde_dir": (55, (20, 90)), "tilde_hx": (0.35, (0.2, 0.5)), "tilde_tr": (0.2, (-0.3, 0.5)), "tilde_rr": (0.3, (-0.3, 0.6)),
     "diaer_r": (56, (35, 75)), "diaer_gap": (180, (130, 240)), "diaer_y": (662, (620, 700)),
     "ring_w": (166, (120, 220)), "ring_h": (160, (120, 220)), "ring_y0": (577, (540, 620)),
     "ring_thick": (38, (20, 60)), "ring_thin": (22, (10, 50)),
     "ced_w": (60, (30, 90)), "ced_thin": (20, (8, 40)), "ced_len": (125, (80, 180)), "ced_drop": (200, (150, 240)),
     "ced_neck": (-60, (-100, -20)),
     # the neck may start right of the hook and slant down-left into it; the hook's end reaches back ced_end_x * len
-    "ced_root_dx": (0, (-20, 120)), "ced_root_dir": (262, (200, 280)), "ced_end_x": (0.25, (0.0, 0.8)), "ced_t": (1.0, (0.7, 1.4)), "ced_neck_dir": (0, (-60, 40)),
+    "ced_root_dx": (0, (-20, 120)), "ced_root_dir": (262, (200, 280)), "ced_end_x": (0.25, (0.0, 0.8)), "ced_end_dir": (180, (120, 200)), "ced_end_dy": (0, (-20, 120)), "ced_bot_x": (0.3, (-0.2, 0.7)), "ced_t": (1.0, (0.7, 1.4)), "ced_neck_dir": (0, (-60, 40)),
     # placement: acute and grave sit by their foot, not their centre, so their
     # centres stand off the base's (acute right, grave left); some bases
     # centre their marks off their ink's centre (E and U on their arms, ...)
@@ -466,7 +466,7 @@ DEFAULTS: dict[str, tuple] = {
     "acc_dx_c": (0, (-60, 60)), "acc_dx_C": (0, (-60, 60)),
     # ---- symbols (starting values off Geist; ^ and £ have no reference) -----
     "math_t": (40, (20, 70)), "math_y": (279, (220, 340)), "math_w": (408, (320, 480)),
-    "eq_gap": (145, (90, 200)), "eq_dy": (0, (-40, 40)), "lt_dy": (0, (-40, 40)), "eq_t": (40, (20, 70)),
+    "eq_gap": (145, (90, 200)), "eq_dy": (0, (-40, 40)), "eq_dw": (0, (-80, 40)), "lt_dy": (0, (-40, 40)), "eq_t": (40, (20, 70)),
     "lt_w": (446, (360, 520)), "lt_h": (508, (420, 580)), "lt_t": (42, (20, 90)), "lt_end_k": (1.0, (0.3, 1.2)),
     "times_w": (396, (320, 460)),
     "mid_dot_y": (297, (240, 360)), "bullet_r": (112, (70, 150)), "bullet_y": (311, (250, 380)),
@@ -503,8 +503,8 @@ DEFAULTS: dict[str, tuple] = {
     "pound_w": (520, (440, 600)), "pound_bar_y": (330, (260, 400)), "pound_knee_x": (0.24, (0.1, 0.45)), "pound_knee_y": (330, (180, 460)),
     "caret_w": (420, (320, 500)), "caret_h": (330, (260, 400)), "caret_y0": (380, (320, 440)),
     "caret_t": (50, (25, 80)),
-    "atilde_dy": (-391, (-460, -320)), "tl_len": (286, (220, 380)), "tl_amp": (64, (30, 110)),
-    "tl_w": (54, (20, 80)), "tl_dir": (60, (20, 89)),
+    "atilde_dy": (-391, (-460, -320)), "tl_len": (286, (220, 500)), "tl_amp": (64, (30, 200)),
+    "tl_w": (54, (20, 120)), "tl_dir": (60, (20, 90)), "tl_hx": (0.35, (0.2, 0.5)), "tl_tr": (0.2, (-0.3, 0.5)), "tl_rr": (0.3, (-0.3, 0.6)),
     # ---- Æ Œ Ø æ œ ø ß ------------------------------------------------------
     "oslash_w": (56, (30, 90)), "Oslash_x0": (22, (-40, 100)), "Oslash_x1": (610, (520, 720)),
     "oslash_x0": (0, (-40, 80)), "oslash_x1": (430, (360, 520)), "oslash_os": (12, (-20, 40)),
@@ -693,7 +693,7 @@ def sans_set(P) -> TerminalSet:
         hood=cut(P.sans_cut_hood), r_ear=cut(P.sans_cut_r), f_hook=cut(P.sans_cut_f),
         t_tail=cut(P.sans_cut_t), ear=cut(P.sans_cut_ear), fig_end=cut(P.sans_cut_fig),
         fig_low=cut(P.sans_cut_fig_low),
-        g_end=cut(P.sans_cut_g), paren_end=hz)
+        g_end=cut(P.sans_cut_g), paren_end=hz, pound_end=cut(P.sans_cut_pound))
 
 
 def didone_set(P) -> TerminalSet:
@@ -824,7 +824,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     £'s stem below the bar -- ``"stem"`` (one curve from the foot up to the
     hook) or ``"sweep"`` (it stands vertical down to a knee at
     ``pound_knee_y``, then sweeps down-left into the base's left end; a
-    grotesque's). ``euro_aperture``: the €'s opening -- ``"cut"`` (a straight
+    grotesque's: its hook then ends in the ``pound_end`` terminal). ``euro_aperture``: the €'s opening -- ``"cut"`` (a straight
     diagonal cut at the lower terminal) or ``"c"`` (the C's: a vertical face
     and a curved lower terminal, with the €'s own ``euro_cut_x/y`` and
     ``euro_term_dy``)."""
@@ -2121,14 +2121,18 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
                            ((w - lw, y0), "r2"), ((w - 3, y0), "r1"), ((w, y0 + 4), "r0"),
                            ((w / 2 + tw / 2, y1), "tr"), ((w / 2 - tw / 2, y1), "tl")])
 
+    def wave(gl, name, pen, L, lo, hi, a, hx, tr, rr):
+        """The ~ / tilde stroke from (0, lo), leaving at ``a`` degrees: over a hump at ``hx`` of the length,
+        down to a trough ``tr`` of the height above lo at 1 - hx, up to an end ``rr`` of the height above hi."""
+        (gl.path(name=name, pen=pen)
+            .start((0, lo), name="l", dir=a, terminal=False)
+            .curve_to((L * hx, hi), name="hump", dir=0)
+            .curve_to((L * (1 - hx), lo + (hi - lo) * tr), name="trough", dir=0)
+            .curve_to((L, hi + (hi - lo) * rr), name="r", dir=a, terminal=False))
+
     def tilde_(gl):
         L, lo, hi, a = P.tilde_len, P.tilde_lo, P.tilde_hi, P.tilde_dir
-        pen = Pen(angle=0, width=P.tilde_w, contrast=0)
-        (gl.path(name="mark", pen=pen)
-            .start((0, lo), name="l", dir=a, terminal=False)
-            .curve_to((L * 0.35, hi), name="hump", dir=0)
-            .curve_to((L * 0.65, lo + (hi - lo) * 0.2), name="trough", dir=0)
-            .curve_to((L, hi + (hi - lo) * 0.3), name="r", dir=a, terminal=False))
+        wave(gl, "mark", Pen(angle=0, width=P.tilde_w, contrast=0), L, lo, hi, a, P.tilde_hx, P.tilde_tr, P.tilde_rr)
 
     def dieresis_(gl):
         dot(gl, "dot_l", 0, P.diaer_y, P.diaer_r)
@@ -2148,7 +2152,11 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
                 .start((P.ced_root_dx, 15), name="root", terminal=False)
                 .line_to((0, P.ced_neck), name="neck", dir=P.ced_neck_dir)
                 .curve_to((L * 0.75, -(d + P.ced_neck) / 2 + P.ced_neck * 0.3), name="curl", dir=270, tension=P.ced_t)
-                .curve_to((-L * P.ced_end_x, -d + P.ced_thin / 2), name="end", dir=180, terminal="ear", tension=P.ced_t))
+                # the hook passes level under the curl at ced_bot_x, then may run on round and up
+                # (ced_end_dir / ced_end_dy), ending heading up-left
+                .curve_to((L * P.ced_bot_x, -d + P.ced_thin / 2), name="bottom", dir=180, tension=P.ced_t)
+                .curve_to((-L * P.ced_end_x, -d + P.ced_thin / 2 + P.ced_end_dy), name="end", dir=P.ced_end_dir,
+                          terminal="ear", tension=P.ced_t))
             return
         (gl.path(name="mark", pen=pen, profile=Profile((0, 0.5), (0.3, 1), (1, 0.7)))
             .start((P.ced_root_dx, 15), name="root", dir=P.ced_root_dir, terminal=False)
@@ -2284,7 +2292,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
 
     @g("equal", sb=(0, 0))
     def equal(gl):
-        w, t, gp, cy = P.math_w, P.eq_t, P.eq_gap, cy_math + P.eq_dy
+        w, t, gp, cy = P.math_w + P.eq_dw, P.eq_t, P.eq_gap, cy_math + P.eq_dy      # eq_dw: its own width
         rect(gl, "lo", 0, cy - gp / 2 - t / 2, w, cy - gp / 2 + t / 2)
         rect(gl, "hi", 0, cy + gp / 2 - t / 2, w, cy + gp / 2 + t / 2)
 
@@ -2575,7 +2583,9 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         (path
             .curve_to((W * P.pound_rise_x, ch * P.pound_rise_y), name="rise", dir=85)
             .curve_to((W * P.pound_top_x, ch + os_ - P.hairline / 2), name="top", dir=0)
-            .curve_to((W * P.pound_end_x, ch * P.pound_end_y), name="end", dir=P.pound_end_dir, terminal="ear"))
+            # the grotesque's hook is cut by its own terminal (sans_cut_pound: level by default)
+            .curve_to((W * P.pound_end_x, ch * P.pound_end_y), name="end", dir=P.pound_end_dir,
+                      terminal="pound_end" if pound_foot == "sweep" else "ear"))
         rect(gl, "cross", W * P.pound_bar_l, P.pound_bar_y - P.math_t / 2, W * P.pound_bar_r, P.pound_bar_y + P.math_t / 2)
         rect(gl, "base", 0, 0, W, P.E_arm_t * P.pound_base_k)
 
@@ -2603,11 +2613,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         L, a = P.tl_len, P.tl_dir
         lo = P.tilde_lo + P.atilde_dy
         hi = lo + P.tl_amp
-        (gl.path(name="wave", pen=sym_pen(P.tl_w))
-            .start((0, lo), name="l", dir=a, terminal=False)
-            .curve_to((L * 0.35, hi), name="hump", dir=0)
-            .curve_to((L * 0.65, lo + (hi - lo) * 0.2), name="trough", dir=0)
-            .curve_to((L, hi + (hi - lo) * 0.3), name="r", dir=a, terminal=False))
+        wave(gl, "wave", sym_pen(P.tl_w), L, lo, hi, a, P.tl_hx, P.tl_tr, P.tl_rr)
 
     # ---- punctuation ----------------------------------------------------
     def dot(gl, name, cx, cy, r, round_=False, circle=False):

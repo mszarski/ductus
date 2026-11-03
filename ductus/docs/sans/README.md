@@ -975,3 +975,50 @@ the benchmark are unchanged.
 
 Mean IoU: Regular 0.9453 → 0.9457, Bold 0.9405 → 0.9413, Light
 0.9011 → 0.9218. Kerning re-run at all three masters.
+
+## 22 — round 4: marks, ~, cedilla, £'s hook, =
+
+![weights sheet](22_sheet.png)
+
+The marks and symbols were the weakest glyphs at every weight. Their
+Regular and Bold had never been fitted, and several shapes were
+hard-coded.
+
+- **~ and the tilde accent.** The wave's shape was fixed: hump at 0.35 of
+  the length, trough at 0.2 of the height, right end 0.3 above. Geist's is
+  a point-symmetric S whose ends arrive vertically and are cut level. New
+  params `tl_hx/tl_tr/tl_rr` and `tilde_hx/tilde_tr/tilde_rr` (defaults:
+  the old values), and wider `tl_len/tl_amp/tl_w` ranges. Results:
+  - ~: Light 0.728 → 0.940, Regular 0.743 → 0.944, Bold 0.840 → 0.866.
+  - tilde: Light 0.794 → 0.930, Regular 0.824 → 0.911, Bold 0.785 → 0.897.
+
+  (Tried and dropped: vertical end cuts. That was a misreading of the
+  overlay.)
+- **Cedilla** (tick style). The hook now passes level under the curl at
+  `ced_bot_x`, then runs on round and up (`ced_end_dir`, `ced_end_dy`),
+  ending heading up-left as Geist's does. Light 0.696 → 0.832, Regular
+  0.745 → 0.830, Bold 0.794 → 0.856; Hausdorff about 40 → 20.
+- **£'s hook end.** The grotesque £ now ends in its own `pound_end`
+  terminal, a level cut (`sans_cut_pound`). The shared ear cut left a
+  spike when the stroke turned down. The hook now ends low and level, as
+  Geist's does. Regular 0.920 → 0.937, Bold 0.900 → 0.905. Light
+  0.935 → 0.912: it was fitted to the old terminal, and the new end
+  matches Geist by eye.
+- **=** has its own width (`eq_dw`): Regular 0.830 → 0.897, Bold and
+  Light 1.000.
+- **Accents at Regular and Bold:**
+
+  | Glyph | Regular | Bold |
+  |---|---|---|
+  | acute/grave | 0.874 → 0.944 | 0.847 → 0.991 |
+  | ring | 0.966 → 0.981 | 0.850 → 0.984 |
+  | dieresis | 0.862 → 0.910 | |
+  | bullet | 0.862 → 0.978 | |
+  | ° | | 0.920 → 0.945 |
+
+  Every accented letter follows them.
+- **Others:** ß Bold 0.934 → 0.946, Light 0.897 → 0.936; Bold 3
+  0.902 → 0.929.
+
+Mean IoU: Regular 0.9457 → 0.9512, Bold 0.9413 → 0.9457, Light
+0.9218 → 0.9253. Kerning re-run at all three masters.
