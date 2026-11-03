@@ -1,5 +1,6 @@
 # gfit.py : fit one glyph's own parameters at one weight of Ductus Sans, scoring every glyph they touch
-#   python tools/fitting/gfit.py 300|400|700 GLYPH N [prefix_or_param ...] [--dry] [--wide]
+#   python tools/fitting/gfit.py 300|400|700 GLYPH N [prefix_or_param ...] [--dry] [--wide] [--bench]
+# --bench: the Geist Serif benchmark (benchmarks/geist_serif, 400 only) instead of the sans; writes its fitted.yaml.
 # Parameters: those starting with the given prefixes (default: "<glyph>_"), or exact names. Steps are 4% of
 # each parameter's range; --wide (masters only) extends each range by its width on both sides, for
 # offsets that should grow with the stem but are not weight parameters. Random joint search (N rounds, Gaussian moves on 1-4 parameters, shrinking scale).
@@ -20,17 +21,22 @@ from ductus.kits.serif import DEFAULTS, WEIGHT_PARAMS
 from ductus.lint import check_self_intersections, check_direction
 
 args = sys.argv[1:]
-dry, wide = "--dry" in args, "--wide" in args
-for flag in ("--dry", "--wide"):
+dry, wide, bench = "--dry" in args, "--wide" in args, "--bench" in args
+for flag in ("--dry", "--wide", "--bench"):
     if flag in args:
         args.remove(flag)
 W, G, N = int(args[0]), args[1], int(args[2])
 sel = args[3:] or [G + "_"]
+if bench:
+    # the Geist Serif benchmark: one weight, values in fitted.yaml (benchmark only, never released)
+    FONT = ROOT / "benchmarks/geist_serif/font.py"
+    assert W == 400, "the benchmark has one weight"
 font = load_font(str(FONT))
 d = compile_font(font)
-MASTERS = {700: "bold", 300: "light"}
+MASTERS = {} if bench else {700: "bold", 300: "light"}
 data = {loc: json.loads(FONT.with_name(f"master_{n}.json").read_text()) for loc, n in MASTERS.items()}
-ref = Reference(ROOT / f"benchmarks/geist_sans/reference/Geist-{ {300: 'Light', 400: 'Regular', 700: 'Bold'}[W] }.woff2")
+ref = Reference(ROOT / ("benchmarks/geist_serif/reference/GeistSerif-Regular.woff2" if bench else
+                        f"benchmarks/geist_sans/reference/Geist-{ {300: 'Light', 400: 'Regular', 700: 'Bold'}[W] }.woff2"))
 
 
 def setting(loc, extra):
@@ -54,7 +60,7 @@ LOCKED = {"five_start_dy", "five_start_dir", "five_end_dir", "five_foot_dy", "th
           "nine_end_dir", "nine_root_dir", "nine_root_y", "nine_root_t", "nine_join_dfull", "six_join_dfull",
           "r_arch_dw", "a_bs_bias", "a_bl_dw", "a_bl_x", "a_bs_t", "sans_cut_fig", "sans_cut_fig_low",
           "n_leg_top", "u_leg_top", "n_shoulder_x", "ced_neck_dir"}
-keys = [k for k in keys if not k.endswith(("_style", "_free")) and (k not in LOCKED or k in sel)]
+keys = [k for k in keys if not k.endswith(("_style", "_free")) and (k not in LOCKED or k in sel or bench)]
 if not keys:
     sys.exit(f"no parameters for {sel}")
 lo_hi = {}
@@ -143,6 +149,12 @@ if dry or not ch:
 if W in MASTERS:
     data[W].setdefault("params", {}).update({k: round(v, 3) for k, v in ch.items()})
     FONT.with_name(f"master_{MASTERS[W]}.json").write_text(json.dumps(data[W], indent=1, sort_keys=True))
+elif bench:
+    import yaml
+    fy = FONT.with_name("fitted.yaml")
+    fitted = yaml.safe_load(fy.read_text()) or {}
+    fitted.update({k: round(float(v), 4) for k, v in ch.items()})
+    fy.write_text(yaml.safe_dump(dict(sorted(fitted.items())), sort_keys=True))
 else:
     # pin each master's current value of every changed parameter, then write the Regular
     for loc, name in MASTERS.items():

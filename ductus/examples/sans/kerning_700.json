@@ -29617,7 +29617,7 @@
 [
 "Yacute",
 "atilde",
--40
+-45
 ],
 [
 "Yacute",
@@ -35447,7 +35447,7 @@
 [
 "atilde",
 "Yacute",
--5
+-10
 ],
 [
 "atilde",
@@ -35562,11 +35562,6 @@
 [
 "atilde",
 "icircumflex",
--5
-],
-[
-"atilde",
-"idieresis",
 -5
 ],
 [
@@ -60312,7 +60307,7 @@
 [
 "otilde",
 "T",
--35
+-40
 ],
 [
 "otilde",

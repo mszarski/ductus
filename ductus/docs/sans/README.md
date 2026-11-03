@@ -1087,3 +1087,42 @@ Mean IoU: Regular 0.9512 → 0.9535, Bold 0.9457 → 0.9496, Light
 
 Mean IoU: Regular 0.9535 → 0.9551, Bold 0.9496 → 0.9506, Light
 0.9295 → 0.9314. Kerning re-run at all three masters.
+
+## 25 — round 7: every glyph below 0.93, and the serif benchmark
+
+![weights sheet](25_sheet.png)
+
+Every glyph still below IoU 0.93 was refit: 43 at Light, 21 at Regular
+and 12 at Bold. Most of the Light ones had never had their own pass. The
+Light H's bar, for example, was 85 thick against Geist's 66.
+
+| Light glyph | IoU |
+|---|---|
+| N | 0.908 → 0.975 |
+| H | 0.917 → 0.976 |
+| P | 0.912 → 0.972 |
+| Y | 0.923 → 0.976 |
+| < > | 0.916 → 0.983 |
+| ( ) | 0.903 → 0.972 |
+| U | 0.909 → 0.953 |
+| C | 0.910 → 0.947 |
+| w | 0.909 → 0.948 |
+| x | 0.903 → 0.936 |
+| ^ | 0.905 → 0.937 |
+| " | 0.912 → 0.933 |
+| 6 | 0.903 → 0.926 |
+
+Regular and Bold gained a little; the Bold 5 went from 0.917 to 0.929.
+
+**The Geist Serif benchmark** (`benchmarks/geist_serif`, never released)
+went through the same per-glyph pass, using `gfit.py --bench`. Its 16
+glyphs were already fitted close to their construction's limit: mean IoU
+stays at 0.9765. The worst deviations fell (s 12 → 7, u 16 → 8), and the
+largest is now 16. In the overlays the remaining difference is a unit or
+two on the hairlines.
+
+The display serif (`examples/display_serif`) is designed by eye and is
+never fitted, so it was not touched.
+
+Mean IoU: Regular 0.9551 → 0.9557, Bold 0.9506 → 0.9508, Light
+0.9314 → 0.9394. Kerning re-run at all three masters.

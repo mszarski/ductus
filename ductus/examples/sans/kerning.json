@@ -6667,7 +6667,7 @@
 [
 "Ccedilla",
 "x",
--25
+-30
 ],
 [
 "Ccedilla",
@@ -19387,7 +19387,7 @@
 [
 "O",
 "quotedblright",
-5
+10
 ],
 [
 "O",
@@ -19397,7 +19397,7 @@
 [
 "O",
 "quoteright",
-5
+10
 ],
 [
 "O",
@@ -20467,7 +20467,7 @@
 [
 "Oacute",
 "quotedblright",
-5
+10
 ],
 [
 "Oacute",
@@ -20477,7 +20477,7 @@
 [
 "Oacute",
 "quoteright",
-5
+10
 ],
 [
 "Oacute",
@@ -20942,7 +20942,7 @@
 [
 "Ocircumflex",
 "quotedblright",
-5
+10
 ],
 [
 "Ocircumflex",
@@ -20952,7 +20952,7 @@
 [
 "Ocircumflex",
 "quoteright",
-5
+10
 ],
 [
 "Ocircumflex",
@@ -21412,7 +21412,7 @@
 [
 "Odieresis",
 "quotedblright",
-5
+10
 ],
 [
 "Odieresis",
@@ -21422,7 +21422,7 @@
 [
 "Odieresis",
 "quoteright",
-5
+10
 ],
 [
 "Odieresis",
@@ -21887,7 +21887,7 @@
 [
 "Ograve",
 "quotedblright",
-5
+10
 ],
 [
 "Ograve",
@@ -21897,7 +21897,7 @@
 [
 "Ograve",
 "quoteright",
-5
+10
 ],
 [
 "Ograve",
@@ -22912,7 +22912,7 @@
 [
 "Otilde",
 "quotedblright",
-5
+10
 ],
 [
 "Otilde",
@@ -22922,7 +22922,7 @@
 [
 "Otilde",
 "quoteright",
-5
+10
 ],
 [
 "Otilde",
@@ -37397,7 +37397,7 @@
 [
 "braceleft",
 "d",
--35
+-40
 ],
 [
 "braceleft",
@@ -67332,7 +67332,7 @@
 [
 "quotedblleft",
 "f",
--15
+-10
 ],
 [
 "quotedblleft",
@@ -67357,11 +67357,6 @@
 [
 "quotedblleft",
 "idieresis",
--5
-],
-[
-"quotedblleft",
-"igrave",
 -5
 ],
 [
@@ -67658,11 +67653,6 @@
 "quotedblright",
 "f",
 -15
-],
-[
-"quotedblright",
-"g",
--5
 ],
 [
 "quotedblright",
@@ -68042,7 +68032,7 @@
 [
 "quoteleft",
 "f",
--15
+-10
 ],
 [
 "quoteleft",
@@ -68067,11 +68057,6 @@
 [
 "quoteleft",
 "idieresis",
--5
-],
-[
-"quoteleft",
-"igrave",
 -5
 ],
 [
@@ -68368,11 +68353,6 @@
 "quoteright",
 "f",
 -15
-],
-[
-"quoteright",
-"g",
--5
 ],
 [
 "quoteright",
@@ -75357,17 +75337,17 @@
 [
 "underscore",
 "y",
--35
+-30
 ],
 [
 "underscore",
 "yacute",
--35
+-30
 ],
 [
 "underscore",
 "ydieresis",
--35
+-30
 ],
 [
 "underscore",
@@ -77267,7 +77247,7 @@
 [
 "y",
 "AE",
--60
+-65
 ],
 [
 "y",
