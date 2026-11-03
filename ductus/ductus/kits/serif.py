@@ -422,7 +422,7 @@ DEFAULTS: dict[str, tuple] = {
     "five_bowl_top": (430, (380, 500)), "five_end_x": (60, (20, 140)), "five_end_y": (80, (30, 160)),
     "five_end_dir": (135, (100, 170)),
     "six_w": (507, (440, 580)), "six_bowl_h": (458, (380, 520)), "six_hook_x": (0.85, (0.6, 1.0)),
-    "six_join_dfull": (0, (-0.3, 0.2)), "nine_join_dfull": (0, (-0.3, 0.2)),
+    "six_join_dfull": (0, (-0.3, 0.2)), "nine_join_dfull": (0, (-0.3, 0.2)), "six_mid_w": (1.0, (0.7, 1.2)), "nine_mid_w": (1.0, (0.7, 1.2)), "six_stem_dfull": (0, (-0.2, 0.3)), "nine_stem_dfull": (0, (-0.2, 0.3)), "six_stem_dh": (0, (-0.3, 0.3)), "nine_stem_dh": (0, (-0.3, 0.3)), "six_join_dv": (0, (-0.2, 0.4)), "nine_join_dv": (0, (-0.2, 0.4)),
     "six_face_y": (537, (460, 640)), "six_hook_w": (0.4, (0.2, 1.0)), "six_wedge": (60, (0, 140)),
     "six_end_dir": (-60, (-120, 0)),
     # where the hook leaves the bowl's wall (x: of fig_stem, y: of the bowl's height) and its top's x (of the width)
@@ -1900,13 +1900,19 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     # ---- digits -----------------------------------------------------------
     fig_pen = Pen(angle=0, width=P.fig_stem, contrast=1 - P.hairline * P.fig_thin_k / P.fig_stem)
 
-    def fig_bowl(x, width, bottom, top, thick_k=1.0, name="bowl", corner=None, dfull=0):
+    def fig_bowl(x, width, bottom, top, thick_k=1.0, name="bowl", corner=None, dfull=0, corner2=None, dfull2=0, dh2=0,
+                 dv=0):
         """``corner`` (0 br, 1 tr, 2 tl, 3 bl) takes ``dfull`` more (or less) outer fullness: the
-        corner a 6's or 9's hook leaves from (Geist's bowl sweeps up into the hook there)."""
+        corner a 6's or 9's hook leaves from (Geist's bowl sweeps up into the hook there);
+        ``corner2``: the corner on the stem side, ``dfull2`` more vertical and ``dh2`` more horizontal
+        fullness (a 9's right side runs upright like a stem under a rounder shoulder)."""
         full = (P.o_full_h, P.o_full_v)
         if corner is not None:
-            full = tuple((P.o_full_h + dfull, P.o_full_v + dfull) if i == corner else (P.o_full_h, P.o_full_v)
-                         for i in range(4))
+            dh = {corner: dfull}; dv_ = {corner: dfull + dv}     # dv: the hook corner's vertical fullness on its own
+            if corner2 is not None:
+                dh[corner2] = dh.get(corner2, 0) + dh2
+                dv_[corner2] = dv_.get(corner2, 0) + dfull2
+            full = tuple((P.o_full_h + dh.get(i, 0), P.o_full_v + dv_.get(i, 0)) for i in range(4))
         return bowl(name=name, x=x, width=width, bottom=bottom, top=top, thick=P.fig_stem * P.round_gain * thick_k,
                     thin=P.hairline * P.fig_thin_k, stress=P.o_stress, full=full,
                     in_full=(P.o_in_full_h, P.o_in_full_v))
@@ -2014,7 +2020,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         bt, bb = k("bowl_h"), -os_
         if turn:
             bt, bb = 2 * cy - bb, 2 * cy - bt
-        gl += fig_bowl(0, W, bb, bt, k("bowl_thick_k"), corner=0 if turn else 2, dfull=k("join_dfull"))
+        gl += fig_bowl(0, W, bb, bt, k("bowl_thick_k"), corner=0 if turn else 2, dfull=k("join_dfull"),
+                       corner2=1 if turn else 3, dfull2=k("stem_dfull"), dh2=k("stem_dh"), dv=k("join_dv"))
         top = h - P.hairline * P.fig_thin_k / 2
         xf = W * k("hook_x")
         cut_end = fig_ends == "cut"
@@ -2024,7 +2031,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         # the root's centre stands root_x of its own width in from the bowl's
         # outer edge (>= 0.5: the stroke never steps out past the bowl)
         rw = k("root_w")
-        (gl.path(name="hook", pen=fig_pen, profile=Profile((0, rw), (0.3, 1), (0.6, 1), (1, k("hook_w"))))
+        mw = k("mid_w")                      # the hook's width along its middle (a bold's runs lighter there)
+        (gl.path(name="hook", pen=fig_pen, profile=Profile((0, rw), (0.3, mw), (0.6, mw), (1, k("hook_w"))))
             .start(T((P.fig_stem * rw * k("root_x"), k("bowl_h") * k("root_y"))), name="root", dir=D(k("root_dir")),
                    terminal=False, tension=k("root_t"))
             .curve_to(T((W * k("top_x"), top)), name="top", dir=D(0))

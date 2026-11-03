@@ -791,3 +791,22 @@ and its terminal's top slopes into that curve.
 The Bold 9 scores 0.958 → 0.943 against Geist Bold; it reads closer in
 words, so it was set by eye. The Regular is unchanged; only the Bold's
 kerning was re-run.
+
+**Second pass.** In words the Bold 9 still read differently. Two things,
+both measured against Geist's outline:
+- **The gap under the bowl** was narrow on its right because the
+  descending stroke ran too far inside. A joint search over the hook
+  (looser root curve `nine_root_t`, thinner root, new `nine_mid_w` for the
+  hook's middle width, default 1) put both its edges on Geist's.
+- **The right side wobbled.** Measured as the right edge's x at each height
+  against Geist's: ours was up to 7 units wider at the shoulder, then up to
+  7 narrower just below where the hook leaves the bowl. Geist's side is
+  widest lower, at y≈400. The hook now leaves at the bowl's widest point a
+  few degrees outward (`nine_root_dir` 93, `nine_root_y` 0.47), and the
+  shoulder corner is less full horizontally. New `fig_bowl` corner
+  controls: `*_stem_dh` / `*_stem_dfull` (horizontal / vertical fullness
+  at the stem-side corner) and `*_join_dv` (vertical fullness at the
+  hook's corner); defaults 0. The edge now stays within 4 units of
+  Geist's.
+
+The Bold 9 scores 0.943 → 0.966; Bold mean 0.9237 → 0.9239.

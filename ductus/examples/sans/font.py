@@ -166,7 +166,7 @@ P = kit.params(
     caret_h=312, caret_t=77,
     pound_foot_x=0.2, pound_foot_dir=60, pound_rise_x=0.24, pound_rise_y=0.8, pound_top_x=0.6,
     pound_end_y=0.81, pound_end_x=0.98, pound_end_dir=-38, pound_end_w=1.28, pound_bar_l=0.0, pound_bar_r=0.72, pound_base_k=1.02, pound_bar_y=354,
-    pound_w=500, sans_cut_fig=90, sans_cut_hood=82, sans_cut_r=0,
+    pound_w=500, sans_cut_fig=95, sans_cut_hood=82, sans_cut_r=0,
     sans_cut_t=0, endash_len=503,
     sans_cut_g=105, descender_g=-162,
     sans_cut_f=0, amb_leg_x=548, amb_diag=125, amb_cx=284, amb_cy=324, amb_lr_x=410, amb_lr_y=550,
