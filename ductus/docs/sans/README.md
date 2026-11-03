@@ -1022,3 +1022,36 @@ hard-coded.
 
 Mean IoU: Regular 0.9457 → 0.9512, Bold 0.9413 → 0.9457, Light
 0.9218 → 0.9253. Kerning re-run at all three masters.
+
+## 23 — round 5: braces, measured rectangles, dieresis
+
+![weights sheet](23_sheet.png)
+
+- **Braces.** New `brace_up` (where the arm's corner turns vertical; the
+  old fixed 0.3) and `brace_t` (the corners' tension, default 1). Geist's
+  corners turn earlier, leaving a longer straight. Results: Light
+  0.918 → 0.939, Regular 0.903 → 0.928, Bold 0.919 → 0.933.
+- **Glyphs that are plain rectangles, set from measurement.** The dashes,
+  _ and + are rectangles, so their parameters were set from Geist's
+  measured boxes at each weight instead of fitted. Results:
+  - en and em dashes: exact at all three weights;
+  - _: exact at Light and Regular, 0.992 at Bold;
+  - +: Light 0.992, Regular and Bold exact;
+  - hyphen: 0.968–0.992.
+
+  The + gained its own offsets (`plus_dw/dt/dy`) against the shared math
+  width, weight and height, which = × € £ also use.
+- **Dieresis.** Geist's Light dots are 70 × 89 (narrow); ours were square.
+  New `diaer_wk` (dot width against height, square dots only); `dot()`
+  takes a width factor. The fitter alone could not find this, because
+  height and width must change together; the Light values were set from
+  measurement. Results: Light 0.806 → 1.000, Regular 0.910 → 0.969, Bold
+  0.850 → 0.997.
+- **&:** Light 0.863 → 0.897. **@:** Light 0.810 → 0.822.
+- **Not fixed: the Bold f.** Any longer hook (Geist's runs about 25 units
+  further) makes a tiny loop where the hook's inner edge meets the stem,
+  and it encloses a pinhole. No beak setting avoids it. It needs a
+  construction change at that join.
+
+Mean IoU: Regular 0.9512 → 0.9535, Bold 0.9457 → 0.9496, Light
+0.9253 → 0.9295. Kerning re-run at all three masters.

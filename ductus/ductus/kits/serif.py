@@ -287,7 +287,7 @@ DEFAULTS: dict[str, tuple] = {
     "j_foot_y": (-120, (-180, -60)), "j_foot_x": (0.5, (0.1, 0.9)), "j_t": (1.0, (0.75, 1.5)),   # t, tailed l: raise the tail's lowest point              # ß, ss_style="bar": tension where the bowls meet the bars
     # brace: where the arm turns toward the beak (a share of the arm's height); brace_beak="point": the arms'
     # angle off level at the beak, and how far short of the midline the strokes stop (the beak fills it)
-    "brace_low": (0.15, (0.0, 0.5)), "brace_beak_a": (35, (15, 60)), "brace_beak_len": (24, (8, 60)),
+    "brace_low": (0.15, (0.0, 0.5)), "brace_up": (0.3, (0.1, 0.6)), "brace_t": (1.0, (0.7, 2.0)), "brace_beak_a": (35, (15, 60)), "brace_beak_len": (24, (8, 60)),
     "inv_dy": (-162, (-220, 0)),             # ¿ ¡: how far below ? ! they hang (turned about their ink)
     # b_style="oval" (b and p): the oval's reach right of the stem's right edge, its left edge past the stem's
     # left edge, its counter's left side right of the stem's right edge, thickness, stress and fullness
@@ -450,7 +450,7 @@ DEFAULTS: dict[str, tuple] = {
     "circ_in": (40, (10, 90)),
     "tilde_len": (302, (220, 380)), "tilde_lo": (627, (580, 680)), "tilde_hi": (691, (640, 740)),
     "tilde_w": (46, (20, 80)), "tilde_dir": (55, (20, 90)), "tilde_hx": (0.35, (0.2, 0.5)), "tilde_tr": (0.2, (-0.3, 0.5)), "tilde_rr": (0.3, (-0.3, 0.6)),
-    "diaer_r": (56, (35, 75)), "diaer_gap": (180, (130, 240)), "diaer_y": (662, (620, 700)),
+    "diaer_r": (56, (35, 75)), "diaer_gap": (180, (130, 240)), "diaer_y": (662, (620, 700)), "diaer_wk": (1.0, (0.6, 1.3)),
     "ring_w": (166, (120, 220)), "ring_h": (160, (120, 220)), "ring_y0": (577, (540, 620)),
     "ring_thick": (38, (20, 60)), "ring_thin": (22, (10, 50)),
     "ced_w": (60, (30, 90)), "ced_thin": (20, (8, 40)), "ced_len": (125, (80, 180)), "ced_drop": (200, (150, 240)),
@@ -466,7 +466,7 @@ DEFAULTS: dict[str, tuple] = {
     "acc_dx_c": (0, (-60, 60)), "acc_dx_C": (0, (-60, 60)),
     # ---- symbols (starting values off Geist; ^ and £ have no reference) -----
     "math_t": (40, (20, 70)), "math_y": (279, (220, 340)), "math_w": (408, (320, 480)),
-    "eq_gap": (145, (90, 200)), "eq_dy": (0, (-40, 40)), "eq_dw": (0, (-80, 40)), "lt_dy": (0, (-40, 40)), "eq_t": (40, (20, 70)),
+    "eq_gap": (145, (90, 200)), "eq_dy": (0, (-40, 40)), "eq_dw": (0, (-80, 40)), "plus_dw": (0, (-80, 80)), "plus_dt": (0, (-40, 80)), "plus_dy": (0, (-40, 40)), "lt_dy": (0, (-40, 40)), "eq_t": (40, (20, 70)),
     "lt_w": (446, (360, 520)), "lt_h": (508, (420, 580)), "lt_t": (42, (20, 90)), "lt_end_k": (1.0, (0.3, 1.2)),
     "times_w": (396, (320, 460)),
     "mid_dot_y": (297, (240, 360)), "bullet_r": (112, (70, 150)), "bullet_y": (311, (250, 380)),
@@ -2135,8 +2135,9 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         wave(gl, "mark", Pen(angle=0, width=P.tilde_w, contrast=0), L, lo, hi, a, P.tilde_hx, P.tilde_tr, P.tilde_rr)
 
     def dieresis_(gl):
-        dot(gl, "dot_l", 0, P.diaer_y, P.diaer_r)
-        dot(gl, "dot_r", P.diaer_gap, P.diaer_y, P.diaer_r)
+        # diaer_wk: the dots' width against their height (square dots only; Geist's Light ones are narrow)
+        dot(gl, "dot_l", 0, P.diaer_y, P.diaer_r, wk=P.diaer_wk)
+        dot(gl, "dot_r", P.diaer_gap, P.diaer_y, P.diaer_r, wk=P.diaer_wk)
 
     def ring_(gl):
         gl += bowl(name="ring", x=0, width=P.ring_w, bottom=P.ring_y0, top=P.ring_y0 + P.ring_h,
@@ -2286,9 +2287,10 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
 
     @g("plus", sb=(0, 0))
     def plus(gl):
-        w, t = P.math_w, P.math_t
-        rect(gl, "h", 0, cy_math - t / 2, w, cy_math + t / 2)
-        rect(gl, "v", w / 2 - t / 2, cy_math - w / 2, w / 2 + t / 2, cy_math + w / 2)
+        # plus_dw / plus_dt / plus_dy: the + against the shared math width, weight and height
+        w, t, cy = P.math_w + P.plus_dw, P.math_t + P.plus_dt, cy_math + P.plus_dy
+        rect(gl, "h", 0, cy - t / 2, w, cy + t / 2)
+        rect(gl, "v", w / 2 - t / 2, cy - w / 2, w / 2 + t / 2, cy + w / 2)
 
     @g("equal", sb=(0, 0))
     def equal(gl):
@@ -2401,9 +2403,14 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         for nm, ya, yb, da in (("upper", top - P.hairline / 2, mid, 1), ("lower", bot + P.hairline / 2, mid, -1)):
             (gl.path(name=nm, pen=pen, profile=Profile((0, P.brace_end_w), (0.3, 1), (0.8, 1), (1, P.brace_beak_w)))
                 .start((sx(W - 10), ya), name="end", dir=sd(180), terminal=False)
-                .curve_to((sx(xs), ya - (ya - yb) * 0.3), name="upper", dir=sd(270 if da > 0 else 90))
+                # brace_up: where the arm's corner turns vertical; brace_t: the corners' tension
+                # (above 1 they are fuller, a longer straight between them)
+                # (the upper node stays above the lower one at every corner of the ranges)
+                .curve_to((sx(xs), ya - (ya - yb) * lazy_min(P.brace_up, 0.9 - P.brace_low)), name="upper",
+                          dir=sd(270 if da > 0 else 90),
+                          tension=P.brace_t)
                 .curve_to((sx(xs), yb + (ya - yb) * P.brace_low), name="lower", dir=sd(270 if da > 0 else 90))
-                .curve_to(*beak_end(da), terminal=False))
+                .curve_to(*beak_end(da), terminal=False, tension=P.brace_t))
         if brace_beak == "point":
             # the beak: both arms' ends continued straight to the midline, so the
             # outer edges meet in the tip and the inner ones in the notch
@@ -2616,11 +2623,12 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         wave(gl, "wave", sym_pen(P.tl_w), L, lo, hi, a, P.tl_hx, P.tl_tr, P.tl_rr)
 
     # ---- punctuation ----------------------------------------------------
-    def dot(gl, name, cx, cy, r, round_=False, circle=False):
+    def dot(gl, name, cx, cy, r, round_=False, circle=False, wk=1.0):
         if dot_style == "square" and not round_:
-            # a grotesque's: a sharp square 2r wide
-            (gl.contour(name).move((cx - r, cy - r), "bl").line((cx + r, cy - r), "br").line((cx + r, cy + r), "tr")
-                .line((cx - r, cy + r), "tl").close())
+            # a grotesque's: a sharp square 2r tall, 2r * wk wide
+            rx = r * wk
+            (gl.contour(name).move((cx - rx, cy - r), "bl").line((cx + rx, cy - r), "br").line((cx + rx, cy + r), "tr")
+                .line((cx - rx, cy + r), "tl").close())
             return
         k = r * (0.5523 + (1 - 0.5523) * (0 if circle else P.dot_square))   # dot_square 1: a square with rounded corners
         (gl.contour(name).move((cx, cy - r), "bottom").curve((cx + k, cy - r), (cx + r, cy - k), (cx + r, cy), "right")
