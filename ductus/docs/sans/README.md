@@ -863,3 +863,64 @@ These need construction changes.
 
 Mean IoU: Regular 0.9396 → 0.9443, Bold 0.9239 → 0.9352, Light 0.8997
 (unchanged). Kerning re-run at all three masters.
+
+## 20 — glyph-by-glyph refit, round 2: joins, heads and new controls
+
+![weights sheet](20_sheet.png)
+
+This round re-ranked glyphs by Hausdorff at both weights. For each, I
+located the worst point and looked at the overlay. Most of the remaining
+error turned out to be a shared cause, not a fitting failure.
+
+- **Bold b, p, d, q, g bowls.** The oval sat deep inside the stem, so the
+  bowl met the stem in a filled join instead of Geist's deep outer
+  crotches. The cause was that `b_ov_l` / `d_bowl_r` were inherited from
+  the Regular, and the Bold stem is 150. Refit at Bold:
+  - b: Hausdorff 60 → 12
+  - p: Hausdorff 62 → 15
+  - d: Hausdorff 57 → 10
+  - q: Hausdorff 59 → 13
+  - g: Hausdorff 63 → 25
+
+  These values lie beyond the Regular's ranges, so `gfit.py` gained
+  `--wide` for Bold-only offsets.
+- **B's waist.** Geist's bowls cross in a sharp notch. New kit controls,
+  all defaulting to 0:
+  - `B_waist_ov` runs each bowl's outside on past the waist (negative
+    stops it short, so the other bowl supplies the wall);
+  - `B_waist_dfull` / `B_waist_in_dfull` set the fullness at the waist
+    corners.
+
+  Results: Regular 0.962 → 0.967 and Hausdorff 50 → 10; Bold
+  0.947 → 0.962 and 87 → 21.
+- **R.** New `R_waist_dfull` (the bowl's corner over the leg). The leg's
+  start ranges were widened (`R_leg_dir` to 380, `R_leg_x0` to 400) so the
+  leg can leave nearly level, as Geist's does. Results: Regular
+  0.940 → 0.951; Bold 0.953 → 0.959 and Hausdorff 44 → 26.
+- **Heads at the x-height.** `head_top` 14 was a serif inheritance: every
+  lowercase stem stood 14 above Geist's flat x-height (only the u had been
+  corrected, by `u_head_dtop`). It is now 0 at all weights. `h_top`,
+  `b_top` and the u offsets were adjusted so the ascenders and u stay put.
+  ı is now exact (IoU 1.000) at Regular, Bold and Light. i, j, n, m, p
+  and r gain at every weight.
+- **n's join (Regular).** The crotch is lower and thinner, as in Geist:
+  n, m Hausdorff 33 → 19, h 23 → 12.
+- **W.** New `W_thick_dw` / `W_thin_dw`, because the W had borrowed the V's
+  stroke widths. Geist's Bold W is lighter: 0.911 → 0.934.
+- **Bold refits:**
+
+  | Glyph | IoU | Hausdorff |
+  |---|---|---|
+  | [ ] (arms were 70 thick vs 118) | 0.895 → 0.985 | 48 → 5 |
+  | A | 0.894 → 0.943 | 34 → 15 |
+  | 1 | 0.930 → 0.969 | |
+  | y | 0.931 → 0.947 | |
+  | M | 0.958 → 0.963 | |
+  | 8 | 0.899 → 0.909 | |
+
+Ø/ø Hausdorff stays high because Geist's slash is an unmerged overlapping
+contour: its edge runs through the bowl's wall, so only IoU is meaningful
+there.
+
+Mean IoU: Regular 0.9443 → 0.9453, Bold 0.9352 → 0.9405, Light
+0.8997 → 0.9011. Kerning re-run at all three masters.

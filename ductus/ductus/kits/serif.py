@@ -244,7 +244,7 @@ DEFAULTS: dict[str, tuple] = {
     # curved leg (R_leg="curve"); the J on the baseline (J_style="base")
     "dot_square": (0, (0, 1)), "l_turn": (150, (60, 300)), "l_tail": (120, (40, 220)),
     "l_tail_y": (40, (0, 120)), "l_end_w": (1.0, (0.4, 1.4)), "l_end_dir": (20, (-20, 90)),
-    "R_leg_dir": (300, (260, 340)),
+    "R_leg_dir": (300, (260, 380)),
     "Q_b0x": (440, (300, 600)), "Q_b0y": (130, (40, 260)), "Q_b1x": (640, (500, 780)), "Q_b1y": (-120, (-220, -20)),
     "Q_bar_w": (88, (40, 130)), "N_dy": (0, (-30, 30)),
     "eight_overlap": (1.0, (0.3, 1.2)), "gs_dfar": (0, (-80, 40)),
@@ -356,10 +356,10 @@ DEFAULTS: dict[str, tuple] = {
     # the outer arms start curving; th: far wall; full: curve fullness
     "B_mid": (0.5, (0.4, 0.6)), "B_far_t": (419, (320, 520)), "B_far_b": (443, (340, 540)),
     "B_flat_t": (184, (60, 300)), "B_flat_b": (214, (60, 320)), "B_th": (94, (50, 140)),
-    "B_hair": (35, (15, 120)), "B_flat_m": (223, (60, 340)), "B_full": (0.6, (0.4, 0.85)), "B_in_full": (0.6, (0.4, 0.85)),   # B_flat_m: the flats either side of the B's waist
+    "B_hair": (35, (15, 120)), "B_flat_m": (223, (60, 340)), "B_full": (0.6, (0.4, 0.85)), "B_in_full": (0.6, (0.4, 0.85)), "B_waist_dfull": (0, (-0.35, 0.15)), "B_waist_in_dfull": (0, (-0.35, 0.15)), "B_waist_ov": (0, (-60, 120)),   # B_flat_m: the flats either side of the B's waist
     "D_far": (514, (400, 620)), "D_flat": (190, (60, 360)), "D_th": (110, (60, 160)),
     "P_bot": (332, (260, 420)), "P_far": (434, (340, 540)), "P_flat": (184, (60, 300)),
-    "R_far": (423, (340, 540)), "R_bot": (332, (260, 420)), "R_leg_x0": (171, (80, 280)), "R_leg_x": (401, (300, 500)),
+    "R_far": (423, (340, 540)), "R_waist_dfull": (0, (-0.35, 0.15)), "R_bot": (332, (260, 420)), "R_leg_x0": (171, (80, 400)), "R_leg_x": (401, (300, 500)),
     "R_leg_w": (90, (50, 130)),
     "C_width": (623, (540, 720)), "C_face": (0.88, (0.7, 1.0)), "C_top_y": (480, (380, 600)),
     "C_term_y": (200, (100, 300)), "C_cut_x": (0.5, (0.3, 0.7)), "C_cut_y": (100, (40, 200)),
@@ -384,7 +384,7 @@ DEFAULTS: dict[str, tuple] = {
     "V_width": (560, (460, 660)), "V_thick": (105, (60, 150)), "V_thin": (34, (15, 120)),
     "V_vertex": (0.5, (0.4, 0.6)), "V_thin_dx": (0, (-40, 40)),
     "W_width": (950, (700, 1080)), "W_v1": (0.27, (0.15, 0.4)), "W_v2": (0.73, (0.6, 0.85)),
-    "W_mid_dx": (0, (-50, 50)), "W_mid3_dx": (0, (-60, 60)), "W_a2_top": (1.0, (0.6, 1.0)),
+    "W_mid_dx": (0, (-50, 50)), "W_mid3_dx": (0, (-60, 60)), "W_a2_top": (1.0, (0.6, 1.0)), "W_thick_dw": (0, (-40, 30)), "W_thin_dw": (0, (-30, 30)),
     "W_thin_dx": (0, (-30, 60)),   # the thin strokes' feet, right of the thick ones' (as on v)
     "X_width": (520, (400, 640)), "X_thick": (100, (60, 140)), "X_thin": (36, (15, 120)),
     "X_thin_dx": (0, (-60, 60)),
@@ -1650,19 +1650,22 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         face_wedge(gl, "serif_bottom", W, t - 1, P.z_serif, P.z_wedge, P.z_serif_w, opens=-1)
 
     # ---- the rest of the capitals ------------------------------------------
-    def dbowl(gl, name, sx, y0, y1, far, flat, th, tt, tb, full, in_full, flat_bot=None):
+    def dbowl(gl, name, sx, y0, y1, far, flat, th, tt, tb, full, in_full, flat_bot=None, dfull=(0, 0), in_dfull=(0, 0), ov=(0, 0)):
         """A D-shaped bowl right of a stem whose right edge is at sx: flat arms
         from the stem to ``flat`` (from the stem's centre), curving round to
         the outer far extreme ``far``. Walls: far ``th``, top ``tt``, bottom
-        ``tb``. The counter is cut out."""
+        ``tb``. The counter is cut out. ``dfull`` / ``in_dfull``: (bottom, top)
+        corner fullness offsets, outside and counter (the B's waist); ``ov``:
+        (bottom, top) extension of the outside only, past the counter's walls."""
         fb = flat if flat_bot is None else flat_bot     # the bottom arm's flat may differ
 
-        def shape(c, x0, ya, yb, fxa, fxb, rx, k):
+        def shape(c, x0, ya, yb, fxa, fxb, rx, k, dk):
             ym = (ya + yb) / 2
-            c.move((x0, ya), "bl").line((fxa, ya), "b").curve((fxa + (rx - fxa) * k, ya), (rx, ym - (ym - ya) * k), (rx, ym), "far") \
-             .curve((rx, ym + (yb - ym) * k), (fxb + (rx - fxb) * k, yb), (fxb, yb), "t").line((x0, yb), "tl").close()
-        shape(gl.contour(name), sx - 1, y0, y1, fb, flat, far, full)
-        shape(gl.cut(name + "_counter"), sx, y0 + tb, y1 - tt, fb - th * 0.3, flat - th * 0.3, far - th, in_full)
+            ka, kb = k + dk[0], k + dk[1]
+            c.move((x0, ya), "bl").line((fxa, ya), "b").curve((fxa + (rx - fxa) * ka, ya), (rx, ym - (ym - ya) * ka), (rx, ym), "far") \
+             .curve((rx, ym + (yb - ym) * kb), (fxb + (rx - fxb) * kb, yb), (fxb, yb), "t").line((x0, yb), "tl").close()
+        shape(gl.contour(name), sx - 1, y0 - ov[0], y1 + ov[1], fb, flat, far, full, dfull)
+        shape(gl.cut(name + "_counter"), sx, y0 + tb, y1 - tt, fb - th * 0.3, flat - th * 0.3, far - th, in_full, in_dfull)
 
     def aperture_(gl, w, h, face, top_y, term_y, cut_x, cut_y, cut_angle, h1, h2):
         """The c / C opening: a vertical face above, a curved lower terminal."""
@@ -1721,10 +1724,14 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         # the bowls overlap by a hairline at the waist; each keeps a full
         # hairline wall there, so the waist is one hairline thick (half walls
         # left the counters touching: a waist pinched to a point)
+        # B_waist_dfull / B_waist_in_dfull: fullness offsets at the two corners meeting at the waist (a
+        # Bold's waist is a deep notch)
+        # B_waist_ov: each bowl's outside runs on past the waist, so their curves cross in a notch
+        wd, wi, wo = P.B_waist_dfull, P.B_waist_in_dfull, P.B_waist_ov
         dbowl(gl, "upper", sx, ym - P.B_hair / 2, ch, P.B_far_t, P.B_flat_t, P.B_th, P.B_hair, P.B_hair,
-              P.B_full, P.B_in_full, flat_bot=P.B_flat_m)
+              P.B_full, P.B_in_full, flat_bot=P.B_flat_m, dfull=(wd, 0), in_dfull=(wi, 0), ov=(wo, 0))
         dbowl(gl, "lower", sx, 0, ym + P.B_hair / 2, P.B_far_b, P.B_flat_m, P.B_th, P.B_hair, P.B_hair,
-              P.B_full, P.B_in_full, flat_bot=P.B_flat_b)
+              P.B_full, P.B_in_full, flat_bot=P.B_flat_b, dfull=(0, wd), in_dfull=(0, wi), ov=(0, wo))
 
     @g("D")
     def D(gl):
@@ -1733,10 +1740,10 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         dbowl(gl, "bowl", P.cap_stem / 2, 0, ch, P.D_far, P.D_flat, P.D_th, P.B_hair, P.B_hair,
               P.B_full, P.B_in_full)
 
-    def p_bowl(gl, far, bot):
+    def p_bowl(gl, far, bot, dfull_bot=0):
         ch = P.capheight
         dbowl(gl, "bowl", P.cap_stem / 2, bot, ch, far, P.P_flat, P.B_th, P.B_hair, P.B_hair,
-              P.B_full, P.B_in_full)
+              P.B_full, P.B_in_full, dfull=(dfull_bot, 0))
 
     @g("P")
     def P_(gl):
@@ -1746,7 +1753,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     @g("R")
     def R(gl):
         cap_stem(gl, head="cap_foot_l")
-        p_bowl(gl, P.R_far, P.R_bot)
+        # R_waist_dfull: the bowl's lower outer corner, where the leg leaves it in a notch
+        p_bowl(gl, P.R_far, P.R_bot, P.R_waist_dfull)
         leg = Pen(angle=0, width=P.R_leg_w, contrast=0)
         if R_leg == "curve":
             # a grotesque's R: the leg leaves the bowl and bends down to stand upright
@@ -1855,8 +1863,9 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     @g("W", sb=(P.v_sb, P.v_sb))
     def W_(gl):
         ch, W = P.capheight, P.W_width
-        thick = Pen(angle=0, width=P.V_thick, contrast=0)
-        thin = Pen(angle=0, width=P.V_thin, contrast=0)
+        # W_thick_dw / W_thin_dw: the W's strokes against the V's (Geist's Bold W is lighter)
+        thick = Pen(angle=0, width=P.V_thick + P.W_thick_dw, contrast=0)
+        thin = Pen(angle=0, width=P.V_thin + P.W_thin_dw, contrast=0)
         v1, v2, mx = W * P.W_v1, W * P.W_v2, W * 0.5 + P.W_mid_dx
         gl.line((0, ch), (v1, -os_), name="a1", names=("top", "vertex"), terminal=("vtop_l", "vertex"), pen=thick)
         # the thin middle stroke may stop short of the cap height (W_a2_top),
