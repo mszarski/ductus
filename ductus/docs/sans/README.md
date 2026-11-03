@@ -924,3 +924,54 @@ there.
 
 Mean IoU: Regular 0.9443 → 0.9453, Bold 0.9352 → 0.9405, Light
 0.8997 → 0.9011. Kerning re-run at all three masters.
+
+## 21 — round 3: the Light master, and construction fixes for £ € @ a
+
+![weights sheet](21_sheet.png)
+
+**The Light** got its first per-glyph pass. `gfit.py` now fits at 300 and
+writes `master_light.json`. About 45 glyphs were fitted, worst first:
+
+| Glyph | IoU | Hausdorff |
+|---|---|---|
+| … | 0.648 → 0.976 | |
+| ring | 0.661 → 0.958 | |
+| _ | 0.755 → 0.982 | |
+| ° | 0.724 → 0.913 | |
+| M | 0.861 → 0.958 | 55 → 13 |
+| Æ | 0.847 → 0.940 | |
+| Q | | 74 → 7 |
+| 4 | 0.874 → 0.945 | |
+| [ ] | 0.896 → 0.954 / 0.965 | |
+| • | 0.827 → 0.981 | |
+
+The Light quotes had come apart before this round (the comma's head and
+tail sat apart): they are whole again, 0.645 → 0.952.
+
+**Constructions:**
+- **£** (`pound_foot="sweep"`, new knee `pound_knee_x/y`). Geist's stem
+  stands vertical down to about the bar, then sweeps down-left into the
+  base's left end. Ours ran one curve from the foot to the hook, so
+  leaning the foot tilted the whole stem. A knee node now separates the
+  two parts. The foot range was also widened (`pound_foot_x` from 0).
+  Light 0.836 → 0.935, Regular 0.866 → 0.920, Bold 0.878 → 0.900
+  (Hausdorff 72 → 49).
+- **€** (`euro_aperture="c"`, new `euro_cut_x/y`, `euro_term_dy`). The
+  € takes the C's aperture (a vertical face and a curved lower terminal)
+  instead of a straight diagonal cut. `aperture_` gained an `x0` offset.
+  Regular 0.920 → 0.927 (Hausdorff 38 → 21), Bold Hausdorff 58 → 30,
+  Light 0.909 → 0.928.
+- **@** (`at_in_k`). The inner a took the full lowercase stem weight, so
+  at Bold its counter was a slit. Now 0.76 at Bold: Bold 0.838 → 0.866,
+  Regular 0.833 → 0.855, Light 0.800 → 0.810.
+- **a** (`a_bj_dw`). The bowl stroke is drawn with a level nib, so it was
+  full width where it rises into the stem. That filled the crotch over to
+  the foot. Geist's bowl thins into the stem and leaves a notch above the
+  foot. Bold 0.915 → 0.928 (Hausdorff 68 → 40), Light 0.926 → 0.932
+  (19 → 9), Regular 0.958 → 0.959.
+
+The new options default to the old behaviour, so the display serif and
+the benchmark are unchanged.
+
+Mean IoU: Regular 0.9453 → 0.9457, Bold 0.9405 → 0.9413, Light
+0.9011 → 0.9218. Kerning re-run at all three masters.

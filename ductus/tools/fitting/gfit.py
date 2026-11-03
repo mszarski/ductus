@@ -1,12 +1,12 @@
 # gfit.py : fit one glyph's own parameters at one weight of Ductus Sans, scoring every glyph they touch
-#   python tools/fitting/gfit.py 400|700 GLYPH N [prefix_or_param ...] [--dry] [--wide]
+#   python tools/fitting/gfit.py 300|400|700 GLYPH N [prefix_or_param ...] [--dry] [--wide]
 # Parameters: those starting with the given prefixes (default: "<glyph>_"), or exact names. Steps are 4% of
-# each parameter's range; --wide (Bold only) extends each range by its width on both sides, for
+# each parameter's range; --wide (masters only) extends each range by its width on both sides, for
 # offsets that should grow with the stem but are not weight parameters. Random joint search (N rounds, Gaussian moves on 1-4 parameters, shrinking scale).
 # Objective, averaged over the glyphs those parameters change: IoU - 0.001 * Hausdorff (font units), so a
 # local bump in the outline counts, not only overlap. Candidates must keep every touched glyph's contour
 # count and stay free of self-intersection / direction errors.
-# Writes: 700 -> examples/sans/master_bold.json. 400 -> examples/sans/font.py (via apply.py); before a
+# Writes: 700 / 300 -> examples/sans/master_bold.json / master_light.json. 400 -> examples/sans/font.py (via apply.py); before a
 # Regular value changes, its current value at each weight master is pinned into that master's json, so a
 # Regular fit never moves the Bold or the Light.
 import json, random, subprocess, sys
@@ -30,7 +30,7 @@ font = load_font(str(FONT))
 d = compile_font(font)
 MASTERS = {700: "bold", 300: "light"}
 data = {loc: json.loads(FONT.with_name(f"master_{n}.json").read_text()) for loc, n in MASTERS.items()}
-ref = Reference(ROOT / f"benchmarks/geist_sans/reference/Geist-{'Regular' if W == 400 else 'Bold'}.woff2")
+ref = Reference(ROOT / f"benchmarks/geist_sans/reference/Geist-{ {300: 'Light', 400: 'Regular', 700: 'Bold'}[W] }.woff2")
 
 
 def setting(loc, extra):
@@ -140,9 +140,9 @@ for n in scored:
         print(f"  {n}: IoU {a.iou:.3f} -> {b.iou:.3f}, Hausdorff {a.hausdorff:.0f} -> {b.hausdorff:.0f}")
 if dry or not ch:
     sys.exit(0)
-if W == 700:
-    data[700].setdefault("params", {}).update({k: round(v, 3) for k, v in ch.items()})
-    FONT.with_name("master_bold.json").write_text(json.dumps(data[700], indent=1, sort_keys=True))
+if W in MASTERS:
+    data[W].setdefault("params", {}).update({k: round(v, 3) for k, v in ch.items()})
+    FONT.with_name(f"master_{MASTERS[W]}.json").write_text(json.dumps(data[W], indent=1, sort_keys=True))
 else:
     # pin each master's current value of every changed parameter, then write the Regular
     for loc, name in MASTERS.items():

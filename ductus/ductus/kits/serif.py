@@ -264,7 +264,7 @@ DEFAULTS: dict[str, tuple] = {
     "a_bt_dw": (0, (-60, 30)), "a_bl_dw": (0, (-50, 30)), "a_bb_dw": (0, (-50, 30)), "a_bs_bias": (0.5, (0.0, 1.0)),   # the a bowl: width at the bar's stem end, at the left
     "a_bt_tilt": (10, (-5, 25)), "a_bt_x": (220, (120, 330)), "a_bl_x": (88, (40, 160)), "a_bl_y": (135, (80, 220)),
     "a_turn": (110, (40, 250)), "a_tail": (90, (40, 160)), "a_foot_dy": (0, (-10, 40)),   # its stem's foot
-    "a_bb_x": (227, (150, 320)), "a_bj_y": (120, (40, 220)), "a_bj_dir": (60, (20, 90)), "a_bs_t": (1.0, (0.75, 1.5)),
+    "a_bb_x": (227, (150, 320)), "a_bj_y": (120, (40, 220)), "a_bj_dir": (60, (20, 90)), "a_bj_dw": (0, (-100, 20)), "a_bs_t": (1.0, (0.75, 1.5)),
     # Hobby tension at the U's cup and the J's (J_style="base") hook: < 1 squarer, > 1 rounder
     "U_t": (1.0, (0.75, 1.5)), "J_t": (1.0, (0.75, 1.5)),
     "ss_t": (1.0, (0.75, 1.5)),
@@ -295,7 +295,7 @@ DEFAULTS: dict[str, tuple] = {
     "b_ov_stress": (0, (-20, 20)), "b_ov_full_h": (0.6, (0.4, 0.9)), "b_ov_full_v": (0.6, (0.4, 0.9)),
     "b_ov_in_full_h": (0.6, (0.4, 0.9)), "b_ov_in_full_v": (0.6, (0.4, 0.9)),          # d_style="bowl": the single-storey g's bowl bottom
     "seven_stem": (90, (50, 130)), "seven_top_dir": (240, (200, 270)), "seven_foot_dir": (250, (220, 290)),
-    "pound_foot_x": (0.3, (0.15, 0.5)), "pound_foot_dir": (90, (50, 120)), "pound_rise_x": (0.32, (0.15, 0.5)),
+    "pound_foot_x": (0.3, (0.0, 0.5)), "pound_foot_dir": (90, (50, 120)), "pound_rise_x": (0.32, (0.15, 0.5)),
     "pound_rise_y": (0.62, (0.4, 0.8)), "pound_top_x": (0.62, (0.4, 0.8)), "pound_end_x": (0.92, (0.75, 1.05)),
     "pound_end_y": (0.83, (0.65, 0.95)), "pound_end_dir": (-70, (-100, 20)), "pound_end_w": (0.6, (0.3, 1.4)), "pound_bar_l": (0.08, (-0.1, 0.3)),
     "pound_bar_r": (0.66, (0.45, 0.9)), "pound_base_k": (1.3, (0.6, 2.0)),
@@ -488,7 +488,7 @@ DEFAULTS: dict[str, tuple] = {
     "dollar_bar_dx": (0, (-40, 40)), "dollar_top": (800, (740, 860)), "dollar_bot": (-90, (-150, -40)),
     "ast_r": (177, (130, 220)), "ast_y": (551, (480, 620)), "ast_tip_w": (70, (30, 110)),
     "ast_root_w": (14, (0, 40)), "ast_rot": (0, (-30, 30)),
-    "at_w": (909, (800, 1000)), "at_h": (915, (820, 1000)), "at_bot": (-190, (-240, -120)),
+    "at_w": (909, (800, 1000)), "at_in_k": (1.0, (0.6, 1.3)), "at_h": (915, (820, 1000)), "at_bot": (-190, (-240, -120)),
     "at_ring_t": (50, (25, 80)), "at_in_w": (330, (260, 420)), "at_in_h": (430, (360, 500)),
     "at_in_x": (0.33, (0.25, 0.45)), "at_in_y": (90, (40, 160)), "at_slant": (14, (0, 25)),
     "at_root_dir": (300, (250, 350)), "at_end_x": (0.85, (0.6, 1.0)), "at_end_y": (0.12, (0.0, 0.3)),
@@ -498,9 +498,9 @@ DEFAULTS: dict[str, tuple] = {
     "amp_leg_x": (1.0, (0.85, 1.1)), "amp_pen": (90, (60, 120)), "amp_loop_y": (610, (520, 680)),
     "amp_loop_lx": (0, (-80, 60)), "amp_left_y": (180, (120, 300)), "amp_bot_x": (0.42, (0.3, 0.6)),
     "amp_waist_dir": (45, (10, 80)), "amp_leg_dir": (310, (290, 330)),
-    "euro_x0": (110, (60, 180)), "euro_w": (555, (480, 640)), "euro_bar_l": (7, (-20, 60)),
+    "euro_x0": (110, (60, 180)), "euro_cut_x": (0.5, (0.3, 0.7)), "euro_cut_y": (100, (40, 200)), "euro_term_dy": (0, (-80, 80)), "euro_w": (555, (480, 640)), "euro_bar_l": (7, (-20, 60)),
     "euro_bar_r": (470, (380, 560)), "euro_y0": (290, (230, 350)), "euro_y1": (430, (370, 500)),
-    "pound_w": (520, (440, 600)), "pound_bar_y": (330, (260, 400)),
+    "pound_w": (520, (440, 600)), "pound_bar_y": (330, (260, 400)), "pound_knee_x": (0.24, (0.1, 0.45)), "pound_knee_y": (330, (180, 460)),
     "caret_w": (420, (320, 500)), "caret_h": (330, (260, 400)), "caret_y0": (380, (320, 440)),
     "caret_t": (50, (25, 80)),
     "atilde_dy": (-391, (-460, -320)), "tl_len": (286, (220, 380)), "tl_amp": (64, (30, 110)),
@@ -754,7 +754,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
            paren_ends: str = "square", chevron_style: str = "stroke", amp_style: str = "stroke",
            dot_style: str = "round", ligatures: bool = True,
            b_style: str = "bowl", E_serifs: str = "rect",
-           G_jaw: str = "bar", r_style: str = "ear", ec_aperture: str = "tip", ced_style: str = "curl"):
+           G_jaw: str = "bar", r_style: str = "ear", ec_aperture: str = "tip", ced_style: str = "curl",
+           pound_foot: str = "stem", euro_aperture: str = "cut"):
     """Register the kit's glyphs on ``font``. ``g_ear``: ``"stroke"`` (a
     short stroke taking the ``ear`` terminal, e.g. a ball) or ``"flag"`` (a
     four-sided flag). ``g_band``: ``"flat"`` puts a flat bar across the top of
@@ -819,7 +820,14 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     ``dot_style``: ``"round"`` (four curves, squarer with ``dot_square``) or
     ``"square"`` (a sharp square sitting on the line, no overshoot: i j . : ;
     ! ? and the rest; the bullet stays round). ``ligatures``: the fi
-    ligature (a grotesque like Geist sets f and i apart)."""
+    ligature (a grotesque like Geist sets f and i apart). ``pound_foot``: the
+    £'s stem below the bar -- ``"stem"`` (one curve from the foot up to the
+    hook) or ``"sweep"`` (it stands vertical down to a knee at
+    ``pound_knee_y``, then sweeps down-left into the base's left end; a
+    grotesque's). ``euro_aperture``: the €'s opening -- ``"cut"`` (a straight
+    diagonal cut at the lower terminal) or ``"c"`` (the C's: a vertical face
+    and a curved lower terminal, with the €'s own ``euro_cut_x/y`` and
+    ``euro_term_dy``)."""
     from ..handles import handle
     from ..junctions import contact, join, join_handles, notch_cut
     from ..parts import part
@@ -1114,7 +1122,9 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
                 .curve_to((P.a_bl_x, P.a_bl_y), name="left", dir=270, tension=P.a_bs_t, width=P.a_bl_dw)
                 .curve_to((P.a_bb_x, -os_ + (P.a_bs_thin + P.a_bb_dw) / 2), name="bottom", dir=0, tension=P.a_bs_t,
                           width=P.a_bb_dw)
-                .curve_to((sx, P.a_bj_y), name="join", dir=P.a_bj_dir, terminal=False))
+                # a_bj_dw: the stroke's width where it enters the stem (it rises there, so a level nib makes it
+                # full width; Geist's bowl thins into the stem, leaving a notch above the foot)
+                .curve_to((sx, P.a_bj_y), name="join", dir=P.a_bj_dir, terminal=False, width=P.a_bj_dw))
             return
         if a_style == "bowl":
             right = sx + P.stem * P.a_stem_w / 2 + P.a_bowl_r
@@ -1667,17 +1677,18 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         shape(gl.contour(name), sx - 1, y0 - ov[0], y1 + ov[1], fb, flat, far, full, dfull)
         shape(gl.cut(name + "_counter"), sx, y0 + tb, y1 - tt, fb - th * 0.3, flat - th * 0.3, far - th, in_full, in_dfull)
 
-    def aperture_(gl, w, h, face, top_y, term_y, cut_x, cut_y, cut_angle, h1, h2):
-        """The c / C opening: a vertical face above, a curved lower terminal."""
-        R = w + 140
-        xf = w * face
-        tip = (w, term_y)
-        d_ = (w * cut_x, cut_y)
+    def aperture_(gl, w, h, face, top_y, term_y, cut_x, cut_y, cut_angle, h1, h2, x0=0):
+        """The c / C opening: a vertical face above, a curved lower terminal
+        (for a bowl starting at ``x0``)."""
+        R = x0 + w + 140
+        xf = x0 + w * face
+        tip = (x0 + w, term_y)
+        d_ = (x0 + w * cut_x, cut_y)
         a1 = math.radians(val(cut_angle))
         L = math.hypot(val(d_[0]) - val(tip[0]), val(d_[1]) - val(tip[1]))
         c1 = (tip[0] + math.cos(a1) * L * h1, tip[1] + math.sin(a1) * L * h1)
         c2 = (d_[0] + L * h2, d_[1])
-        (gl.cut("aperture").move((w * cut_x, top_y), "a").line((xf, top_y), "face")
+        (gl.cut("aperture").move((x0 + w * cut_x, top_y), "a").line((xf, top_y), "face")
             .line((xf, h + 200), "b").line((R, h + 200), "c").line((R, term_y), "d")
             .line(tip, "tip").curve(c1, c2, d_, "e").close())
 
@@ -2476,12 +2487,15 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         iw, ih = P.at_in_w, P.at_in_h
         ix, iy = W * P.at_in_x, P.at_in_y
         pen = Pen(angle=0, width=t * P.at_pen_k, contrast=1 - t / (t * P.at_pen_k))
-        sx = ix + iw + P.stem / 2                   # the inner stem's centre
-        gl += bowl(name="inner", x=ix, width=iw, bottom=iy, top=iy + ih, thick=P.stem, thin=P.hairline)
-        gl += stem_(x=sx - P.stem / 2, bottom=iy, top=iy + ih, head=False, foot=False, name="stem")
+        # at_in_k: the inner a's weight against the lowercase stem (Geist's Bold @ has a lighter a)
+        st = P.stem * P.at_in_k
+        sx = ix + iw + st / 2                       # the inner stem's centre
+        gl += bowl(name="inner", x=ix, width=iw, bottom=iy, top=iy + ih, thick=st, thin=P.hairline * P.at_in_k)
+        gl += stem_(x=sx - st / 2, bottom=iy, top=iy + ih, head=False, foot=False, name="stem",
+                    pen=Pen(angle=0, width=st, contrast=0))
         cy = bot + H / 2
         (gl.path(name="ring", pen=pen)
-            .start((sx - P.stem / 2, iy + P.at_root_dy), name="root", dir=P.at_root_dir, terminal=False)
+            .start((sx - st / 2, iy + P.at_root_dy), name="root", dir=P.at_root_dir, terminal=False)
             .curve_to((W * P.at_right_x - t, cy), name="right", dir=90)
             .curve_to((W * 0.5, bot + H - t / 2), name="top", dir=180)
             .curve_to((t, cy), name="left", dir=270)
@@ -2537,10 +2551,15 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
                    thick=P.cap_stem * P.round_gain * P.O_thick_k * P.C_thick_k, thin=P.hairline * P.O_thin_k,
                    stress=P.o_stress + P.C_stress, thick_right=P.cap_stem * P.round_gain * P.C_right_k,
                    thin_bottom=P.hairline * P.C_bottom_k)
-        (gl.cut("aperture").move((x0 + w * 0.6, P.C_top_y), "a").line((x0 + w * P.C_face, P.C_top_y), "f")
-            .line((x0 + w * P.C_face, P.capheight + 200), "b").line((x0 + w + 140, P.capheight + 200), "c")
-            .line((x0 + w + 140, P.C_term_y), "d").line((x0 + w, P.C_term_y), "tip")
-            .line((x0 + w * 0.6, P.C_cut_y), "e").close())
+        if euro_aperture == "c":
+            # the C's opening, with the €'s own lower terminal (euro_term_dy / euro_cut_*)
+            aperture_(gl, w, P.capheight, P.C_face, P.C_top_y, P.C_term_y + P.euro_term_dy, P.euro_cut_x,
+                      P.euro_cut_y, P.C_cut_angle, P.C_cut_h1, P.C_cut_h2, x0=x0)
+        else:
+            (gl.cut("aperture").move((x0 + w * 0.6, P.C_top_y), "a").line((x0 + w * P.C_face, P.C_top_y), "f")
+                .line((x0 + w * P.C_face, P.capheight + 200), "b").line((x0 + w + 140, P.capheight + 200), "c")
+                .line((x0 + w + 140, P.C_term_y), "d").line((x0 + w, P.C_term_y), "tip")
+                .line((x0 + w * 0.6, P.C_cut_y), "e").close())
         t = P.math_t
         rect(gl, "bar_lo", P.euro_bar_l, P.euro_y0 - t / 2, P.euro_bar_r, P.euro_y0 + t / 2)
         rect(gl, "bar_hi", P.euro_bar_l + 20, P.euro_y1 - t / 2, P.euro_bar_r + 20, P.euro_y1 + t / 2)
@@ -2549,8 +2568,11 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     def sterling(gl):
         W, ch = P.pound_w, P.capheight
         pen = Pen(angle=0, width=P.cap_stem, contrast=1 - P.hairline / P.cap_stem)
-        (gl.path(name="hook", pen=pen, profile=Profile((0, 1), (0.7, 1), (1, P.pound_end_w)))
-            .start((W * P.pound_foot_x, 40), name="foot", dir=P.pound_foot_dir, terminal=False)
+        path = (gl.path(name="hook", pen=pen, profile=Profile((0, 1), (0.7, 1), (1, P.pound_end_w)))
+                .start((W * P.pound_foot_x, 40), name="foot", dir=P.pound_foot_dir, terminal=False))
+        if pound_foot == "sweep":
+            path = path.curve_to((W * P.pound_knee_x, P.pound_knee_y), name="knee", dir=90)
+        (path
             .curve_to((W * P.pound_rise_x, ch * P.pound_rise_y), name="rise", dir=85)
             .curve_to((W * P.pound_top_x, ch + os_ - P.hairline / 2), name="top", dir=0)
             .curve_to((W * P.pound_end_x, ch * P.pound_end_y), name="end", dir=P.pound_end_dir, terminal="ear"))
