@@ -93,7 +93,7 @@ points:
 |---|---|---|
 | Ductus Sans (`examples/sans/`) | 183, incl. ¿ ¡ ¢; no fi ligature | Iterations 01–26 (`docs/sans/README.md`, sheets `NN.png` / `NN_sheet.png`; 19–26 are the per-glyph refits with `tools/fitting/gfit.py`). Mean IoU vs Geist Sans **0.9570** (Bold 0.9529, Light 0.9428). Kerning per master (`kerning.json`, `kerning_700.json`, `kerning_300.json`); agreement with Geist Sans corr 0.823, MAE 7.0 u |
 | Ductus Display (`examples/display_serif/`) | 183, incl. ¿ ¡ | Iterations 01–33. Letters ≈ 0.944 vs Geist Serif. Kerning 5,378 pairs |
-| Benchmark (`benchmarks/geist_serif/`) | full kit set (184); core 16 = `CORE` | Core 16: 0.96–0.995 (mean 0.9767), 0 overrides. Whole set fitted per glyph (round 8): mean 0.933 over 122 base glyphs, & and @ still poor (internal only, never released) |
+| Benchmark (`benchmarks/geist_serif/`) | full kit set (184); core 16 = `CORE` | Core 16: 0.96–0.995 (mean 0.9767), 0 overrides. Whole set fitted per glyph (round 8): mean 0.935 over 122 base glyphs; side bearings fitted to Geist Serif (`spacing.json`), optical kerning with a fitted house style (agreement with Geist Serif corr 0.831); @ still 0.70 (internal only, never released) |
 | Test font (`examples/test_font/`) | 7 | The M1 font |
 
 ### Ductus Sans weakest glyphs (IoU)

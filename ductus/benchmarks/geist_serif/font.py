@@ -19,4 +19,16 @@ P = kit.params(**fitted)
 # docs/sans/README.md the benchmark defines the kit's whole glyph set, fitted glyph by glyph
 CORE = "onHeasgvhmburfti"
 kit.define(font, P, terminals=kit.bracketed_set(P), g_ear="flag", g_band="flat", b_style="lobe", G_jaw="serif",
-           E_serifs="wedge", ced_style="tick")
+           E_serifs="wedge", ced_style="tick", amp_style="branch")
+
+# spacing: per-glyph side-bearing deltas (dl, dr) fitted to Geist Serif's side bearings
+# (tools/fitting/bench_space.py); kerning: measured from the outlines by `ductus kern`
+import json as _json
+
+_sp = Path(__file__).with_name("spacing.json")
+if _sp.exists():
+    font.spacing.update({k: tuple(v) for k, v in _json.loads(_sp.read_text()).items()})
+_kern = Path(__file__).with_name("kerning.json")
+if _kern.exists():
+    for _l, _r, _v in _json.loads(_kern.read_text())["pairs"]:
+        font.kern(_l, _r, _v)

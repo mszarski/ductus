@@ -1186,3 +1186,29 @@ whatever has changed.
 
 Mean IoU (sans): Regular 0.9557 → 0.9570, Bold 0.9508 → 0.9529, Light
 0.9394 → 0.9428. Kerning re-run at all three masters.
+
+## 27 — the serif benchmark's spacing, kerning, & and @
+
+These changes are to the Geist Serif benchmark only (internal, never
+released).
+
+- **Spacing.** New `tools/fitting/bench_space.py` sets every base glyph's
+  side bearings equal to Geist Serif's, as deltas in
+  `benchmarks/geist_serif/spacing.json`, which `font.py` loads. The kit's
+  default spacing had made capitals loose and uneven in words.
+- **Kerning.** The benchmark had none; it now has `ductus kern`
+  (clearance 75, min-abs 5). Its house style `kern_style.json` was fitted
+  to Geist Serif's kerning by `kstyle.py`, the same way as the sans's.
+  Agreement with Geist Serif on letter pairs: correlation 0.691 with
+  plain optical kerning, 0.831 with the fitted style; mean error 9.2
+  units. The sans is at 0.823.
+- **&.** It takes `amp_style="branch"`, Geist Serif's construction: a top
+  loop, a diagonal to the leg, a lower bowl and a separate rising arm.
+  Fitted, 0.61 → 0.838.
+- **@.** Refit to 0.696 (from 0.64 before round 8). Geist Serif's ring is
+  slanted like ours, but its inner a differs. An upright ring with a
+  leaning stem scored about the same with a worse Hausdorff, so the
+  slanted fit stays.
+
+Benchmark mean IoU over the 122 base glyphs: 0.933 → 0.935; the core 16
+stay at 0.9767.
