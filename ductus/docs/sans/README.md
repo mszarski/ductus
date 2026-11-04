@@ -1126,3 +1126,63 @@ never fitted, so it was not touched.
 
 Mean IoU: Regular 0.9551 → 0.9557, Bold 0.9506 → 0.9508, Light
 0.9314 → 0.9394. Kerning re-run at all three masters.
+
+## 26 — round 8: the serif benchmark's full glyph set, and the sans at 0.93–0.95
+
+![weights sheet](26_sheet.png)
+
+**Geist Serif benchmark** (`benchmarks/geist_serif`, internal, never
+released). The benchmark used to define only its 16 core glyphs
+(`CORE = "onHeasgvhmburfti"`). It now defines the kit's whole set, which
+was fitted glyph by glyph with `gfit.py --bench`. The display serif is
+designed by eye and was not touched.
+
+- **Starting point.** The 106 new glyphs started from the kit defaults:
+  mean IoU 0.815, with % at 0.37, M 0.42 and A 0.51.
+- **First pass.** Mean 0.917.
+- **Width scan.** A coarse scan of each weak glyph's own width parameter
+  helped where the fitter's small steps could not reach:
+  - A: the kit's default width made it 922 wide against Geist's 759;
+    0.51 → 0.74.
+  - V: 0.71 → 0.89.
+  - €: 0.76 → 0.86.
+- **Style options matching Geist Serif:**
+  - `G_jaw="serif"`, with the display serif's jaw values (the default
+    jaw failed the stem lint);
+  - `E_serifs="wedge"` (E: 0.794 → 0.879 before fitting);
+  - `ced_style="tick"`.
+- **Second pass** over the 51 glyphs still below 0.93.
+
+Result: mean IoU over the 122 non-composite glyphs 0.815 → 0.933, with
+82 of them at 0.93 or better. The core 16 hold at 0.9767. Still poor: &
+(0.61) and @ (0.68), which differ in construction from Geist Serif's;
+the cedilla (0.71); and the tilde.
+
+**Sans.** Every glyph between 0.93 and 0.95 was refit: 37 at Light, 27
+at Regular and 31 at Bold.
+
+| Weight | Glyph | IoU |
+|---|---|---|
+| Light | v | 0.933 → 0.977 |
+| Light | q | 0.946 → 0.979 |
+| Light | Æ | 0.940 → 0.973 |
+| Light | Œ | 0.935 → 0.970 |
+| Light | j | 0.932 → 0.961 |
+| Regular | M | 0.947 → 0.974 |
+| Regular | D | 0.939 → 0.972 |
+| Regular | % | 0.936 → 0.959 |
+| Bold | V | 0.943 → 0.976 |
+| Bold | / | 0.950 → 0.990 |
+| Bold | \ | 0.947 → 0.986 |
+| Bold | ! | 0.948 → 0.980 |
+| Bold | J | 0.950 → 0.979 |
+
+The Bold W was refit after the V changed their shared stroke widths
+(0.938 → 0.912 → 0.943).
+
+`tests/test_primitives.py`'s compile-time bound is now 1500 ms. On the
+current, slower cloud container every kit font takes about 1.0–1.1 s,
+whatever has changed.
+
+Mean IoU (sans): Regular 0.9557 → 0.9570, Bold 0.9508 → 0.9529, Light
+0.9394 → 0.9428. Kerning re-run at all three masters.
