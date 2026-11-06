@@ -9,12 +9,25 @@ and measuring the gap (SPEC rev. 2).
 | | |
 |---|---|
 | `examples/test_font/` | M1 sans test font (`n h m o H O space`) |
-| `examples/display_serif/` | **M2 original** high-contrast display serif — `hamburgefonstiv` + `HOAGES` |
-| `benchmarks/geist_serif/` | M2 **internal benchmark only**, fitted to Geist Serif for measurement — never built or released |
-| `docs/representability.md` | benchmark report, one row per glyph per iteration |
+| `examples/sans/` | **Ductus Sans**, a grotesque from the same kit, fitted to Geist Sans: 184 glyphs, Light / Regular / Bold masters, a `wght` 300–700 variable font, per-weight kerning. Its release status is an open question (SPEC §8; see `docs/fitting.md`) |
+| `examples/display_serif/` | **Ductus Display**, a high-contrast display serif (184 glyphs). It was pulled toward Geist Serif from iteration 18 at the user's request and is now refined by eye only |
+| `benchmarks/geist_serif/` | **internal benchmark only**, fitted to Geist Serif for measurement (the full kit set; core 16 in `CORE`); never built or released |
+| `docs/fitting.md` | how faces are refined glyph by glyph against a reference, and the rules that keep that safe |
+| `docs/sans/` | Ductus Sans design log and iteration sheets |
 | `docs/display_serif/` | iteration sheets and self-critique for the original design |
+| `docs/representability.md` | benchmark report for the core 16, one row per glyph per iteration |
 
 ## Status
+
+**Now (M3, in progress).** Ductus Sans has three weight masters and a
+variable font. Each glyph is refined against Geist Sans (`docs/fitting.md`):
+mean IoU Regular 0.957, Bold 0.953, Light 0.943, with optical kerning
+agreeing with Geist's at a correlation of 0.82. The Geist Serif benchmark
+covers the full kit set: mean IoU 0.936 over 122 base glyphs, the core 16
+at 0.977. Ductus Display is refined by eye. HANDOFF.md (one level up) has
+the latest numbers and open questions.
+
+The milestone notes below are kept as written at the time.
 
 **Milestone 1 — done.** Shared parts (`h`/`m` reuse the arch, `o`/`O` share a
 bowl) · `ductus build` → `.otf` validated by fontTools round-trip and OTS ·
@@ -57,6 +70,12 @@ ductus fit   benchmarks/geist_serif/font.py --glyph o                          #
 ductus serve examples/display_serif/font.py --reference benchmarks/geist_serif/reference/GeistSerif-Regular.woff2
 python examples/display_serif/make_sheet.py 03                                 # iteration sheet
 
+# Ductus Sans (references: python benchmarks/geist_sans/fetch_reference.py)
+ductus build examples/sans/font.py --variable -o out/            # wght 300-700 variable font
+ductus kern  examples/sans/font.py --clearance 60 --min-abs 5    # and --master 700 / 300; after any outline change
+python examples/sans/make_sheet.py NN                            # docs/sans/NN.png
+python tools/fitting/gfit.py 400 GLYPH 200                       # per-glyph refit (700 / 300 for the masters); see docs/fitting.md
+
 ductus build examples/test_font/font.py -o out/                 # static .otf (validated with fontTools + OTS)
 ductus build examples/test_font/font.py --set stem=120           # one-off parameter values
 ductus build examples/test_font/font.py --sweep stem=40,160      # + point-compatibility check
@@ -88,8 +107,8 @@ can re-segment a merged outline differently at another weight.
 aligned (position and tangents, dynamic programming), then segments
 converted to cubics and split by de Casteljau at shared arc-length positions.
 Shapes are unchanged; real topology changes (a counter opening) are
-refused and reported as "held static". Ductus Sans builds with all 182
-glyphs varying (`docs/sans/README.md`, 07).
+refused and reported as "held static". Ductus Sans builds with all its
+glyphs varying (`docs/sans/README.md`, 07 onward).
 
 ## The preview editor (`ductus serve`)
 

@@ -1240,3 +1240,34 @@ stay at 0.9767.
 Mean IoU (sans): Regular 0.9570 → 0.9573, Bold 0.9529 → 0.9530, Light
 0.9428 → 0.9431. Kerning re-run at all three masters (and for the display
 serif).
+
+## 29 — rebuilt cedilla end and @ inner bowl; benchmark Æ; documentation
+
+- **Cedilla.** The sans set has its own `ced_end` terminal
+  (`sans_cut_ced`). Every other set maps it to its ear style, so the
+  serifs are unchanged. With `level_trim` the tick is cut level at
+  `ced_top`, flat-topped like Geist's.
+- **The curled hook.** Fitted alone, a curled hook (end heading up-left,
+  slanted cut) matched Geist's ¸ (Regular 0.839 → 0.866), but worsened ç
+  and Ç (0.924 → 0.899). Geist's ¸ evidently differs from the cedilla in
+  its ç/Ç. ç and Ç matter more in text, so the earlier hook is kept and
+  only the level top is new: ¸ Regular 0.839 → 0.852, Bold
+  0.865 → 0.878, Light 0.837 → 0.849; ç / Ç unchanged.
+- **gfit `--composites`.** New option: it also scores the accented
+  glyphs that a fit touches.
+- **@.** New `at_in_tr`: the inner bowl's wall against the stem as a
+  share of its left wall. An a's bowl thins into its stem; ours doubled
+  up there. Regular 0.855 → 0.886, Bold 0.894 → 0.902, Light
+  0.839 → 0.842. It does not help the serif benchmark's @ (0.696), whose
+  inner a is built differently.
+- **Benchmark Æ.** Its diagonal is a thin stroke in Geist Serif, like the
+  A's left stroke; `AE_thick`'s range now reaches 20. Æ 0.787 → 0.858.
+- **Documentation.**
+  - New `docs/fitting.md`: the refinement loop, `gfit` and its options,
+    when fitting is the wrong tool, spacing and kerning, judging by eye,
+    and the licensing status of each face.
+  - README: the faces table and status now include Ductus Sans.
+  - HANDOFF next steps refreshed.
+
+Mean IoU (sans): Regular 0.9573 -> 0.9575, Bold 0.9530 -> 0.9532, Light
+0.9431 -> 0.9432. Kerning re-run at all three masters and for the benchmark.

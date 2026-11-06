@@ -308,7 +308,7 @@ DEFAULTS: dict[str, tuple] = {
     "sans_cut_r": (90, (0, 180)), "sans_cut_f": (90, (0, 180)), "sans_cut_t": (90, (0, 180)),
     "sans_cut_ear": (0, (-90, 180)),
     "sans_cut_fig": (0, (-90, 180)), "sans_cut_fig_low": (180, (-180, 180)),   # the 3 and 5 lower ends (fig_ends="cut")
-    "sans_cut_g": (0, (-90, 180)), "sans_cut_pound": (90, (0, 180)),           # the single-storey g's hook end
+    "sans_cut_g": (0, (-90, 180)), "sans_cut_pound": (90, (0, 180)), "sans_cut_ced": (0, (-90, 180)),           # the single-storey g's hook end
     # ---- the rest of the lowercase (starting values measured off Geist's bounds)
     "desc_stem": (-200, (-240, -160)),    # where descending stems (p q) end
     # d / q: the lobe on the stem's left (like the a's), rising to a crown
@@ -456,7 +456,7 @@ DEFAULTS: dict[str, tuple] = {
     "ced_w": (60, (30, 90)), "ced_thin": (20, (8, 40)), "ced_len": (125, (80, 180)), "ced_drop": (200, (150, 240)),
     "ced_neck": (-60, (-100, -20)),
     # the neck may start right of the hook and slant down-left into it; the hook's end reaches back ced_end_x * len
-    "ced_root_dx": (0, (-20, 120)), "ced_root_dir": (262, (200, 280)), "ced_end_x": (0.25, (0.0, 0.8)), "ced_end_dir": (180, (120, 200)), "ced_end_dy": (0, (-20, 120)), "ced_bot_x": (0.3, (-0.2, 0.7)), "ced_t": (1.0, (0.7, 1.4)), "ced_neck_dir": (0, (-60, 40)),
+    "ced_root_dx": (0, (-20, 120)), "ced_root_dir": (262, (200, 280)), "ced_end_x": (0.25, (0.0, 0.8)), "ced_end_dir": (180, (120, 200)), "ced_end_dy": (0, (-20, 120)), "ced_bot_x": (0.3, (-0.2, 0.7)), "ced_top": (60, (-20, 120)), "ced_t": (1.0, (0.7, 1.4)), "ced_neck_dir": (0, (-60, 40)),
     # placement: acute and grave sit by their foot, not their centre, so their
     # centres stand off the base's (acute right, grave left); some bases
     # centre their marks off their ink's centre (E and U on their arms, ...)
@@ -488,7 +488,7 @@ DEFAULTS: dict[str, tuple] = {
     "dollar_bar_dx": (0, (-40, 40)), "dollar_top": (800, (740, 860)), "dollar_bot": (-90, (-150, -40)),
     "ast_r": (177, (130, 220)), "ast_y": (551, (480, 620)), "ast_tip_w": (70, (30, 110)),
     "ast_root_w": (14, (0, 40)), "ast_rot": (0, (-30, 30)),
-    "at_w": (909, (800, 1000)), "at_in_k": (1.0, (0.6, 1.3)), "at_lean": (0, (-20, 80)), "at_stem_dy": (0, (0, 160)), "at_h": (915, (820, 1000)), "at_bot": (-190, (-240, -120)),
+    "at_w": (909, (800, 1000)), "at_in_k": (1.0, (0.6, 1.3)), "at_lean": (0, (-20, 80)), "at_stem_dy": (0, (0, 160)), "at_in_tr": (1.0, (0.2, 1.2)), "at_h": (915, (820, 1000)), "at_bot": (-190, (-240, -120)),
     "at_ring_t": (50, (25, 80)), "at_in_w": (330, (260, 420)), "at_in_h": (430, (360, 500)),
     "at_in_x": (0.33, (0.25, 0.45)), "at_in_y": (90, (40, 160)), "at_slant": (14, (0, 25)),
     "at_root_dir": (300, (250, 350)), "at_end_x": (0.85, (0.6, 1.0)), "at_end_y": (0.12, (0.0, 0.3)),
@@ -508,7 +508,7 @@ DEFAULTS: dict[str, tuple] = {
     # ---- Æ Œ Ø æ œ ø ß ------------------------------------------------------
     "oslash_w": (56, (30, 90)), "Oslash_x0": (22, (-40, 100)), "Oslash_x1": (610, (520, 720)),
     "oslash_x0": (0, (-40, 80)), "oslash_x1": (430, (360, 520)), "oslash_os": (12, (-20, 40)),
-    "AE_x": (522, (440, 600)), "AE_top_x": (421, (340, 500)), "AE_thick": (90, (60, 130)),
+    "AE_x": (522, (440, 600)), "AE_top_x": (421, (340, 500)), "AE_thick": (90, (20, 130)),
     "AE_top_l": (40, (0, 120)), "AE_bar_y": (243, (180, 300)), "AE_bar_t": (34, (20, 60)),
     "AE_top_w": (384, (300, 460)), "AE_mid_w": (303, (220, 380)), "AE_bot_w": (427, (340, 500)),
     "OE_dw": (0, (-60, 0)), "OE_right_k": (0.5, (0.2, 1.2)), "OE_x": (585, (400, 680)), "OE_top_w": (352, (280, 440)),
@@ -654,7 +654,7 @@ def bracketed_set(P) -> TerminalSet:
                          curve=(P.serif_ca, P.serif_cb), slope=P.G_head_slope),
         G_foot=flat(P.G_cut),
         hood=flat("vertical"),   # Geist's a: the hood curves down to a plain horizontal cut
-        ear=flat("horizontal"), vertex=flat("vertical"), apex=flat("vertical"),
+        ear=flat("horizontal"), ced_end=flat("horizontal"), vertex=flat("vertical"), apex=flat("vertical"),
         cap_foot_l=bracketed(length=P.cap_serif_len, bracket=P.cap_serif_bracket * P.E_bracket_k, tip=P.cap_serif_tip,
                              curve=(P.serif_ca, P.serif_cb), right=None),
         cap_vfoot=bracketed(length=P.cap_serif_len + P.A_foot_dl, bracket=P.cap_serif_bracket * P.A_bracket_k, tip=P.cap_serif_tip,
@@ -691,7 +691,7 @@ def sans_set(P) -> TerminalSet:
         apex=hz, vertex=hz, b_foot=hz, G_foot=hz,
         s_top=cut(P.sans_cut_s1), s_bottom=cut(P.sans_cut_s2),
         hood=cut(P.sans_cut_hood), r_ear=cut(P.sans_cut_r), f_hook=cut(P.sans_cut_f),
-        t_tail=cut(P.sans_cut_t), ear=cut(P.sans_cut_ear), fig_end=cut(P.sans_cut_fig),
+        t_tail=cut(P.sans_cut_t), ear=cut(P.sans_cut_ear), ced_end=cut(P.sans_cut_ced), fig_end=cut(P.sans_cut_fig),
         fig_low=cut(P.sans_cut_fig_low),
         g_end=cut(P.sans_cut_g), paren_end=hz, pound_end=cut(P.sans_cut_pound))
 
@@ -738,7 +738,8 @@ def didone_set(P) -> TerminalSet:
         hood=ball(radius=P.ball_r, side="left", drop=P.ball_drop),
         r_ear=ball(radius=P.ball_r * 0.9, side="below", drop=P.ball_drop),
         f_hook=ball(radius=P.ball_r * 0.9, side="below", drop=P.ball_drop),
-        ear=ball(radius=P.ball_r * 0.7, side="above"), vertex=flat("vertical"), apex=flat("vertical"),
+        ear=ball(radius=P.ball_r * 0.7, side="above"), ced_end=ball(radius=P.ball_r * 0.7, side="above"),
+        vertex=flat("vertical"), apex=flat("vertical"),
         t_tail=flat(0), t_top=flat(P.t_cut + 90),
         b_foot=flat("vertical"),   # the lobe-style b: its stem simply ends at the baseline
     )
@@ -2159,7 +2160,11 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
                 # (ced_end_dir / ced_end_dy), ending heading up-left
                 .curve_to((L * P.ced_bot_x, -d + P.ced_thin / 2), name="bottom", dir=180, tension=P.ced_t)
                 .curve_to((-L * P.ced_end_x, -d + P.ced_thin / 2 + P.ced_end_dy), name="end", dir=P.ced_end_dir,
-                          terminal="ear", tension=P.ced_t))
+                          terminal="ced_end", tension=P.ced_t))
+            if level_trim:
+                # a grotesque's tick is cut level at ced_top (its root runs on above it)
+                (gl.cut("top").move((-400, P.ced_top), "a").line((600, P.ced_top), "b").line((600, P.ced_top + 400), "c")
+                    .line((-400, P.ced_top + 400), "d").close())
             return
         (gl.path(name="mark", pen=pen, profile=Profile((0, 0.5), (0.3, 1), (1, 0.7)))
             .start((P.ced_root_dx, 15), name="root", dir=P.ced_root_dir, terminal=False)
@@ -2507,7 +2512,10 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         # at_in_k: the inner a's weight against the lowercase stem (Geist's Bold @ has a lighter a)
         st = P.stem * P.at_in_k
         sx = ix + iw + st / 2                       # the inner stem's centre
-        gl += bowl(name="inner", x=ix, width=iw, bottom=iy, top=iy + ih, thick=st, thin=P.hairline * P.at_in_k)
+        # at_in_tr: the inner bowl's right wall (against the stem) as a share of its left one -- an a's bowl
+        # thins into its stem; at 1 both walls are the stem's weight and the junction doubles up
+        gl += bowl(name="inner", x=ix, width=iw, bottom=iy, top=iy + ih, thick=st, thin=P.hairline * P.at_in_k,
+                   thick_right=st * P.at_in_tr)
         # at_lean: the inner stem's top moves right by this much (Geist's leans like an italic a)
         # at_stem_dy: the stem's bottom stops this far above the inner bowl's foot (the ring's root carries
         # the junction, as Geist's does, instead of a square stem end below it)

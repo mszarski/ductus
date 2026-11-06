@@ -27,9 +27,12 @@ and `ductus/docs/sans/README.md` (sans design log) are the best long-form refere
   with `terminals=kit.sans_set(P)` and grotesque options such as `g_style="single"`,
   `l_style="tail"`, `J_style="base"`, `R_leg="curve"`, `Q_style="bar"`), per-glyph
   side bearings in `font.spacing`, `kerning.json` loaded at the end of `font.py`.
-- `examples/display_serif/` original high-contrast display serif (designed by eye, never fitted).
+- `examples/display_serif/` high-contrast display serif: pulled toward Geist Serif from iteration 18 at the user's request,
+  now refined by eye only (never run `gfit` on it).
 - `examples/test_font/` M1 sans test font (used by most unit tests via `tests/conftest.py`).
-- `benchmarks/geist_serif/`, `benchmarks/geist_sans/` reference fetchers (+ fitted benchmark font for serif).
+- `benchmarks/geist_serif/`, `benchmarks/geist_sans/` reference fetchers. The serif benchmark (internal, never released)
+  defines the kit's full set (core 16 in `CORE`): `fitted.yaml`, `spacing.json`, `kern_style.json`, `kerning.json`.
+- `docs/fitting.md` the glyph-by-glyph refinement workflow, its tools and rules. Read it before fitting.
 - `docs/` iteration sheets and logs: `docs/sans/NN.png`, `docs/display_serif/NN.png`,
   `docs/representability.md` + `docs/iterations/NN/<glyph>.png` (bench overlays; not in this sparse clone).
 
@@ -44,6 +47,8 @@ ductus kern  examples/sans/font.py --clearance 60 --min-abs 5   # rewrites examp
 ductus kern  examples/sans/font.py --clearance 60 --min-abs 5 --master 700   # kerning_700.json (also 300); re-run all three after outline changes
 ductus build examples/sans/font.py --variable -o out/    # wght 300-700 variable .otf (font.variable)
 ductus kern  examples/display_serif/font.py             # defaults: clearance 90, min-abs 10
+ductus kern  benchmarks/geist_serif/font.py --clearance 75 --min-abs 5   # benchmark (after tools/fitting/bench_space.py)
+python tools/fitting/gfit.py 400|700|300 GLYPH N [prefixes] [--wide] [--bench] [--composites]   # per-glyph refit
 ductus fit   benchmarks/geist_serif/font.py --glyph o --only-improve
 python examples/sans/make_sheet.py NN                   # -> docs/sans/NN.png
 python examples/display_serif/make_sheet.py NN          # -> docs/display_serif/NN.png
@@ -70,7 +75,8 @@ ask the user if you need it. `trajectory_classifier` was removed; it is unrelate
 - **Licensing (SPEC section 8):** Geist Sans/Serif (SIL OFL) are fetched into git-ignored
   `reference/` dirs for measurement and overlays only. Never copy, trace or import their
   outlines. Anything fitted to a reference stays in `benchmarks/` and is never released.
-  The display serif in `examples/display_serif/` is never fitted.
+  The display serif is not fitted with the tools (it was pulled toward Geist Serif by request from iteration 18;
+  now by eye only). Whether Ductus Sans, fitted to Geist Sans, may be released is an open question (HANDOFF §7).
 - Prefer parameters and kit options over `overrides.yaml` deltas (benchmark target is
   <= 2 overrides per glyph; the sans has none). New structure choices go into
   `kit.define` as options so both faces keep working; a kit change must keep the
@@ -111,6 +117,12 @@ ask the user if you need it. `trajectory_classifier` was removed; it is unrelate
   with `build_otf(..., optimize=False)` (the optimiser turns straight curves into lines in one master only).
 - `mfit.py cd|rs GLYPHS`: a name without a comma is split into letters (`degree` scores d, e, g, r...). Write
   `degree,` for one glyph. A fit that silently ends with `{}` may be scoring the wrong glyphs.
+- `gfit` leaves accented composites out of its score; for marks use `--composites` (a cedilla fitted alone hurt ç and Ç).
+  It pins the masters' values on a Regular write; parallel `gfit` runs writing the same JSON overwrite each other.
+- Shared parameters move neighbours: V/W stroke widths, O/Q bowl. Re-check and refit them after a fit.
+- New kit controls must default to the old outline exactly (other faces unchanged); `tests/test_junctions.py`
+  extreme-corner test catches ranges that collide (clamp with `lazy_min` / `lazy_max`).
+- `tests/test_primitives.py` compile-time bound is 1500 ms (cloud containers vary; about 1.0-1.1 s per kit font).
 - Process handling: never `pkill -f` (kills its own shell); `pgrep -f` matches itself, use
   `ps -eo args | grep "^.../ductus fit"`; shell chains can hide a lint FAIL, check exit codes;
   don't `git stash` while fits run; commit after background jobs finish, not mid-run.

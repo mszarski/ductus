@@ -91,7 +91,7 @@ points:
 
 | Font | Glyphs | Status |
 |---|---|---|
-| Ductus Sans (`examples/sans/`) | 183, incl. ¿ ¡ ¢; no fi ligature | Iterations 01–28 (`docs/sans/README.md`, sheets `NN.png` / `NN_sheet.png`; 19–28 are the per-glyph refits with `tools/fitting/gfit.py`). Mean IoU vs Geist Sans **0.9573** (Bold 0.9530, Light 0.9431). Kerning per master (`kerning.json`, `kerning_700.json`, `kerning_300.json`); agreement with Geist Sans corr 0.823, MAE 7.0 u |
+| Ductus Sans (`examples/sans/`) | 183, incl. ¿ ¡ ¢; no fi ligature | Iterations 01–29 (`docs/sans/README.md`, sheets `NN.png` / `NN_sheet.png`; 19–29 are the per-glyph refits with `tools/fitting/gfit.py`). Mean IoU vs Geist Sans **0.9575** (Bold 0.9532, Light 0.9432). Kerning per master (`kerning.json`, `kerning_700.json`, `kerning_300.json`); agreement with Geist Sans corr 0.823, MAE 7.0 u |
 | Ductus Display (`examples/display_serif/`) | 184, incl. ¿ ¡ ¢ | Iterations 01–34 (34: by-eye review, ¢ added). Letters ≈ 0.944 vs Geist Serif. Kerning 5,378 pairs |
 | Benchmark (`benchmarks/geist_serif/`) | full kit set (184); core 16 = `CORE` | Core 16: 0.96–0.995 (mean 0.9767), 0 overrides. Whole set fitted per glyph (round 8): mean 0.936 over 122 base glyphs; side bearings fitted to Geist Serif (`spacing.json`), optical kerning with a fitted house style (agreement with Geist Serif corr 0.831); @ still 0.70 (internal only, never released) |
 | Test font (`examples/test_font/`) | 7 | The M1 font |
@@ -296,24 +296,26 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
   README section with a short self-critique and before/after numbers.
 
 ## 7. Next steps (priority order)
-1. **M3, finish the weight axis.**
-   - Vary the kerning per master (it is static now). Run `ductus kern` on
-     each compiled master; varLib needs the same pairs in every master.
-   - The Bold's marks and symbols; a longer pass on the Light.
-   - Check the Light against a reference light.
-   - Possibly an axis for the display serif.
-2. **Open question for the user: licensing.** SPEC §8 says fitted fonts are
+1. **Open question for the user: licensing.** SPEC §8 says fitted fonts are
    internal benchmarks. Ductus Sans is fitted to Geist Sans (shapes,
    spacing, kerning style), yet it lives in `examples/`. Options: move it
-   to `benchmarks/`, or diverge it deliberately before any release.
-3. **Sans leftovers:**
-   - quotes and comma as Geist-style wedges;
-   - ~ ^ and the cedilla mark;
-   - @ with a leaning inner a;
-   - £ and =.
-4. **Display serif kerning outliers:** “A, LT, AV.
-5. **Later milestones:** M4 size-aware text cut, M6 italic by rules, or an
-   original third face.
+   to `benchmarks/`, or diverge it deliberately before any release. See
+   `ductus/docs/fitting.md`.
+2. **Sans by eye at all three weights.** Most sheets show only the Regular.
+   Set words in Light / Regular / Bold beside Geist and let the user mark
+   what still reads wrong, including the per-weight kerning.
+3. **Remaining weak glyphs** (construction, not values):
+   - @ at Light (0.84) and in the serif benchmark (0.70: Geist Serif's
+     inner a differs);
+   - the cedilla's hook (Geist's ¸ curls up; the curled shape fits ¸ but
+     hurts ç / Ç, so it was kept for ç / Ç);
+   - the benchmark's ~ (contrast) and Æ (0.86).
+4. **Release preparation** (a new milestone; ask first): names, vertical
+   metrics, the fi ligature (the sans has none), final variable-font
+   validation, browser and word-processor tests.
+5. **Display serif kerning outliers:** “A, LT, AV.
+6. **Later milestones:** M4 size-aware text cut, M6 italic by rules, an
+   axis for the display serif, more scripts or languages.
 
 **Other open questions:**
 - Should `SPEC.md` be added to the repo?
@@ -323,7 +325,7 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 ### Commands (from `ductus/`)
 ```bash
 pip install -e ".[proof,validate,serve,bench,test]"
-python -m pytest tests -q            # 111 tests, ~55 s
+python -m pytest tests -q            # 115 tests, ~1.5 min
 python benchmarks/geist_serif/fetch_reference.py   # Geist Serif -> benchmarks/geist_serif/reference/ (git-ignored)
 python benchmarks/geist_sans/fetch_reference.py    # Geist Sans 1.9.0 (npm `geist`) -> benchmarks/geist_sans/reference/Geist-Regular.woff2
 ductus serve examples/display_serif/font.py --reference benchmarks/geist_serif/reference/GeistSerif-Regular.woff2

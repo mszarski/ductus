@@ -1,5 +1,6 @@
 # gfit.py : fit one glyph's own parameters at one weight of Ductus Sans, scoring every glyph they touch
 #   python tools/fitting/gfit.py 300|400|700 GLYPH N [prefix_or_param ...] [--dry] [--wide] [--bench]
+# --composites: also score the accented glyphs the parameters touch (for marks, whose composites matter most).
 # --bench: the Geist Serif benchmark (benchmarks/geist_serif, 400 only) instead of the sans; writes its fitted.yaml.
 # Parameters: those starting with the given prefixes (default: "<glyph>_"), or exact names. Steps are 4% of
 # each parameter's range; --wide (masters only) extends each range by its width on both sides, for
@@ -21,8 +22,8 @@ from ductus.kits.serif import DEFAULTS, WEIGHT_PARAMS
 from ductus.lint import check_self_intersections, check_direction
 
 args = sys.argv[1:]
-dry, wide, bench = "--dry" in args, "--wide" in args, "--bench" in args
-for flag in ("--dry", "--wide", "--bench"):
+dry, wide, bench, withc = "--dry" in args, "--wide" in args, "--bench" in args, "--composites" in args
+for flag in ("--dry", "--wide", "--bench", "--composites"):
     if flag in args:
         args.remove(flag)
 W, G, N = int(args[0]), args[1], int(args[2])
@@ -82,7 +83,7 @@ def shape(g):
 touched = [n for n, g in base.glyphs.items()
            if g.contours and n in nudged.glyphs and shape(g) != shape(nudged.glyphs[n])]
 scored = [n for n in touched if ref.name_for(base.glyphs[n].unicode, n)
-          and n not in getattr(font, "composites", {})] or [G]
+          and (withc or n not in getattr(font, "composites", {}))] or [G]
 ncont = {n: len(base.glyphs[n].contours) for n in touched}
 
 
