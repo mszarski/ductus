@@ -1212,3 +1212,31 @@ released).
 
 Benchmark mean IoU over the 122 base glyphs: 0.933 → 0.935; the core 16
 stay at 0.9767.
+
+## 28 — round 9: @ stem, Light %, cedilla; serif benchmark second pass; display serif by eye
+
+![weights sheet](28_sheet.png)
+
+- **@.** New `at_stem_dy` (default 0): the inner stem stops above the
+  inner bowl's foot, and the ring's root carries the junction, as in
+  Geist, instead of a square stem end below it. Refit at every weight:
+  Bold 0.877 → 0.894 (Hausdorff 45 → 21). Regular and Light did not
+  move. Their remaining mismatch is spread along the inner bowl's and the
+  ring's edges (measured as XOR regions); no single part is off.
+- **Light %** 0.894 → 0.946. **Bold V** 0.976 → 0.990; W 0.943 → 0.940
+  (Hausdorff 22 → 19).
+- **O / Q (Regular).** O 0.965 → 0.973, Ø 0.955 → 0.962. Q
+  0.950 → 0.942, which its own parameters cannot recover; it still sits
+  on Geist's outline by eye.
+- **Cedilla.** Small gains (0.837–0.865). The hook still ends flat where
+  Geist's curls up; the fitter does not reach that shape.
+- **Serif benchmark.** Second pass over its 40 glyphs below 0.93, and the
+  @ with `at_stem_dy`: mean 0.935 → 0.936. What remains below 0.93 is
+  limited by construction (@ 0.70, cedilla 0.71, Æ 0.79, ~ 0.79). Its
+  + = < > were checked and match Geist Serif (1.00 / 0.98 / 0.94); they
+  are simply small there.
+- **Display serif:** see `docs/display_serif/README.md` section 34.
+
+Mean IoU (sans): Regular 0.9570 → 0.9573, Bold 0.9529 → 0.9530, Light
+0.9428 → 0.9431. Kerning re-run at all three masters (and for the display
+serif).

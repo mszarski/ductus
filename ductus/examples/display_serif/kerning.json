@@ -13831,6 +13831,11 @@
 ],
 [
 "ccedilla",
+"ccedilla",
+-10
+],
+[
+"ccedilla",
 "endash",
 -10
 ],
@@ -14792,7 +14797,7 @@
 [
 "eacute",
 "slash",
--45
+-50
 ],
 [
 "eacute",
@@ -15022,7 +15027,7 @@
 [
 "ecircumflex",
 "slash",
--45
+-50
 ],
 [
 "ecircumflex",
@@ -15477,7 +15482,7 @@
 [
 "egrave",
 "slash",
--45
+-50
 ],
 [
 "egrave",

@@ -542,7 +542,7 @@
 [
 "A",
 "percent",
--40
+-35
 ],
 [
 "A",
@@ -1757,7 +1757,7 @@
 [
 "Aacute",
 "percent",
--40
+-35
 ],
 [
 "Aacute",
@@ -2432,7 +2432,7 @@
 [
 "Acircumflex",
 "percent",
--40
+-35
 ],
 [
 "Acircumflex",
@@ -3107,7 +3107,7 @@
 [
 "Adieresis",
 "percent",
--40
+-35
 ],
 [
 "Adieresis",
@@ -3782,7 +3782,7 @@
 [
 "Agrave",
 "percent",
--40
+-35
 ],
 [
 "Agrave",
@@ -4457,7 +4457,7 @@
 [
 "Aring",
 "percent",
--40
+-35
 ],
 [
 "Aring",
@@ -5132,7 +5132,7 @@
 [
 "Atilde",
 "percent",
--40
+-35
 ],
 [
 "Atilde",
@@ -5327,7 +5327,7 @@
 [
 "B",
 "Ccedilla",
--10
+-5
 ],
 [
 "B",
@@ -16512,7 +16512,7 @@
 [
 "L",
 "Ccedilla",
--70
+-65
 ],
 [
 "L",
@@ -35877,7 +35877,7 @@
 [
 "at",
 "ellipsis",
--45
+-40
 ],
 [
 "at",
@@ -35967,7 +35967,7 @@
 [
 "at",
 "period",
--60
+-55
 ],
 [
 "at",
@@ -37592,7 +37592,7 @@
 [
 "backslash",
 "percent",
--40
+-35
 ],
 [
 "backslash",
@@ -42217,7 +42217,7 @@
 [
 "comma",
 "percent",
--40
+-35
 ],
 [
 "comma",
@@ -64732,7 +64732,7 @@
 [
 "percent",
 "asterisk",
--55
+-50
 ],
 [
 "percent",
@@ -64942,7 +64942,7 @@
 [
 "percent",
 "percent",
--40
+-35
 ],
 [
 "percent",
@@ -64972,12 +64972,12 @@
 [
 "percent",
 "quotedbl",
--25
+-20
 ],
 [
 "percent",
 "quotesingle",
--25
+-20
 ],
 [
 "percent",
@@ -67487,7 +67487,7 @@
 [
 "questiondown",
 "percent",
--35
+-30
 ],
 [
 "questiondown",

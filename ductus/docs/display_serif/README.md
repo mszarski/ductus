@@ -917,3 +917,31 @@ regenerated.
 - **2:** a small tick at the left end of the base is trimmed.
 
 Kerning was regenerated (5,400 pairs; ligatures are now included).
+
+## 34 — a review by eye: c/e terminals, S, math signs, ¢
+
+![sheet](34.png)
+
+The display serif is still never fitted. This round was a review by eye
+of spacing proofs (nnonoo, HOHOH), symbol lines at 120–200 px, and
+overshoots against o/O, plus a scan of every outline for small steps
+between curves.
+
+- **c, e.** A small vertical step (7–8 units) sat on the inner edge of
+  the lower terminal, where the aperture cut ended above the counter's
+  edge. `c_cut_y` 78 and `e_cut_y` 68 now meet it exactly.
+- **S.** The bottom overshot only 6 against the O's 11, because its
+  bottom curve had been thinned (`S_bot_dw` −5). It is now +5: bottom
+  −11, and a touch heavier, as an S's bottom usually is.
+- **+ and =.** Hairline arms (34 / 37) made them look small next to
+  < > ×. They now have the <'s weight and width (`plus_dt` +16,
+  `plus_dw` +36, `eq_t` 46, `eq_dw` +36); € and £ keep the shared
+  `math_t`.
+- **~.** Bigger (`tl_len` 360, `tl_amp` 110); it read as a speck next to
+  the letters.
+- **¢, new.** It takes a thin vertical bar like the $ (`cent_t` 36,
+  through the c from −80 to 620), not the sans's slanted one.
+
+Spacing was checked and left alone: after r and t it looked open in a
+small proof, but at 200 px it is right. Kerning regenerated (5,379
+pairs).
