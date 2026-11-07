@@ -38,10 +38,12 @@ points:
   - Editor additions: onion-skin overlay, error heat map, stage inspector,
     grouped overrides, primitive handles.
   - An original display serif in `examples/display_serif/`.
-- **Later milestones** (not started as such): M3 variable fonts plus a full
-  character set; M4 size-aware compilation (opsz, hairline rasterisation
-  tests); M5 kerning and spacing from shape; M6 rule-based derived styles
-  (italics); M7 browser-only mode via Pyodide.
+- **Later milestones:** M3 variable fonts plus a full character set (done for
+  the sans); M4 size-aware compilation (opsz, hairline rasterisation tests;
+  **started**: the display serif's opsz 9–72 axis); M5 kerning and spacing from
+  shape (optical kerning done); M6 rule-based derived styles (italics;
+  **started**: corrected obliques for both faces, `ductus.italic`); M7
+  browser-only mode via Pyodide.
 - **Licensing rule (SPEC §8).** Geist is used **only for measurement and
   overlays**. Never copy, trace or import its outlines. Anything fitted
   closely to it is a derivative work under the OFL, so it must stay an
@@ -314,8 +316,10 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
    metrics, the fi ligature (the sans has none), final variable-font
    validation, browser and word-processor tests.
 5. **Display serif kerning outliers:** “A, LT, AV.
-6. **Later milestones:** M4 size-aware text cut, M6 italic by rules, an
-   axis for the display serif, more scripts or languages.
+6. **M4 / M6 follow-ups:** an opsz axis for the sans; true italic forms
+   (single-storey a, cursive f) for the display serif as an option; review
+   the italics and the text cut in words with the user.
+7. **Later milestones:** M7 browser-only mode, more scripts or languages.
 
 **Other open questions:**
 - Should `SPEC.md` be added to the repo?
@@ -325,7 +329,7 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 ### Commands (from `ductus/`)
 ```bash
 pip install -e ".[proof,validate,serve,bench,test]"
-python -m pytest tests -q            # 115 tests, ~1.5 min
+python -m pytest tests -q            # 121 tests, ~1.5 min
 python benchmarks/geist_serif/fetch_reference.py   # Geist Serif -> benchmarks/geist_serif/reference/ (git-ignored)
 python benchmarks/geist_sans/fetch_reference.py    # Geist Sans 1.9.0 (npm `geist`) -> benchmarks/geist_sans/reference/Geist-Regular.woff2
 ductus serve examples/display_serif/font.py --reference benchmarks/geist_serif/reference/GeistSerif-Regular.woff2

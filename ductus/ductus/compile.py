@@ -78,6 +78,7 @@ class CompiledFont:
     compile_ms: float = 0.0
     kerning: dict = None           # {(left, right): font units}, pairs of compiled glyphs only
     ligatures: dict = None         # {ligature glyph: components}, all compiled
+    italic_angle: float = 0.0      # degrees (negative: leaning right), set by :mod:`ductus.italic`
 
     def to_json(self) -> dict:
         return {
@@ -99,13 +100,21 @@ def resolve_params(font: Font, params: dict[str, float] | None) -> dict[str, flo
 
 def compile_font(font: Font, params: dict[str, float] | None = None,
                  overrides: dict[str, Override] | None = None,
-                 terminals=None, glyphs: list[str] | None = None, pieces: bool = False) -> CompiledFont:
-    """``pieces``: also keep each glyph's un-merged outline (``CompiledGlyph.pieces``)."""
+                 terminals=None, glyphs: list[str] | None = None, pieces: bool = False,
+                 italic: bool | None = None) -> CompiledFont:
+    """``pieces``: also keep each glyph's un-merged outline (``CompiledGlyph.pieces``).
+    ``italic``: derive the italic by ``font.italic``'s rules (:mod:`ductus.italic`); by
+    default it follows :func:`ductus.italic.italic_mode`."""
+    from . import italic as _it
+    on = (_it._ITALIC.get() if italic is None else italic) and bool(getattr(font, "italic", None))
+    if on:
+        params = {**(params or {}), **_it.param_corrections(font, resolve_params(font, params))}
     token = _PIECES.set(pieces)
     try:
-        return _compile_font(font, params, overrides, terminals, glyphs)
+        cf = _compile_font(font, params, overrides, terminals, glyphs)
     finally:
         _PIECES.reset(token)
+    return _it.italicize(cf, font) if on else cf
 
 
 import contextvars

@@ -52,7 +52,13 @@ def build_otf(cf: CompiledFont, path, optimize: bool = True):
                               "Weight": cf.style}, charstrings, {})
     fb.setupHorizontalMetrics(metrics)
     asc, desc = m["ascender"], m["descender"]
-    fb.setupHorizontalHeader(ascent=asc, descent=desc, lineGap=0)
+    ia = float(getattr(cf, "italic_angle", 0.0) or 0.0)
+    if ia:      # the caret follows the slant
+        import math as _m
+        fb.setupHorizontalHeader(ascent=asc, descent=desc, lineGap=0, caretSlopeRise=1000,
+                                 caretSlopeRun=round(1000 * _m.tan(_m.radians(-ia))))
+    else:
+        fb.setupHorizontalHeader(ascent=asc, descent=desc, lineGap=0)
     fb.setupNameTable({"familyName": cf.family, "styleName": cf.style,
                        "uniqueFontIdentifier": f"Ductus;{ps_name(cf)}",
                        "fullName": f"{cf.family} {cf.style}", "psName": ps_name(cf),
@@ -60,11 +66,12 @@ def build_otf(cf: CompiledFont, path, optimize: bool = True):
     fb.setupOS2(sTypoAscender=asc, sTypoDescender=desc, sTypoLineGap=0,
                 usWinAscent=max(asc, 0) + 20, usWinDescent=abs(desc) + 20,
                 sxHeight=m["xheight"], sCapHeight=m["capheight"], achVendID="NONE",
-                fsType=0)
-    fb.setupPost()
+                fsType=0, fsSelection=((0x01 if ia else 0) | (0x20 if "Bold" in cf.style else 0)) or 0x40)
+    fb.setupPost(italicAngle=ia)
     from fontTools.misc.timeTools import timestampNow
     now = timestampNow()
-    fb.setupHead(unitsPerEm=upm, created=now, modified=now)
+    fb.setupHead(unitsPerEm=upm, created=now, modified=now,
+                 macStyle=(0x02 if ia else 0) | (0x01 if "Bold" in cf.style else 0))
     kerning = getattr(cf, "kerning", None) or {}
     ligatures = getattr(cf, "ligatures", None) or {}
     fea = ""

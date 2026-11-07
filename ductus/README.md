@@ -27,6 +27,20 @@ covers the full kit set: mean IoU 0.936 over 122 base glyphs, the core 16
 at 0.977. Ductus Display is refined by eye. HANDOFF.md (one level up) has
 the latest numbers and open questions.
 
+**M4 (optical size), started.** Ductus Display has an `opsz` axis from 9
+(Text) to 72 (Display). The text master is derived by rules
+(`kit.optical_master`): heavier hairlines, a little more stem, shorter
+serifs, looser spacing and a larger x-height. A FreeType test checks that
+its hairlines hold at 12 px.
+
+**M6 (italics by rules), started.** Both faces derive a corrected oblique
+from the upright (`ductus.italic`, declared as `font.italic`):
+- each glyph is spaced upright, then slanted about half the x-height;
+- round glyphs are half rotated, half sheared, then re-set to their
+  upright height;
+- the italic has its own kerning;
+- `ductus build --italic` (with `--variable` for the sans).
+
 The milestone notes below are kept as written at the time.
 
 **Milestone 1 — done.** Shared parts (`h`/`m` reuse the arch, `o`/`O` share a
@@ -75,6 +89,10 @@ ductus build examples/sans/font.py --variable -o out/            # wght 300-700 
 ductus kern  examples/sans/font.py --clearance 60 --min-abs 5    # and --master 700 / 300; after any outline change
 python examples/sans/make_sheet.py NN                            # docs/sans/NN.png
 python tools/fitting/gfit.py 400 GLYPH 200                       # per-glyph refit (700 / 300 for the masters); see docs/fitting.md
+ductus kern  examples/sans/font.py --clearance 60 --min-abs 5 --italic   # and --master 700 / 300: italic kerning
+ductus build examples/sans/font.py --variable --italic -o out/   # DuctusSans-Italic-VF.otf
+ductus kern  examples/display_serif/font.py --master 9           # the text master's kerning (opsz 9)
+ductus build examples/display_serif/font.py --variable -o out/   # DuctusDisplay-VF.otf, opsz 9-72
 
 ductus build examples/test_font/font.py -o out/                 # static .otf (validated with fontTools + OTS)
 ductus build examples/test_font/font.py --set stem=120           # one-off parameter values

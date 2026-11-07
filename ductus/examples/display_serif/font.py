@@ -142,7 +142,7 @@ P = kit.params(
     three_end_dir=122, three_bot_x=0.47, three_ur_y=542, four_x=392, four_bar_r=562, four_thin=36, four_top=693,
     five_w=536, five_stem_bot=371, five_stem_w=48, five_end_y=62, five_end_dir=159, six_w=499, six_hook_x=0.91,
     six_face_y=561, six_wedge=108, six_hook_w=0.75, six_bowl_h=458, seven_w=500, seven_foot_l=147,
-    seven_foot_r=271, seven_serif=211, seven_wedge=120, eight_top_w=446, eight_waist=372, eight_thick_k=0.9,
+    seven_foot_r=271, seven_serif=211, seven_wedge=120, eight_top_w=446, eight_waist=375, eight_thick_k=0.9,
     eight_sp_x0=0.08, eight_sp_x1=0.92, eight_sp_w=0.65, eight_sp_y0=530, nine_bowl_h=466, nine_face_y=561,
     nine_hook_w=0.75, nine_wedge=108, nine_w=499, nine_hook_x=0.93,
     acute_dx=60, circ_in=45, tilde_len=286, tilde_w=54, tilde_lo=622, tilde_dir=60, ring_thick=47, ced_len=165,
@@ -291,3 +291,28 @@ _kern = _Path(__file__).with_name("kerning.json")
 if _kern.exists():
     for _l, _r, _v in _json.loads(_kern.read_text())["pairs"]:
         font.kern(_l, _r, _v)
+
+# a corrected oblique by rules (SPEC M6, ductus.italic): spaced upright, slanted 11 degrees about half
+# the x-height; round glyphs half rotated, half sheared (balanced stress); glyphs with level strokes
+# (e's bar, the serifs' flats) sheared only. Its own kerning: `ductus kern examples/display_serif/font.py --italic`.
+_kit_italic = _Path(__file__).with_name("kerning_italic.json")
+font.italic = {
+    "angle": 11,
+    "round": "o O c C Q zero degree s S",
+    "round_k": 0.5,
+    "kerning": {"default": {(_l, _r): _v for _l, _r, _v in _json.loads(_kit_italic.read_text())["pairs"]}}
+               if _kit_italic.exists() else {},
+}
+
+# an optical-size axis (SPEC M4): the design above is the display size (opsz 72); a text master
+# (opsz 9) derived by rules (kit.optical_master): hairlines x1.6 and stems x1.05 (lower contrast,
+# hairlines that hold at 12 px), serifs 0.85 as long, 18 more side bearing a side, x-height +10.
+# Kerning per master: `ductus kern examples/display_serif/font.py --master 9`.
+font.variable = {
+    "tag": "opsz", "name": "Optical size", "default": 72,
+    "masters": {9: {"k": 1.05, "kh": 1.6, "serif_k": 0.85, "sb_d": 18, "xh_d": 10}},
+    "params": kit.optical_master,
+    "instances": {"Text": 9, "Subhead": 24, "Display": 72},
+    "kerning": {_loc: {(_l, _r): _v for _l, _r, _v in _json.loads(_p.read_text())["pairs"]}
+                for _loc in (9,) if (_p := _Path(__file__).with_name(f"kerning_{_loc}.json")).exists()},
+}

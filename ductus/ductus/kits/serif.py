@@ -2878,3 +2878,25 @@ def weight_master(params: dict, k: float, kh: float | None = None) -> dict:
         if gap in params and t in params:
             out[gap] = float(params[gap]) + (k - 1) * float(params[t]) * mult
     return out
+
+
+def optical_master(params: dict, setting: dict) -> dict:
+    """Param overrides for an optical-size master (SPEC M4), derived from the
+    design size by rules: stems scaled by ``k`` and hairlines / thin joins by
+    ``kh`` (as a weight master: :func:`weight_master`, so the contrast falls
+    when kh > k), serifs ``serif_k`` as long, ``sb_d`` more side bearing on
+    each side, the x-height ``xh_d`` taller; then the master's own designed
+    values (``setting["params"]``). A text cut wants heavier hairlines, a
+    little more stem, shorter serifs, looser spacing and a larger x-height."""
+    ov = weight_master(params, setting.get("k", 1.0), setting.get("kh"))
+    sk = setting.get("serif_k", 1.0)
+    for n in ("serif_len", "cap_serif_len", "top_serif_len"):
+        if n in params:
+            ov[n] = float(params[n]) * sk
+    for n in ("sb_straight", "sb_round"):
+        if n in params:
+            ov[n] = float(params[n]) + setting.get("sb_d", 0.0)
+    if "xheight" in params:
+        ov["xheight"] = float(params["xheight"]) + setting.get("xh_d", 0.0)
+    ov.update(setting.get("params", {}))
+    return ov

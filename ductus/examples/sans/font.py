@@ -508,3 +508,18 @@ font.variable = {
     "kerning": {_loc: {(_l, _r): _v for _l, _r, _v in _json.loads(_p.read_text())["pairs"]}
                 for _loc in (300, 700) if (_p := _Path(__file__).with_name(f"kerning_{_loc}.json")).exists()},
 }
+
+# a corrected oblique by rules (SPEC M6, ductus.italic): every glyph spaced upright then slanted
+# 10 degrees about half the x-height; the round glyphs half rotated, half sheared, so their stress
+# stays balanced. Glyphs with level strokes (e's bar, G's spur) are sheared only: a rotation would
+# tilt them. No stem compensation (1/cos 10 deg = +1.5%, invisible): it gave the Bold a and l a pinhole.
+font.italic = {
+    "angle": 10,
+    "round": "o O c C Q zero degree s S",
+    "round_k": 0.5,
+    # its own kerning, measured from the italic outlines (`ductus kern --italic [--master 700]`)
+    "kerning": {_k: {(_l, _r): _v for _l, _r, _v in _json.loads(_p.read_text())["pairs"]}
+                for _k, _n in (("default", "kerning_italic.json"), (300, "kerning_italic_300.json"),
+                               (700, "kerning_italic_700.json"))
+                if (_p := _Path(__file__).with_name(_n)).exists()},
+}

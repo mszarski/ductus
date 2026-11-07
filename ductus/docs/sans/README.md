@@ -1271,3 +1271,24 @@ serif).
 
 Mean IoU (sans): Regular 0.9573 -> 0.9575, Bold 0.9530 -> 0.9532, Light
 0.9431 -> 0.9432. Kerning re-run at all three masters and for the benchmark.
+
+## 30 — Ductus Sans Italic (M6: italics by rules)
+
+![upright and italic](30_italic.png)
+
+A corrected oblique derived from the upright by rules (`ductus.italic`,
+`font.italic`):
+- **Slant.** 10°, about half the x-height, after upright spacing, so each
+  glyph stays centred in its advance.
+- **Round glyphs** (o O c C Q 0 ° s S): half rotated, half sheared, so
+  their stress stays balanced, then re-set to their upright height
+  measured on the curves.
+- **Level strokes** (e's bar, G's spur): those glyphs are sheared only.
+- **Stems.** No stem compensation: 1/cos 10° is +1.5%, which is
+  invisible, and at Bold it gave the a and l a pinhole.
+- **Kerning:** measured from the italic outlines, per master
+  (`kerning_italic[_300|_700].json`).
+- **Build:** `ductus build examples/sans/font.py --variable --italic`
+  gives `DuctusSans-Italic-VF.otf` (wght 300–700, every glyph varying,
+  instances "Light Italic" … "Bold Italic"). The italic flags are set in
+  post, OS/2, head and hhea.

@@ -45,13 +45,23 @@ def build(font_py: Path,
           overrides: Optional[Path] = typer.Option(None, help="overrides.yaml (default: next to font.py)"),
           debug_json: bool = typer.Option(False, "--json", help="also write CompiledFont JSON"),
           variable: bool = typer.Option(False, "--variable",
-                                        help="build the font's declared axis (font.variable) as a variable .otf")):
+                                        help="build the font's declared axis (font.variable) as a variable .otf"),
+          italic: bool = typer.Option(False, "--italic", help="derive the italic by font.italic's rules")):
     """Compile FONT_PY to a static .otf (or, with --variable, a variable one)."""
+    from .italic import italic_mode
     font = load_font(font_py)
+    if italic and not getattr(font, "italic", None):
+        raise typer.BadParameter("the font declares no italic rules (font.italic)")
+    with italic_mode(italic):
+        _build(font, font_py, out, set_, sweep, overrides, debug_json, variable, italic)
+
+
+def _build(font, font_py, out, set_, sweep, overrides, debug_json, variable, italic):
     ovs = _overrides_for(font_py, overrides)
     if variable:
         from .variable import build_variable
-        path, held = build_variable(font, out / f"{font.family.replace(' ', '')}-VF.otf", ovs)
+        name = font.family.replace(' ', '') + ("-Italic" if italic else "") + "-VF.otf"
+        path, held = build_variable(font, out / name, ovs)
         problems = validate_otf(path)
         typer.echo(f"wrote {path}  (axis {font.variable['tag']} "
                    f"{min([font.variable['default'], *font.variable['masters']])}-"
@@ -138,10 +148,18 @@ def kern(font_py: Path,
          min_abs: int = typer.Option(10, help="drop smaller kerns"),
          style: Optional[Path] = typer.Option(None, help="per-glyph style weights JSON (default: kern_style.json beside the font, if present)"),
          master: Optional[int] = typer.Option(None, help="kern a weight master of font.variable (its axis value); "
-                                                          "default output kerning_<value>.json beside the font")):
+                                                          "default output kerning_<value>.json beside the font"),
+         italic: bool = typer.Option(False, "--italic", help="kern the italic (font.italic); default output "
+                                                             "kerning_italic[_<master>].json")):
     """Optical auto-kerning: measure every letter/punctuation pair of the
     compiled font (or one of its weight masters) and write the suggested kerns
     as data for the font to load."""
+    from .italic import italic_mode
+    with italic_mode(italic):
+        _kern(font_py, out, strength, punct_strength, clearance, min_abs, style, master, italic)
+
+
+def _kern(font_py, out, strength, punct_strength, clearance, min_abs, style, master, italic):
     import unicodedata
     from .kerning import autokern
     font = load_font(font_py)
@@ -182,7 +200,8 @@ def kern(font_py: Path,
     t0 = time.perf_counter()
     pairs = autokern(cf.glyphs, names, min_abs=min_abs, strength=strength, punct_strength=punct_strength,
                      clearance=clearance, weights=weights)
-    out = out or font_py.parent / ("kerning.json" if master is None else f"kerning_{master}.json")
+    stem = "kerning_italic" if italic else "kerning"
+    out = out or font_py.parent / (f"{stem}.json" if master is None else f"{stem}_{master}.json")
     out.write_text(json.dumps({
         "generated_by": "ductus kern",
         "settings": {"strength": strength, "punct_strength": punct_strength, "clearance": clearance,

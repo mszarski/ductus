@@ -945,3 +945,48 @@ between curves.
 Spacing was checked and left alone: after r and t it looked open in a
 small proof, but at 200 px it is right. Kerning regenerated (5,379
 pairs).
+
+## 35 — an optical-size axis (M4) and an italic (M6)
+
+![opsz and italic](35.png)
+
+- **Optical size.** `font.variable` is now an `opsz` axis from 9 (Text)
+  to 72 (Display, the design so far). The text master is derived by rules
+  (`kit.optical_master`):
+  - hairlines and thin joins ×1.6, so the contrast falls (the hairline
+    goes from 32 to 51 units);
+  - stems ×1.05;
+  - serifs 0.85 as long;
+  - 18 units more side bearing each side;
+  - x-height +10.
+
+  Each master has its own kerning (`kerning_9.json`). Instances: Text 9,
+  Subhead 24, Display 72.
+- **Rasterisation test** (`tests/test_opsz_italic.py`). The o and O
+  rendered by FreeType at 12 px, the darkest pixel of each hairline on the
+  centre column:
+
+  | Master | Hairline coverage at 12 px |
+  |---|---|
+  | Text | ≥ 0.51 |
+  | Display | 0.30–0.42 (greys out) |
+
+  The test requires ≥ 0.5 for the text master, and darker than the
+  display master's.
+- **The 8.** It had a 67 u² pinhole at the waist, just above the 40 u²
+  cleanup threshold. `eight_waist` 372 → 375 closes it; the opsz build
+  needed the same contour count in both masters.
+- **Italic.** A corrected oblique by rules (`ductus.italic`, see the
+  README):
+  - 11°, slanted about half the x-height after spacing;
+  - round glyphs half rotated, half sheared, then re-set to their upright
+    height (measured on the curves);
+  - its own kerning (`kerning_italic.json`).
+
+  `ductus build examples/display_serif/font.py --italic`.
+
+In words at 12–16 px the text master is clearly more legible: darker,
+more open, hairlines holding. The display master greys out and looks
+cramped there. Large, the text master reads as a sturdy text face. It is
+a little loose at 24 px, which is the right side of the trade-off for a
+9 pt master.

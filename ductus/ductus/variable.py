@@ -97,7 +97,9 @@ def build_variable(font, path, overrides=None) -> tuple[Path, dict]:
         # kerning: each master its own (font.variable["kerning"][axis value], measured from
         # that master's outlines by `ductus kern --master`; the default's otherwise), over
         # one shared set of pairs (0 where a master has none) so varLib can merge them
-        mk = spec.get("kerning", {})
+        from .italic import active as _italic_active
+        italic = _italic_active(font)
+        mk = font.italic.get("kerning", {}) if italic else spec.get("kerning", {})
         kerns = {loc: (default.kerning if loc == spec["default"] else mk.get(loc, default.kerning)) or {}
                  for loc, _ in masters}
         pairs = sorted(set().union(*[set(k) for k in kerns.values()]))
@@ -112,6 +114,8 @@ def build_variable(font, path, overrides=None) -> tuple[Path, dict]:
             ds.addSource(src)
         for iname, loc in spec.get("instances", {}).items():
             inst = InstanceDescriptor()
+            if italic:
+                iname = "Italic" if iname == "Regular" else f"{iname} Italic"
             inst.styleName, inst.familyName = iname, font.family
             inst.location = {ax.name: loc}
             inst.postScriptFontName = f"{ps_name(default).split('-')[0]}-{iname.replace(' ', '')}"
