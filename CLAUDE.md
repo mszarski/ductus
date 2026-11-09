@@ -52,6 +52,7 @@ python tools/fitting/gfit.py 400|700|300 GLYPH N [prefixes] [--wide] [--bench] [
 ductus build examples/sans/font.py --variable --italic -o out/   # italic VF (font.italic rules, ductus/italic.py)
 ductus kern  examples/sans/font.py --clearance 60 --min-abs 5 --italic [--master 700]   # kerning_italic[_700].json
 ductus build examples/display_serif/font.py --variable -o out/  # opsz 9-72 (kit.optical_master); kern --master 9
+python web/build.py && python -m http.server -d web 8000   # M7 browser editor (Pyodide + Paper.js), see web/README.md
 ductus fit   benchmarks/geist_serif/font.py --glyph o --only-improve
 python examples/sans/make_sheet.py NN                   # -> docs/sans/NN.png
 python examples/display_serif/make_sheet.py NN          # -> docs/display_serif/NN.png
@@ -128,6 +129,9 @@ ask the user if you need it. `trajectory_classifier` was removed; it is unrelate
 - Italic rules (`ductus/italic.py`): glyphs with level strokes (e bar, G spur) must not be in `round` (rotation
   tilts them). Stem compensation (`params`) gave the sans Bold a / l a pinhole; the sans uses none. After outline
   changes re-kern the italics too (`--italic`, each master).
+- Browser (M7): `ductus.compile` falls back to `ductus/_pathops_js.py` (Paper.js) when skia-pathops is missing.
+  Nothing outside `merge()` may import pathops at module level on the compile path (`italic.py` has its own
+  curve sampler for that reason).
 - `tests/test_primitives.py` compile-time bound is 1500 ms (cloud containers vary; about 1.0-1.1 s per kit font).
 - Process handling: never `pkill -f` (kills its own shell); `pgrep -f` matches itself, use
   `ps -eo args | grep "^.../ductus fit"`; shell chains can hide a lint FAIL, check exit codes;

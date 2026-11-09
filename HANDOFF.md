@@ -43,7 +43,8 @@ points:
   **started**: the display serif's opsz 9–72 axis); M5 kerning and spacing from
   shape (optical kerning done); M6 rule-based derived styles (italics;
   **started**: corrected obliques for both faces, `ductus.italic`); M7
-  browser-only mode via Pyodide.
+  browser-only mode via Pyodide (**built**: `ductus/web/`, Paper.js booleans via
+  `ductus/_pathops_js.py`; not yet run in a real browser).
 - **Licensing rule (SPEC §8).** Geist is used **only for measurement and
   overlays**. Never copy, trace or import its outlines. Anything fitted
   closely to it is a derivative work under the OFL, so it must stay an
@@ -319,7 +320,10 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 6. **M4 / M6 follow-ups:** an opsz axis for the sans; true italic forms
    (single-storey a, cursive f) for the display serif as an option; review
    the italics and the text cut in words with the user.
-7. **Later milestones:** M7 browser-only mode, more scripts or languages.
+7. **M7:** run `ductus/web/` in a real browser and fix what breaks (Paper.js boolean edge cases,
+   compile speed); in this environment running downloaded code (Pyodide, Paper.js) needs the
+   user's permission.
+8. **Later:** more scripts or languages.
 
 **Other open questions:**
 - Should `SPEC.md` be added to the repo?
@@ -329,7 +333,7 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 ### Commands (from `ductus/`)
 ```bash
 pip install -e ".[proof,validate,serve,bench,test]"
-python -m pytest tests -q            # 121 tests, ~1.5 min
+python -m pytest tests -q            # 131 tests, ~1.5 min
 python benchmarks/geist_serif/fetch_reference.py   # Geist Serif -> benchmarks/geist_serif/reference/ (git-ignored)
 python benchmarks/geist_sans/fetch_reference.py    # Geist Sans 1.9.0 (npm `geist`) -> benchmarks/geist_sans/reference/Geist-Regular.woff2
 ductus serve examples/display_serif/font.py --reference benchmarks/geist_serif/reference/GeistSerif-Regular.woff2

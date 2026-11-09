@@ -41,6 +41,20 @@ from the upright (`ductus.italic`, declared as `font.italic`):
 - the italic has its own kerning;
 - `ductus build --italic` (with `--variable` for the sans).
 
+**M7 (the compiler in the browser), built, not yet run in a browser.**
+`web/` is a browser-only editor:
+- Pyodide runs the compiler itself.
+- Paper.js stands in for skia-pathops, which has no Pyodide build
+  (`ductus/_pathops_js.py`, used automatically when `import pathops`
+  fails).
+- The page offers the faces, their masters, the italic, parameter sliders
+  and a live preview set in the freshly compiled font, plus a .otf
+  download.
+- `python web/build.py`, then `python -m http.server -d web`, then open
+  `http://localhost:8000/`.
+- The adapter's glue and the driver are tested in CPython. A real browser
+  run is still to do.
+
 The milestone notes below are kept as written at the time.
 
 **Milestone 1 — done.** Shared parts (`h`/`m` reuse the arch, `o`/`O` share a

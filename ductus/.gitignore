@@ -5,3 +5,7 @@ __pycache__/
 out/
 !docs/*.png
 !docs/**/*.png
+
+# setuptools output from `python web/build.py` (pip wheel)
+build/
+web/_build/

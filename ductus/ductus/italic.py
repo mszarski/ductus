@@ -76,11 +76,26 @@ def _bounds(contours):
     return (min(xs), min(ys), max(xs), max(ys)) if xs else None
 
 
-def _curve_ys(contours):
-    """Lowest and highest y on the outline itself (curves sampled finely)."""
-    from .bench.metrics import sample_outline
-    ys = sample_outline(contours, step=0.5)[:, 1]
-    return float(ys.min()), float(ys.max())
+def _curve_ys(contours, k: int = 64):
+    """Lowest and highest y on the outline itself (each cubic sampled ``k`` times)."""
+    lo, hi = float("inf"), float("-inf")
+    for c in contours:
+        n = len(c.pts)
+        i = 0
+        while i < n:
+            p0 = c.pts[i]
+            if c.types[(i + 1) % n] == "off":
+                y0, y1, y2, y3 = p0[1], c.pts[(i + 1) % n][1], c.pts[(i + 2) % n][1], c.pts[(i + 3) % n][1]
+                for j in range(k + 1):
+                    t = j / k
+                    mt = 1 - t
+                    y = mt ** 3 * y0 + 3 * mt * mt * t * y1 + 3 * mt * t * t * y2 + t ** 3 * y3
+                    lo, hi = min(lo, y), max(hi, y)
+                i += 3
+            else:
+                lo, hi = min(lo, p0[1]), max(hi, p0[1])
+                i += 1
+    return lo, hi
 
 
 def _transform(contours, fn):

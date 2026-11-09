@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ductus in the browser</title>
+<style>
+  :root { --ink: #111; --mute: #666; --line: #ddd; --bg: #fff; --panel: #f6f6f4; }
+  @media (prefers-color-scheme: dark) { :root { --ink: #eee; --mute: #999; --line: #333; --bg: #141414; --panel: #1d1d1d; } }
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; color: var(--ink); background: var(--bg); }
+  header { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  header h1 { font-size: 16px; margin: 0 12px 0 0; }
+  main { display: grid; grid-template-columns: minmax(240px, 320px) 1fr; min-height: calc(100vh - 54px); }
+  @media (max-width: 760px) { main { grid-template-columns: 1fr; } }
+  aside { background: var(--panel); padding: 12px 16px; border-right: 1px solid var(--line); overflow-y: auto; max-height: calc(100vh - 54px); }
+  .row { margin: 8px 0; }
+  .row label { display: flex; justify-content: space-between; font-size: 12px; color: var(--mute); }
+  .row input[type=range] { width: 100%; }
+  #preview { padding: 24px 16px; font-size: 64px; line-height: 1.25; outline: none; overflow-wrap: anywhere; }
+  #status { font-size: 12px; color: var(--mute); }
+  select, input[type=text], button { font: inherit; }
+  #filter { width: 100%; box-sizing: border-box; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Ductus</h1>
+  <label>Face <select id="face"><option value="sans">Ductus Sans</option><option value="display">Ductus Display</option></select></label>
+  <label><span id="axisname">Master</span> <select id="master"></select></label>
+  <label><input type="checkbox" id="italic"> Italic</label>
+  <label>Size <input type="range" id="size" min="12" max="160" value="64"></label>
+  <button id="download" disabled>Download .otf</button>
+  <span id="status">Loading Python…</span>
+</header>
+<main>
+  <aside>
+    <input id="filter" type="text" placeholder="Filter parameters (e.g. stem, serif, sb_)">
+    <div id="params"></div>
+  </aside>
+  <div id="preview" contenteditable="true" spellcheck="false">Hamburgefonstiv HOAGES 0123 — the quick brown fox jumps over a lazy dog.</div>
+</main>
+<script type="module">
+// configuration: ?pyodide=<base url>&paper=<url of paper-core.js> (defaults: the public CDNs)
+const q = new URLSearchParams(location.search);
+const PYODIDE = q.get("pyodide") || "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/";
+const PAPER = q.get("paper") || "https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.18/paper-core.min.js";
+const BUILD = new URL("_build/", location.href).href;
+const $ = (id) => document.getElementById(id);
+const status = (s) => { $("status").textContent = s; };
+const KEY_PARAMS = ["stem", "cap_stem", "hairline", "xheight", "capheight", "overshoot", "sb_straight", "sb_round",
+                    "serif_len", "cap_serif_len", "arch_contrast", "round_gain"];
+
+function loadScript(src) {
+  return new Promise((ok, fail) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = fail; document.head.appendChild(s); });
+}
+
+let py, driver, info, values = {}, fontCount = 0, lastOtf = null, timer = null;
+
+async function boot() {
+  await loadScript(PAPER);
+  const { loadPyodide } = await import(PYODIDE + "pyodide.mjs");
+  py = await loadPyodide({ indexURL: PYODIDE });
+  status("Loading packages…");
+  await py.loadPackage(["numpy", "pyyaml", "fonttools", "micropip"]);
+  const micropip = py.pyimport("micropip");
+  const manifest = await (await fetch(BUILD + "manifest.json")).json();
+  // the ductus wheel without its native dependencies (skia-pathops, typer): Paper.js does the booleans
+  await micropip.install.callKwargs(BUILD + manifest.wheel, { deps: false });
+  const zip = await (await fetch(BUILD + "examples.zip")).arrayBuffer();
+  py.unpackArchive(zip, "zip", { extractDir: "/home/pyodide/examples" });
+  py.FS.writeFile("/home/pyodide/driver.py", await (await fetch(BUILD + "driver.py")).text());
+  py.runPython("import sys; sys.path.insert(0, '/home/pyodide'); import driver");
+  driver = py.pyimport("driver");
+  await selectFace();
+}
+
+async function selectFace() {
+  status("Loading face…");
+  info = JSON.parse(driver.describe($("face").value));
+  values = {};
+  $("axisname").textContent = info.axis === "opsz" ? "Optical size" : info.axis === "wght" ? "Weight" : "Master";
+  $("master").innerHTML = info.masters.map(m => `<option value="${m}" ${m === info.default ? "selected" : ""}>${m}</option>`).join("");
+  $("italic").disabled = !info.italic;
+  if (!info.italic) $("italic").checked = false;
+  renderSliders();
+  schedule();
+}
+
+function renderSliders() {
+  const f = $("filter").value.trim().toLowerCase();
+  const names = Object.keys(info.params).filter(n => f ? n.includes(f) : KEY_PARAMS.includes(n)).slice(0, 60);
+  $("params").innerHTML = names.map(n => {
+    const [def, [lo, hi]] = info.params[n];
+    const v = values[n] ?? def, step = (hi - lo) > 20 ? 1 : (hi - lo) / 200;
+    return `<div class="row"><label><span>${n}</span><span id="v_${n}">${(+v).toFixed(step < 1 ? 3 : 0)}</span></label>
+            <input type="range" data-p="${n}" min="${lo}" max="${hi}" step="${step}" value="${v}"></div>`;
+  }).join("");
+  for (const el of $("params").querySelectorAll("input[type=range]")) {
+    el.addEventListener("input", () => {
+      values[el.dataset.p] = +el.value;
+      $("v_" + el.dataset.p).textContent = (+el.value).toFixed(+el.step < 1 ? 3 : 0);
+      schedule();
+    });
+  }
+}
+
+function schedule() { clearTimeout(timer); timer = setTimeout(compile, 250); }
+
+async function compile() {
+  const text = $("preview").innerText;
+  status("Compiling…");
+  const t0 = performance.now();
+  try {
+    const res = driver.build($("face").value, JSON.stringify(values), text, $("italic").checked, +$("master").value);
+    const [bytes, ms, n] = res.toJs();
+    res.destroy();
+    const name = "DuctusPreview" + (++fontCount);
+    const face = new FontFace(name, bytes);
+    await face.load();
+    document.fonts.add(face);
+    $("preview").style.fontFamily = `"${name}", monospace`;
+    lastOtf = bytes;
+    $("download").disabled = false;
+    status(`${n} glyphs compiled in ${Math.round(ms)} ms (round trip ${Math.round(performance.now() - t0)} ms)`);
+  } catch (e) {
+    status("Error: " + e.message.split("\n").slice(-2).join(" "));
+    console.error(e);
+  }
+}
+
+$("face").addEventListener("change", selectFace);
+$("master").addEventListener("change", schedule);
+$("italic").addEventListener("change", schedule);
+$("filter").addEventListener("input", renderSliders);
+$("preview").addEventListener("input", schedule);
+$("size").addEventListener("input", () => { $("preview").style.fontSize = $("size").value + "px"; });
+$("download").addEventListener("click", () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([lastOtf], { type: "font/otf" }));
+  a.download = `${info.family.replace(/ /g, "")}-${$("italic").checked ? "Italic" : "Regular"}.otf`;
+  a.click();
+});
+boot().catch(e => { status("Failed to start: " + e.message); console.error(e); });
+</script>
+</body>
+</html>

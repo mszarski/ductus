@@ -11,7 +11,10 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
-import pathops
+try:
+    import pathops
+except ImportError:          # no skia-pathops (e.g. the browser, SPEC M7): Paper.js through Pyodide
+    from . import _pathops_js as pathops
 from fontTools.pens.boundsPen import BoundsPen
 from fontTools.pens.recordingPen import RecordingPen
 
