@@ -42,8 +42,9 @@
 <script type="module">
 // configuration: ?pyodide=<base url>&paper=<url of paper-core.js> (defaults: the public CDNs)
 const q = new URLSearchParams(location.search);
-const PYODIDE = q.get("pyodide") || "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/";
-const PAPER = q.get("paper") || "https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.18/paper-core.min.js";
+// (resolved against the page, so relative paths work in import() as well)
+const PYODIDE = new URL(q.get("pyodide") || "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", location.href).href;
+const PAPER = new URL(q.get("paper") || "https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.18/paper-core.min.js", location.href).href;
 const BUILD = new URL("_build/", location.href).href;
 const $ = (id) => document.getElementById(id);
 const status = (s) => { $("status").textContent = s; };

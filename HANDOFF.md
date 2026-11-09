@@ -43,8 +43,8 @@ points:
   **started**: the display serif's opsz 9–72 axis); M5 kerning and spacing from
   shape (optical kerning done); M6 rule-based derived styles (italics;
   **started**: corrected obliques for both faces, `ductus.italic`); M7
-  browser-only mode via Pyodide (**built**: `ductus/web/`, Paper.js booleans via
-  `ductus/_pathops_js.py`; not yet run in a real browser).
+  browser-only mode via Pyodide (**working**: `ductus/web/`, Paper.js booleans via
+  `ductus/_pathops_js.py`, verified in headless Chromium and against skia on every glyph).
 - **Licensing rule (SPEC §8).** Geist is used **only for measurement and
   overlays**. Never copy, trace or import its outlines. Anything fitted
   closely to it is a derivative work under the OFL, so it must stay an
@@ -320,9 +320,8 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 6. **M4 / M6 follow-ups:** an opsz axis for the sans; true italic forms
    (single-storey a, cursive f) for the display serif as an option; review
    the italics and the text cut in words with the user.
-7. **M7:** run `ductus/web/` in a real browser and fix what breaks (Paper.js boolean edge cases,
-   compile speed); in this environment running downloaded code (Pyodide, Paper.js) needs the
-   user's permission.
+7. **M7 follow-ups:** host the editor somewhere; show the construction overlay (skeleton, handles)
+   in the browser as `ductus serve` does; the user's review of it.
 8. **Later:** more scripts or languages.
 
 **Other open questions:**

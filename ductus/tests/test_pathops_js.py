@@ -119,3 +119,33 @@ def test_no_backend_outside_pyodide():
     p.getPen().moveTo((0, 0))
     with pytest.raises(pj.PathOpsError):
         p.simplify()
+
+
+# ---- the real Paper.js (through Node), when available -----------------------
+# DUCTUS_PAPER_JS=/path/to/paper-core.js pytest tests/test_pathops_js.py
+import os
+import shutil as _shutil
+
+PAPER_JS = os.environ.get("DUCTUS_PAPER_JS")
+
+
+@pytest.mark.skipif(not (PAPER_JS and _shutil.which("node")), reason="set DUCTUS_PAPER_JS to a paper-core.js (needs node)")
+@pytest.mark.parametrize("path", ["examples/sans/font.py", "examples/display_serif/font.py"])
+@pytest.mark.parametrize("italic", [False, True])
+def test_real_paper_matches_skia_on_every_glyph(path, italic, monkeypatch):
+    from ductus.italic import italic_mode
+    font = load_font(ROOT / path)
+    with italic_mode(italic):
+        ref = compile_font(font)
+        monkeypatch.setattr(comp, "pathops", pj)
+        pj.set_backend(pj.node_backend(PAPER_JS))
+        try:
+            js = compile_font(font)
+        finally:
+            pj.set_backend(None)
+    bad = []
+    for name, g in ref.glyphs.items():
+        a, b = _area(js.glyphs[name].contours), _area(g.contours)
+        if len(js.glyphs[name].contours) != len(g.contours) or (b and abs(a - b) / b > 0.005):
+            bad.append((name, len(js.glyphs[name].contours), len(g.contours), round(a), round(b)))
+    assert not bad, bad

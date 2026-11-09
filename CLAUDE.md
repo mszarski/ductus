@@ -131,7 +131,10 @@ ask the user if you need it. `trajectory_classifier` was removed; it is unrelate
   changes re-kern the italics too (`--italic`, each master).
 - Browser (M7): `ductus.compile` falls back to `ductus/_pathops_js.py` (Paper.js) when skia-pathops is missing.
   Nothing outside `merge()` may import pathops at module level on the compile path (`italic.py` has its own
-  curve sampler for that reason).
+  curve sampler for that reason). Paper.js needs the guards in `_pathops_js.JS_SOURCE` (hole assignment instead
+  of self-union, largest first, no zero-area pieces, nudge on odd intersections); test with
+  `DUCTUS_PAPER_JS=<paper-core.js> pytest tests/test_pathops_js.py` and `node web/browser_test.mjs`.
+  Running downloaded Pyodide / Paper.js here needs the user's explicit OK.
 - `tests/test_primitives.py` compile-time bound is 1500 ms (cloud containers vary; about 1.0-1.1 s per kit font).
 - Process handling: never `pkill -f` (kills its own shell); `pgrep -f` matches itself, use
   `ps -eo args | grep "^.../ductus fit"`; shell chains can hide a lint FAIL, check exit codes;

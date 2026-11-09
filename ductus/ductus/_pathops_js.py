@@ -27,13 +27,56 @@ JS_SOURCE = r"""
 globalThis.__ductusBool = function (dA, dB, op) {
   if (!globalThis.__ductusPaperReady) { paper.setup(new paper.Size(1, 1)); globalThis.__ductusPaperReady = true; }
   const mk = (d) => new paper.CompoundPath({pathData: d, insert: false, fillRule: 'nonzero'});
+  // Two closed outlines cross an even number of times; an odd count means Paper missed a tangent crossing
+  // (the display t's cut removed nothing). Then the second shape is nudged by 0.01 u -- invisible once
+  // the outline is rounded to the grid -- and the operation retried.
+  const guarded = (fn, a, b) => {
+    if (a.getIntersections(b).length % 2 === 1) {
+      b = b.clone({insert: false});
+      b.translate(new paper.Point(0.013, 0.007));
+    }
+    return fn(a, b);
+  };
+  const unite = (a, b) => guarded((x, y) => x.unite(y, {insert: false}), a, b);
+  const subtract = (a, b) => guarded((x, y) => x.subtract(y, {insert: false}), a, b);
+  // Paper's self-union (unite with an empty path) mis-resolves overlapping sub-paths (the v's strokes
+  // lost or gained area, and a later subtract emptied the glyph). Instead: each hole goes to the smallest
+  // outer contour containing it, each outer minus its holes, then the shapes united one by one --
+  // the non-zero fill of the input, which pairwise unions resolve correctly.
+  const simplify = (cp) => {
+    // degenerate pieces (zero area) derail a later subtract; drop them
+    const kids = ((cp.children && cp.children.length) ? cp.children.slice() : [cp]).filter(k => Math.abs(k.area) >= 1);
+    if (!kids.length) return new paper.Path({insert: false});
+    const big = kids.reduce((m, k) => Math.abs(k.area) > Math.abs(m.area) ? k : m);
+    const outers = kids.filter(k => Math.sign(k.area) === Math.sign(big.area));
+    const holes = kids.filter(k => Math.sign(k.area) !== Math.sign(big.area));
+    const own = new Map(outers.map(o => [o, []]));
+    for (const h of holes) {
+      const ip = h.interiorPoint;
+      // the host holds the whole hole (a stroke crossing a counter, like the e's bar, holds only part of it)
+      const host = outers.filter(o => o.bounds.contains(h.bounds) && o.contains(ip)
+                                     && h.segments.every(sg => o.contains(sg.point)))
+                         .sort((x, y) => Math.abs(x.area) - Math.abs(y.area))[0];
+      if (host) own.get(host).push(h);
+    }
+    // largest first: pairwise unions of small pieces sharing edges (serifs on strokes) can lose area
+    outers.sort((x, y) => Math.abs(y.area) - Math.abs(x.area));
+    let r = new paper.Path({insert: false});
+    for (const o of outers) {
+      let shape = o.clone({insert: false});
+      for (const h of own.get(o)) shape = subtract(shape, h.clone({insert: false}));
+      r = unite(r, shape);
+    }
+    return r;
+  };
   const a = mk(dA);
   let r;
-  if (op === 'simplify') r = a.unite(new paper.Path({insert: false}), {insert: false});
+  if (op === 'simplify') r = simplify(a);
   else {
     const b = mk(dB);
-    r = op === 'union' ? a.unite(b, {insert: false}) : op === 'difference' ? a.subtract(b, {insert: false})
-      : op === 'intersection' ? a.intersect(b, {insert: false}) : a.exclude(b, {insert: false});
+    r = op === 'union' ? unite(a, b) : op === 'difference' ? subtract(a, b)
+      : op === 'intersection' ? guarded((x, y) => x.intersect(y, {insert: false}), a, b)
+      : guarded((x, y) => x.exclude(y, {insert: false}), a, b);
   }
   const kids = r.children ? r.children : [r];
   const out = [];
@@ -75,6 +118,27 @@ def _js_backend():
 
     def call(da, db, op):
         return json.loads(js.__ductusBool(da, db, op))
+    return call
+
+
+def node_backend(paper_js: str):
+    """A backend running the real Paper.js in a persistent Node process (tests and
+    debugging outside the browser): ``set_backend(node_backend("paper-core.js"))``."""
+    import subprocess
+    src = (f"const paper = require({json.dumps(str(paper_js))});\n" + JS_SOURCE +
+           "\nconst rl = require('readline').createInterface({input: process.stdin});\n"
+           "rl.on('line', (l) => { const [a, b, op] = JSON.parse(l); let out;\n"
+           "  try { out = __ductusBool(a, b, op); } catch (e) { out = JSON.stringify({error: String(e)}); }\n"
+           "  process.stdout.write(out + '\\n'); });\n")
+    proc = subprocess.Popen(["node", "-e", src], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+
+    def call(da, db, op):
+        proc.stdin.write(json.dumps([da, db, op]) + "\n")
+        proc.stdin.flush()
+        r = json.loads(proc.stdout.readline())
+        if isinstance(r, dict):
+            raise PathOpsError(r["error"])
+        return r
     return call
 
 
