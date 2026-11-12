@@ -47,9 +47,12 @@ editor:
 - Paper.js stands in for skia-pathops, which has no Pyodide build
   (`ductus/_pathops_js.py`, used automatically when `import pathops`
   fails).
-- Pick a face, a master (weight or optical size) and the italic, move
-  parameter sliders, edit the preview text, and see it set in the freshly
-  compiled font, then download the .otf.
+- Pick a face, a master (weight or optical size) and the italic, edit the
+  preview text, and see it set in the freshly compiled font, then download
+  the .otf.
+- Sliders show and edit the selected master's own values.
+- A glyph view shows the outline, skeleton and named points; dragging a
+  point writes an override delta, as the desktop editor does.
 - In headless Chromium a preview of about 40 glyphs compiles in 0.5–0.75 s
   (`node web/browser_test.mjs`).
 - Through real Paper.js, every glyph of both faces, upright and italic,

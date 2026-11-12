@@ -320,8 +320,10 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 6. **M4 / M6 follow-ups:** an opsz axis for the sans; true italic forms
    (single-storey a, cursive f) for the display serif as an option; review
    the italics and the text cut in words with the user.
-7. **M7 follow-ups:** host the editor somewhere; show the construction overlay (skeleton, handles)
-   in the browser as `ductus serve` does; the user's review of it.
+7. **M7 follow-ups:** the browser editor now has per-master sliders and a glyph view with draggable
+   skeleton and outline points. Still to do: save / export the changes (state and overrides live only
+   in the page), compile in a worker, primitive handles and width / direction handles as in
+   `ductus serve`, hosting (mind the licensing question for the sans), the user's review.
 8. **Later:** more scripts or languages.
 
 **Other open questions:**

@@ -19,7 +19,18 @@ python -m http.server -d web 8000   # then open http://localhost:8000/
     optical size);
   - switch to the italic;
   - move parameter sliders (type in the filter to find any ranged
-    parameter);
+    parameter). The sliders show and edit the **selected master's own
+    values**: at the Bold the stem slider reads 150, not the Regular's 84,
+    and a change there is stored for the Bold only. A Regular change still
+    carries to the masters wherever they only scale it;
+  - **drag construction points** in the glyph view under the preview:
+    circles are a stroke's skeleton points, squares the named points of
+    the expanded outline (every glyph has those, including the ones built
+    from shapes, like the e). Each drag is an override delta, as in
+    `overrides.yaml`, and applies at every master. An accented letter
+    shows its base's points. The view follows the caret in the preview;
+  - open "Changes" to see the overrides (in `overrides.yaml` format) and
+    the slider values per master;
   - edit the preview text, which compiles only the glyphs it uses;
   - download the .otf.
 - **Offline.** `python web/build.py --pyodide <a Pyodide 0.27.7
@@ -32,9 +43,9 @@ python -m http.server -d web 8000   # then open http://localhost:8000/
     against skia (same contours, area within 0.5%).
   - `tests/test_web_driver.py` checks the page's Python side.
   - `node web/browser_test.mjs` (after `build.py --pyodide … --paper …`)
-    opens the page in headless Chromium. It compiles six states (sans at
-    400 / 700 / 700 italic, display at 72 / 9 / stem 120) and saves
-    screenshots. Each preview takes about 0.5–0.75 s.
+    opens the page in headless Chromium. It checks that each master's sliders show
+    and store that master's own values, drags a stroke point and an
+    outline point, switches italic and face, and saves screenshots. Each preview takes about 0.5–0.75 s.
 - **Where Paper.js needed help** (the guards in `JS_SOURCE`):
   - **Self-union.** Uniting a compound path with an empty path
     mis-resolves overlapping strokes. Instead, each hole goes to the

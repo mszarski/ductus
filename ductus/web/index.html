@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ductus in the browser</title>
 <style>
-  :root { --ink: #111; --mute: #666; --line: #ddd; --bg: #fff; --panel: #f6f6f4; }
-  @media (prefers-color-scheme: dark) { :root { --ink: #eee; --mute: #999; --line: #333; --bg: #141414; --panel: #1d1d1d; } }
+  :root { --ink: #111; --mute: #666; --line: #ddd; --bg: #fff; --panel: #f6f6f4; --accent: #0a6cff; --fill: #d9d9d6; --skel: #c2410c; }
+  @media (prefers-color-scheme: dark) { :root { --ink: #eee; --mute: #999; --line: #333; --bg: #141414; --panel: #1d1d1d; --accent: #5aa2ff; --fill: #3a3a3a; --skel: #fb923c; } }
   body { margin: 0; font: 14px/1.4 system-ui, sans-serif; color: var(--ink); background: var(--bg); }
   header { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
   header h1 { font-size: 16px; margin: 0 12px 0 0; }
@@ -15,11 +15,28 @@
   aside { background: var(--panel); padding: 12px 16px; border-right: 1px solid var(--line); overflow-y: auto; max-height: calc(100vh - 54px); }
   .row { margin: 8px 0; }
   .row label { display: flex; justify-content: space-between; font-size: 12px; color: var(--mute); }
+  .row.changed label span:first-child { color: var(--accent); font-weight: 600; }
   .row input[type=range] { width: 100%; }
-  #preview { padding: 24px 16px; font-size: 64px; line-height: 1.25; outline: none; overflow-wrap: anywhere; }
+  #preview { padding: 24px 16px 8px; font-size: 64px; line-height: 1.25; outline: none; overflow-wrap: anywhere; }
   #status { font-size: 12px; color: var(--mute); }
   select, input[type=text], button { font: inherit; }
   #filter { width: 100%; box-sizing: border-box; margin-bottom: 4px; }
+  #mastername { font-size: 12px; color: var(--mute); margin: 4px 0 8px; }
+  #glyphpanel { border-top: 1px solid var(--line); padding: 12px 16px; }
+  #glyphbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 13px; }
+  #glyphchar { width: 2.2em; text-align: center; font-size: 16px; }
+  #pointinfo { color: var(--mute); font-size: 12px; min-height: 1.4em; }
+  #glyphsvg { width: 100%; max-width: 720px; height: 460px; display: block; touch-action: none; user-select: none; }
+  #glyphsvg .outline { fill: var(--fill); stroke: var(--ink); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  #glyphsvg .metric { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  #glyphsvg .skel { fill: none; stroke: var(--skel); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  #glyphsvg .node { fill: var(--bg); stroke: var(--skel); stroke-width: 2; vector-effect: non-scaling-stroke; cursor: grab; }
+  #glyphsvg .opoint { fill: var(--bg); stroke: var(--ink); stroke-width: 1.5; vector-effect: non-scaling-stroke; cursor: grab; }
+  #glyphsvg .node.moved, #glyphsvg .opoint.moved { fill: var(--accent); stroke: var(--accent); }
+  #glyphsvg .node:hover, #glyphsvg .node.drag { fill: var(--skel); }
+  #glyphsvg .opoint:hover, #glyphsvg .opoint.drag { fill: var(--ink); }
+  details { font-size: 12px; margin-top: 8px; }
+  pre { white-space: pre-wrap; margin: 6px 0; }
 </style>
 </head>
 <body>
@@ -35,14 +52,32 @@
 <main>
   <aside>
     <input id="filter" type="text" placeholder="Filter parameters (e.g. stem, serif, sb_)">
+    <div id="mastername"></div>
     <div id="params"></div>
+    <button id="resetparams">Reset this master's sliders</button>
   </aside>
-  <div id="preview" contenteditable="true" spellcheck="false">Hamburgefonstiv HOAGES 0123 — the quick brown fox jumps over a lazy dog.</div>
+  <div>
+    <div id="preview" contenteditable="true" spellcheck="false">Hamburgefonstiv HOAGES 0123 — the quick brown fox jumps over a lazy dog.</div>
+    <div id="glyphpanel">
+      <div id="glyphbar">
+        <label>Glyph <input id="glyphchar" type="text" maxlength="2" value="n"></label>
+        <span id="glyphname"></span>
+        <label><input type="checkbox" id="showoutline" checked> Outline points</label>
+        <button id="resetpoints">Reset this glyph's points</button>
+        <span id="pointinfo">Drag a point to move it: circles are stroke points, squares outline points.</span>
+      </div>
+      <svg id="glyphsvg" xmlns="http://www.w3.org/2000/svg"></svg>
+      <details><summary>Changes (<span id="nchanges">0</span>)</summary>
+        <div>Point overrides (the format of <code>overrides.yaml</code>):</div><pre id="ovtext"></pre>
+        <div>Slider values per master:</div><pre id="statetext"></pre>
+      </details>
+    </div>
+  </div>
 </main>
 <script type="module">
 // configuration: ?pyodide=<base url>&paper=<url of paper-core.js> (defaults: the public CDNs)
-const q = new URLSearchParams(location.search);
 // (resolved against the page, so relative paths work in import() as well)
+const q = new URLSearchParams(location.search);
 const PYODIDE = new URL(q.get("pyodide") || "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", location.href).href;
 const PAPER = new URL(q.get("paper") || "https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.18/paper-core.min.js", location.href).href;
 const BUILD = new URL("_build/", location.href).href;
@@ -50,12 +85,15 @@ const $ = (id) => document.getElementById(id);
 const status = (s) => { $("status").textContent = s; };
 const KEY_PARAMS = ["stem", "cap_stem", "hairline", "xheight", "capheight", "overshoot", "sb_straight", "sb_round",
                     "serif_len", "cap_serif_len", "arch_contrast", "round_gain"];
+const SVGNS = "http://www.w3.org/2000/svg";
 
 function loadScript(src) {
   return new Promise((ok, fail) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = fail; document.head.appendChild(s); });
 }
 
-let py, driver, info, values = {}, fontCount = 0, lastOtf = null, timer = null;
+// state: {master: {param: value}} -- what the user set at each master; overrides: {point: {dx, dy}}
+let py, driver, info, state = {}, overrides = {}, mvals = {}, fontCount = 0, lastOtf = null, timer = null, glyphData = null;
+window.ductusState = () => ({ state, overrides });      // for tests and the console
 
 async function boot() {
   await loadScript(PAPER);
@@ -75,30 +113,46 @@ async function boot() {
   await selectFace();
 }
 
+const face = () => $("face").value;
+const master = () => +$("master").value;
+
 async function selectFace() {
   status("Loading face…");
-  info = JSON.parse(driver.describe($("face").value));
-  values = {};
+  info = JSON.parse(driver.describe(face()));
+  state = {}; overrides = {};
   $("axisname").textContent = info.axis === "opsz" ? "Optical size" : info.axis === "wght" ? "Weight" : "Master";
   $("master").innerHTML = info.masters.map(m => `<option value="${m}" ${m === info.default ? "selected" : ""}>${m}</option>`).join("");
   $("italic").disabled = !info.italic;
   if (!info.italic) $("italic").checked = false;
-  renderSliders();
+  loadSliders();
   schedule();
+}
+
+// the sliders show the selected master's own values (its designed or scaled ones, or the user's)
+function loadSliders() {
+  mvals = JSON.parse(driver.master_values(face(), JSON.stringify(state), master()));
+  const m = master();
+  $("mastername").textContent = info.masters.length
+    ? `Values at ${$("axisname").textContent.toLowerCase()} ${m}` + (m === info.default ? " (the default master)" : " (this master's own)")
+    : "";
+  renderSliders();
 }
 
 function renderSliders() {
   const f = $("filter").value.trim().toLowerCase();
-  const names = Object.keys(info.params).filter(n => f ? n.includes(f) : KEY_PARAMS.includes(n)).slice(0, 60);
+  const mine = state[master()] || {};
+  const names = Object.keys(mvals).filter(n => f ? n.includes(f) : (KEY_PARAMS.includes(n) || n in mine)).slice(0, 60);
   $("params").innerHTML = names.map(n => {
-    const [def, [lo, hi]] = info.params[n];
-    const v = values[n] ?? def, step = (hi - lo) > 20 ? 1 : (hi - lo) / 200;
-    return `<div class="row"><label><span>${n}</span><span id="v_${n}">${(+v).toFixed(step < 1 ? 3 : 0)}</span></label>
+    const [v, [lo, hi]] = mvals[n];
+    const step = (hi - lo) > 20 ? 1 : (hi - lo) / 200;
+    return `<div class="row ${n in mine ? "changed" : ""}"><label><span>${n}</span><span id="v_${n}">${(+v).toFixed(step < 1 ? 3 : 0)}</span></label>
             <input type="range" data-p="${n}" min="${lo}" max="${hi}" step="${step}" value="${v}"></div>`;
   }).join("");
   for (const el of $("params").querySelectorAll("input[type=range]")) {
     el.addEventListener("input", () => {
-      values[el.dataset.p] = +el.value;
+      (state[master()] ||= {})[el.dataset.p] = +el.value;
+      mvals[el.dataset.p][0] = +el.value;
+      el.parentElement.classList.add("changed");
       $("v_" + el.dataset.p).textContent = (+el.value).toFixed(+el.step < 1 ? 3 : 0);
       schedule();
     });
@@ -112,16 +166,18 @@ async function compile() {
   status("Compiling…");
   const t0 = performance.now();
   try {
-    const res = driver.build($("face").value, JSON.stringify(values), text, $("italic").checked, +$("master").value);
+    const res = driver.build(face(), JSON.stringify(state), text, $("italic").checked, master(), JSON.stringify(overrides));
     const [bytes, ms, n] = res.toJs();
     res.destroy();
     const name = "DuctusPreview" + (++fontCount);
-    const face = new FontFace(name, bytes);
-    await face.load();
-    document.fonts.add(face);
+    const ff = new FontFace(name, bytes);
+    await ff.load();
+    document.fonts.add(ff);
     $("preview").style.fontFamily = `"${name}", monospace`;
     lastOtf = bytes;
     $("download").disabled = false;
+    drawGlyph();
+    showChanges();
     status(`${n} glyphs compiled in ${Math.round(ms)} ms (round trip ${Math.round(performance.now() - t0)} ms)`);
   } catch (e) {
     status("Error: " + e.message.split("\n").slice(-2).join(" "));
@@ -129,16 +185,129 @@ async function compile() {
   }
 }
 
+// ---- the glyph view: outline, skeleton and draggable construction points ----
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+function drawGlyph() {
+  const ch = $("glyphchar").value || "n";
+  const g = JSON.parse(driver.glyph(face(), JSON.stringify(state), ch, master(), JSON.stringify(overrides)));
+  const svg = $("glyphsvg");
+  svg.innerHTML = "";
+  if (g.error) { $("glyphname").textContent = g.error; glyphData = null; return; }
+  glyphData = g;
+  $("glyphname").textContent = `${g.name} · advance ${g.advance}` + (g.points_of !== g.name ? ` · points of ${g.points_of}` : "")
+    + ($("italic").checked ? " · construction shown upright" : "");
+  const m = g.metrics, pad = 80;
+  const x0 = Math.min(0, g.bounds ? g.bounds[0] : 0) - pad, x1 = Math.max(g.advance, g.bounds ? g.bounds[2] : 0) + pad;
+  const y0 = m.descender - 40, y1 = m.ascender + 60;
+  svg.setAttribute("viewBox", `${x0} ${-y1} ${x1 - x0} ${y1 - y0}`);
+  const root = el("g", { transform: "scale(1,-1)", id: "glyphroot" }, svg);       // font units, y up
+  for (const y of [0, m.xheight, m.capheight, m.descender, m.ascender]) el("line", { x1: x0, x2: x1, y1: y, y2: y, class: "metric" }, root);
+  for (const x of [0, g.advance]) el("line", { x1: x, x2: x, y1: y0, y2: y1, class: "metric" }, root);
+  el("path", { d: g.svg, class: "outline", "fill-rule": "nonzero" }, root);
+  for (const s of g.skeleton) {
+    const d = s.segments.map((P, i) => (i ? "" : `M${P[0][0]},${P[0][1]}`) + (P.length === 4
+      ? `C${P[1][0]},${P[1][1]} ${P[2][0]},${P[2][1]} ${P[3][0]},${P[3][1]}` : `L${P[P.length - 1][0]},${P[P.length - 1][1]}`)).join(" ");
+    el("path", { d, class: "skel" }, root);
+  }
+  const grab = (c, name) => {
+    el("title", {}, c).textContent = name;
+    c.addEventListener("pointerdown", startDrag);
+    c.addEventListener("pointerenter", () => { if (!dragging) $("pointinfo").textContent = describePoint(name); });
+  };
+  // points of the expanded outline (squares): every glyph has them, also those built from shapes
+  if ($("showoutline").checked) for (const [name, [x, y]] of Object.entries(g.outline_points || {})) {
+    const r = 7;
+    grab(el("rect", { x: x - r, y: y - r, width: 2 * r, height: 2 * r, class: "opoint" + (name in overrides ? " moved" : ""),
+                      "data-name": name, "data-stage": "outline" }, root), name);
+  }
+  // skeleton nodes (circles): the strokes' own points
+  for (const s of g.skeleton) for (const n of s.nodes)
+    grab(el("circle", { cx: n.x, cy: n.y, r: 11, class: "node" + (n.name in overrides ? " moved" : ""), "data-name": n.name }, root), n.name);
+}
+
+function describePoint(name) {
+  const o = overrides[name];
+  return name + (o ? `  moved by (${o.dx}, ${o.dy})` : "");
+}
+
+let dragging = null;
+function fontPoint(evt) {                       // pointer position in font units (y up)
+  const root = document.getElementById("glyphroot");
+  const p = new DOMPoint(evt.clientX, evt.clientY).matrixTransform(root.getScreenCTM().inverse());
+  return [p.x, p.y];
+}
+function startDrag(evt) {
+  const c = evt.currentTarget;
+  const [px, py_] = fontPoint(evt);
+  const kx = c.tagName === "rect" ? "x" : "cx", ky = c.tagName === "rect" ? "y" : "cy";
+  dragging = { c, name: c.dataset.name, stage: c.dataset.stage, kx, ky, px, py: py_,
+               cx: +c.getAttribute(kx), cy: +c.getAttribute(ky), dx: 0, dy: 0 };
+  c.classList.add("drag");
+  c.setPointerCapture(evt.pointerId);
+  c.addEventListener("pointermove", moveDrag);
+  c.addEventListener("pointerup", endDrag, { once: true });
+  evt.preventDefault();
+}
+function moveDrag(evt) {
+  if (!dragging) return;
+  const [x, y] = fontPoint(evt);
+  dragging.dx = Math.round(x - dragging.px); dragging.dy = Math.round(y - dragging.py);
+  dragging.c.setAttribute(dragging.kx, dragging.cx + dragging.dx);
+  dragging.c.setAttribute(dragging.ky, dragging.cy + dragging.dy);
+  $("pointinfo").textContent = `${dragging.name}  (${dragging.dx >= 0 ? "+" : ""}${dragging.dx}, ${dragging.dy >= 0 ? "+" : ""}${dragging.dy})`;
+}
+function endDrag() {
+  const d = dragging; dragging = null;
+  d.c.removeEventListener("pointermove", moveDrag);
+  d.c.classList.remove("drag");
+  if (!d.dx && !d.dy) return;
+  const o = overrides[d.name] || { dx: 0, dy: 0 };
+  const n = { dx: o.dx + d.dx, dy: o.dy + d.dy };
+  if (d.stage) n.stage = d.stage;
+  if (n.dx || n.dy) overrides[d.name] = n; else delete overrides[d.name];
+  clearTimeout(timer); compile();              // the outline follows the point
+}
+
+function showChanges() {
+  const ov = Object.entries(overrides).sort().map(([k, o]) => `${k}: { dx: ${o.dx}, dy: ${o.dy}${o.stage ? ", stage: " + o.stage : ""} }`).join("\n");
+  const st = Object.fromEntries(Object.entries(state).filter(([, d]) => Object.keys(d).length));
+  $("ovtext").textContent = ov || "(none)";
+  $("statetext").textContent = Object.keys(st).length ? JSON.stringify(st, null, 1) : "(none)";
+  $("nchanges").textContent = Object.keys(overrides).length + Object.values(st).reduce((a, d) => a + Object.keys(d).length, 0);
+}
+
 $("face").addEventListener("change", selectFace);
-$("master").addEventListener("change", schedule);
+$("master").addEventListener("change", () => { loadSliders(); schedule(); });
 $("italic").addEventListener("change", schedule);
 $("filter").addEventListener("input", renderSliders);
 $("preview").addEventListener("input", schedule);
+$("glyphchar").addEventListener("input", () => { if ($("glyphchar").value) drawGlyph(); });
+$("showoutline").addEventListener("change", drawGlyph);
+// the glyph view follows the caret in the preview text
+for (const ev of ["keyup", "mouseup"]) $("preview").addEventListener(ev, () => {
+  const sel = getSelection();
+  if (!sel.rangeCount || !sel.anchorNode || sel.anchorNode.nodeType !== 3) return;
+  const ch = Array.from(sel.anchorNode.textContent.slice(0, sel.anchorOffset)).pop();
+  if (ch && ch.trim() && ch !== $("glyphchar").value) { $("glyphchar").value = ch; drawGlyph(); }
+});
+$("resetpoints").addEventListener("click", () => {
+  if (!glyphData) return;
+  const names = new Set([...glyphData.skeleton.flatMap(s => s.nodes.map(n => n.name)), ...Object.keys(glyphData.outline_points || {})]);
+  for (const k of Object.keys(overrides)) if (names.has(k)) delete overrides[k];
+  schedule();
+});
+$("resetparams").addEventListener("click", () => { delete state[master()]; loadSliders(); schedule(); });
 $("size").addEventListener("input", () => { $("preview").style.fontSize = $("size").value + "px"; });
 $("download").addEventListener("click", () => {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([lastOtf], { type: "font/otf" }));
-  a.download = `${info.family.replace(/ /g, "")}-${$("italic").checked ? "Italic" : "Regular"}.otf`;
+  a.download = `${info.family.replace(/ /g, "")}-${master()}${$("italic").checked ? "-Italic" : ""}.otf`;
   a.click();
 });
 boot().catch(e => { status("Failed to start: " + e.message); console.error(e); });

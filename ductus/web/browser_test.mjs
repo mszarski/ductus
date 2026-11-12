@@ -4,8 +4,10 @@
 //   node web/browser_test.mjs [out-dir]
 //
 // Serves web/ on a free local port, opens index.html with the local Pyodide and
-// Paper.js, waits for the first compile, then switches master, italic, face and a
-// parameter, saving a screenshot of each state. Exits 1 if any step reports an error.
+// Paper.js, waits for the first compile, then checks that each master's sliders show
+// and edit that master's own values, drags a stroke point and an outline point in the
+// glyph view, and switches italic and face, saving a screenshot of each state. Exits 1
+// if any step reports an error or a check fails.
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
@@ -50,12 +52,48 @@ async function step(label, action) {
   console.log(`${label}: ${last}`);
 }
 
+const failures = [];
+const check = (ok, what) => { console.log(`  ${ok ? "ok" : "FAILED"}: ${what}`); if (!ok) failures.push(what); };
+async function drag(selector, dx, dy) {
+  const box = await page.locator(selector).boundingBox();
+  const x = box.x + box.width / 2, y = box.y + box.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + dx / 2, y + dy / 2);
+  await page.mouse.move(x + dx, y + dy);
+  await page.mouse.up();
+}
+const appState = () => page.evaluate(() => window.ductusState());
+
 try {
   await step("sans_regular");
+  check((await page.textContent("#v_stem")) === "84", "Regular stem slider shows 84");
+  // the sliders show the selected master's own values
   await step("sans_bold", () => page.selectOption("#master", "700"));
-  await step("sans_bold_italic", () => page.check("#italic"));
+  const boldStem = +(await page.textContent("#v_stem"));
+  check(boldStem > 140, `Bold stem slider shows the Bold's value (${boldStem})`);
+  await step("sans_bold_stem", () => page.$eval("#params input[data-p=stem]", (el) => { el.value = 160; el.dispatchEvent(new Event("input")); }));
+  let st = await appState();
+  check(st.state["700"] && st.state["700"].stem === 160 && !st.state["400"], `the change is stored for the Bold only (${JSON.stringify(st.state)})`);
+  await step("sans_regular_again", () => page.selectOption("#master", "400"));
+  check((await page.textContent("#v_stem")) === "84", "Regular stem is still 84");
+  // drag a stroke point of the n, then an outline point of the e
+  const outline0 = await page.getAttribute("#glyphsvg path.outline", "d");
+  await step("drag_n_shoulder", () => drag('#glyphsvg circle[data-name="n.arch.shoulder"]', 25, -15));
+  st = await appState();
+  const o = st.overrides["n.arch.shoulder"];
+  check(o && o.dx > 0 && o.dy > 0, `dragging right and up gave a +x +y override (${JSON.stringify(o)})`);
+  check((await page.getAttribute("#glyphsvg path.outline", "d")) !== outline0, "the n's outline followed the point");
+  await page.fill("#glyphchar", "e");
+  await page.waitForSelector('#glyphsvg rect[data-name="e.bar.bl"]');
+  await step("drag_e_bar", () => drag('#glyphsvg rect[data-name="e.bar.bl"]', 0, 12));
+  st = await appState();
+  const ob = st.overrides["e.bar.bl"];
+  check(ob && ob.stage === "outline" && ob.dy < 0, `an outline point dragged down (${JSON.stringify(ob)})`);
+  await step("sans_bold_italic", async () => { await page.selectOption("#master", "700"); await page.check("#italic"); });
   await step("display", () => page.selectOption("#face", "display"));
   await step("display_text_opsz9", () => page.selectOption("#master", "9"));
+  check(+(await page.textContent("#v_hairline")) > 45, "the text master's hairline slider shows its heavier hairline");
   await step("display_stem120", async () => {
     await page.fill("#filter", "stem");
     await page.$eval("#params input[data-p=stem]", (el) => { el.value = 120; el.dispatchEvent(new Event("input")); });
@@ -67,4 +105,4 @@ try {
 await browser.close();
 server.close();
 for (const e of errors) console.log("console error:", e);
-process.exit(results.some(([, s]) => !s.includes("compiled")) ? 1 : 0);
+process.exit(results.some(([, s]) => !s.includes("compiled")) || failures.length ? 1 : 0);
