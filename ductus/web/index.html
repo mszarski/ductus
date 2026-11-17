@@ -56,6 +56,8 @@
   <label><span id="axisname">Master</span> <select id="master"></select></label>
   <label><input type="checkbox" id="italic"> Italic</label>
   <label>Size <input type="range" id="size" min="12" max="160" value="64"></label>
+  <button id="undo" disabled title="Undo (⌘Z / Ctrl+Z)">Undo</button>
+  <button id="redo" disabled title="Redo (⇧⌘Z / Ctrl+Y)">Redo</button>
   <button id="download" disabled>Download .otf</button>
   <span id="status">Loading Python…</span>
 </header>
@@ -108,8 +110,26 @@ const KEY_PARAMS = ["stem", "cap_stem", "hairline", "xheight", "capheight", "ove
                     "serif_len", "cap_serif_len", "arch_contrast", "round_gain"];
 const SVGNS = "http://www.w3.org/2000/svg";
 
-function loadScript(src) {
-  return new Promise((ok, fail) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = fail; document.head.appendChild(s); });
+// the compiler runs in a Web Worker (worker.js): the page stays responsive while it works
+const worker = new Worker(`worker.js?${new URLSearchParams({ pyodide: PYODIDE, paper: PAPER, build: BUILD })}`);
+const pending = new Map();
+let callId = 0, workerReady;
+const readyPromise = new Promise((ok, fail) => { workerReady = { ok, fail }; });
+worker.onmessage = (e) => {
+  const d = e.data;
+  if (d.status !== undefined) {
+    if (d.status === "ready") workerReady.ok();
+    else if (d.status.startsWith("Failed")) { status(d.status); workerReady.fail(new Error(d.status)); }
+    else status(d.status);
+    return;
+  }
+  const p = pending.get(d.id);
+  pending.delete(d.id);
+  if (d.error !== undefined) p.fail(new Error(d.error)); else p.ok(d.result);
+};
+worker.onerror = (e) => { status("Failed to start: " + e.message); workerReady.fail(e); };
+function call(fn, ...args) {
+  return new Promise((ok, fail) => { const id = ++callId; pending.set(id, { ok, fail }); worker.postMessage({ id, fn, args }); });
 }
 
 // state: {master: {param: value}} -- what the user set at each master;
@@ -117,7 +137,7 @@ function loadScript(src) {
 // (dx dy [stage], dw da dt dp at a stroke node, dv on <glyph>.@<param>)
 const DELTAS = ["dx", "dy", "dw", "da", "dt", "dv", "dp"];
 const emptyOverrides = () => ({ all: {}, masters: {} });
-let py, driver, info, state = {}, overrides = emptyOverrides(), mvals = {}, fontCount = 0, lastOtf = null, timer = null,
+let info, state = {}, overrides = emptyOverrides(), mvals = {}, fontCount = 0, lastOtf = null, timer = null,
     glyphData = null, selected = null;
 window.ductusState = () => ({ state, overrides });      // for tests and the console
 
@@ -159,21 +179,37 @@ function addDelta(name, deltas, stage) {
   if (DELTAS.some(k => o[k])) b[name] = o; else delete b[name];
 }
 
+// ---- undo: snapshots of the edits (sliders and overrides), per face ----
+let undoStack = [], redoStack = [], lastKey = null, lastTime = 0;
+const snapshot = () => JSON.stringify({ state, overrides });
+// call before changing the edits; changes with the same key in quick succession (one
+// slider drag) make one undo step
+function checkpoint(key = null) {
+  const now = Date.now();
+  if (key && key === lastKey && now - lastTime < 1000) { lastTime = now; return; }
+  undoStack.push(snapshot());
+  if (undoStack.length > 300) undoStack.shift();
+  redoStack = [];
+  lastKey = key; lastTime = now;
+  updateUndo();
+}
+function updateUndo() {
+  $("undo").disabled = !undoStack.length;
+  $("redo").disabled = !redoStack.length;
+}
+function jump(from, to) {
+  if (!from.length) return;
+  to.push(snapshot());
+  const d = JSON.parse(from.pop());
+  state = d.state; overrides = normalise(d.overrides);
+  lastKey = null;
+  updateUndo(); persist(); loadSliders(); schedule();
+}
+const undo = () => jump(undoStack, redoStack);
+const redo = () => jump(redoStack, undoStack);
+
 async function boot() {
-  await loadScript(PAPER);
-  const { loadPyodide } = await import(PYODIDE + "pyodide.mjs");
-  py = await loadPyodide({ indexURL: PYODIDE });
-  status("Loading packages…");
-  await py.loadPackage(["numpy", "pyyaml", "fonttools", "micropip"]);
-  const micropip = py.pyimport("micropip");
-  const manifest = await (await fetch(BUILD + "manifest.json")).json();
-  // the ductus wheel without its native dependencies (skia-pathops, typer): Paper.js does the booleans
-  await micropip.install.callKwargs(BUILD + manifest.wheel, { deps: false });
-  const zip = await (await fetch(BUILD + "examples.zip")).arrayBuffer();
-  py.unpackArchive(zip, "zip", { extractDir: "/home/pyodide/examples" });
-  py.FS.writeFile("/home/pyodide/driver.py", await (await fetch(BUILD + "driver.py")).text());
-  py.runPython("import sys; sys.path.insert(0, '/home/pyodide'); import driver");
-  driver = py.pyimport("driver");
+  await readyPromise;
   await selectFace();
 }
 
@@ -182,8 +218,9 @@ const master = () => +$("master").value;
 
 async function selectFace() {
   status("Loading face…");
-  info = JSON.parse(driver.describe(face()));
+  info = JSON.parse(await call("describe", face()));
   state = {}; overrides = emptyOverrides(); selected = null;
+  undoStack = []; redoStack = []; lastKey = null; updateUndo();
   $("savednote").textContent = restore() ? "edits restored from this browser" : "";
   $("scope").disabled = !info.masters.length;
   $("axisname").textContent = info.axis === "opsz" ? "Optical size" : info.axis === "wght" ? "Weight" : "Master";
@@ -195,8 +232,11 @@ async function selectFace() {
 }
 
 // the sliders show the selected master's own values (its designed or scaled ones, or the user's)
-function loadSliders() {
-  mvals = JSON.parse(driver.master_values(face(), JSON.stringify(state), master()));
+async function loadSliders() {
+  const m0 = master(), f0 = face();
+  const vals = JSON.parse(await call("master_values", f0, JSON.stringify(state), m0));
+  if (m0 !== master() || f0 !== face()) return;          // the selection changed meanwhile
+  mvals = vals;
   const m = master();
   $("mastername").textContent = info.masters.length
     ? `Values at ${$("axisname").textContent.toLowerCase()} ${m}` + (m === info.default ? " (the default master)" : " (this master's own)")
@@ -216,6 +256,7 @@ function renderSliders() {
   }).join("");
   for (const el of $("params").querySelectorAll("input[type=range]")) {
     el.addEventListener("input", () => {
+      checkpoint(`slider:${master()}:${el.dataset.p}`);
       (state[master()] ||= {})[el.dataset.p] = +el.value;
       persist();
       mvals[el.dataset.p][0] = +el.value;
@@ -226,29 +267,41 @@ function renderSliders() {
   }
 }
 
-function schedule() { clearTimeout(timer); timer = setTimeout(compile, 250); }
+function schedule() { clearTimeout(timer); timer = setTimeout(compile, 150); }
 
+// one compile at a time in the worker; changes made meanwhile are compiled next, in one go
+let compiling = false, again = false;
 async function compile() {
+  if (compiling) { again = true; return; }
+  compiling = true;
+  try {
+    do { again = false; await compileOnce(); } while (again);
+  } finally { compiling = false; }
+}
+
+async function compileOnce() {
   const text = $("preview").innerText;
   status("Compiling…");
   const t0 = performance.now();
+  const gseq = ++glyphSeq;
   try {
-    const res = driver.build(face(), JSON.stringify(state), text, $("italic").checked, master(), JSON.stringify(overrides));
+    const [res, g] = await Promise.all([
+      call("build", face(), JSON.stringify(state), text, $("italic").checked, master(), JSON.stringify(overrides)),
+      glyphRequest(),
+    ]);
     $("exports").innerHTML = "";
-    const [bytes, ms, n] = res.toJs();
-    res.destroy();
     const name = "DuctusPreview" + (++fontCount);
-    const ff = new FontFace(name, bytes);
+    const ff = new FontFace(name, res.bytes);
     await ff.load();
     document.fonts.add(ff);
     $("preview").style.fontFamily = `"${name}", monospace`;
-    lastOtf = bytes;
+    lastOtf = res.bytes;
     $("download").disabled = false;
-    drawGlyph();
+    if (!dragging && gseq === glyphSeq) renderGlyph(g);
     showChanges();
-    status(`${n} glyphs compiled in ${Math.round(ms)} ms (round trip ${Math.round(performance.now() - t0)} ms)`);
+    status(`${res.n} glyphs compiled in ${Math.round(res.ms)} ms (round trip ${Math.round(performance.now() - t0)} ms)`);
   } catch (e) {
-    status("Error: " + e.message.split("\n").slice(-2).join(" "));
+    status("Error: " + e.message.split("\n").filter(Boolean).slice(-2).join(" "));
     console.error(e);
   }
 }
@@ -261,10 +314,18 @@ function el(tag, attrs, parent) {
   return e;
 }
 
-function drawGlyph() {
+function glyphRequest() {
   const ch = $("glyphchar").value || "n";
-  const italic = $("italic").checked;
-  const g = JSON.parse(driver.glyph(face(), JSON.stringify(state), ch, master(), JSON.stringify(overrides), italic));
+  return call("glyph", face(), JSON.stringify(state), ch, master(), JSON.stringify(overrides), $("italic").checked).then(JSON.parse);
+}
+// redraw the glyph view alone (another glyph, a selection); the newest request wins
+let glyphSeq = 0;
+async function drawGlyph() {
+  const seq = ++glyphSeq;
+  const g = await glyphRequest();
+  if (seq === glyphSeq && !dragging) renderGlyph(g);
+}
+function renderGlyph(g) {
   const svg = $("glyphsvg");
   svg.innerHTML = "";
   if (g.error) { $("glyphname").textContent = g.error; glyphData = null; return; }
@@ -343,6 +404,8 @@ function showNodeControls() {
     + `<span class="k">(${$("scope").value === "all" || !info.masters.length ? "all masters" : "this master only"})</span>`;
   for (const inp of box.querySelectorAll("input")) inp.addEventListener("change", () => {
     const b = bucket(), o = { ...(b[n.name] || {}) };
+    if ((o[inp.dataset.k] || 0) === (+inp.value || 0)) return;   // no change, no undo step
+    checkpoint();
     o[inp.dataset.k] = +inp.value || 0;
     if (DELTAS.some(k => o[k])) b[n.name] = o; else delete b[n.name];
     persist(); clearTimeout(timer); compile();
@@ -403,8 +466,8 @@ function endDrag() {
     if (d.c.tagName === "circle") { selected = selected === d.name ? null : d.name; drawGlyph(); }
     return;
   }
-  if (d.kind === "handle") { if (!d.dv) { drawGlyph(); return; } addDelta(d.name, { dv: d.dv }); }
-  else { if (!d.dx && !d.dy) { drawGlyph(); return; } addDelta(d.name, { dx: d.dx, dy: d.dy }, d.stage); }
+  if (d.kind === "handle") { if (!d.dv) { drawGlyph(); return; } checkpoint(); addDelta(d.name, { dv: d.dv }); }
+  else { if (!d.dx && !d.dy) { drawGlyph(); return; } checkpoint(); addDelta(d.name, { dx: d.dx, dy: d.dy }, d.stage); }
   persist();
   clearTimeout(timer); compile();              // the outline follows the point
 }
@@ -442,8 +505,8 @@ $("showoutline").addEventListener("change", drawGlyph);
 $("showhandles").addEventListener("change", drawGlyph);
 $("scope").addEventListener("change", showNodeControls);
 // export: the edits as the face's files (overrides.yaml, overrides_<master>.yaml, params_<master>.json)
-$("export").addEventListener("click", () => {
-  const files = JSON.parse(driver.export(face(), JSON.stringify(state), JSON.stringify(overrides)));
+$("export").addEventListener("click", async () => {
+  const files = JSON.parse(await call("export", face(), JSON.stringify(state), JSON.stringify(overrides)));
   const box = $("exports");
   box.innerHTML = Object.keys(files).length ? "Files for the face's folder: " : "Nothing to export yet.";
   for (const [name, text] of Object.entries(files)) box.appendChild(download(name, text, "text/plain"));
@@ -457,6 +520,7 @@ $("importedits").addEventListener("change", async () => {
   try {
     const d = JSON.parse(await file.text());
     if (d.face && d.face !== face()) { $("face").value = d.face; await selectFace(); }
+    checkpoint();
     state = d.state || {}; overrides = normalise(d.overrides);
     persist(); loadSliders(); schedule();
     $("savednote").textContent = `opened ${file.name}`;
@@ -464,7 +528,7 @@ $("importedits").addEventListener("change", async () => {
   $("importedits").value = "";
 });
 $("clearedits").addEventListener("click", () => {
-  if (!confirm("Discard every slider change and moved point of this face?")) return;
+  checkpoint();                                  // undoable, so no confirmation
   state = {}; overrides = emptyOverrides(); selected = null;
   persist(); loadSliders(); schedule();
 });
@@ -479,11 +543,23 @@ $("resetpoints").addEventListener("click", () => {
   if (!glyphData) return;
   const names = new Set([...glyphData.skeleton.flatMap(s => s.nodes.map(n => n.name)), ...Object.keys(glyphData.outline_points || {}),
                          ...(glyphData.handles || []).map(h => `${glyphData.points_of}.@${h.param}`)]);
+  checkpoint();
   const b = bucket(false);
   for (const k of Object.keys(b)) if (names.has(k)) delete b[k];
   persist(); schedule();
 });
-$("resetparams").addEventListener("click", () => { delete state[master()]; persist(); loadSliders(); schedule(); });
+$("resetparams").addEventListener("click", () => { checkpoint(); delete state[master()]; persist(); loadSliders(); schedule(); });
+$("undo").addEventListener("click", undo);
+$("redo").addEventListener("click", redo);
+// ⌘Z / Ctrl+Z undo, ⇧⌘Z / Ctrl+Y redo -- except while typing, where the text's own undo applies
+document.addEventListener("keydown", (e) => {
+  if (!(e.metaKey || e.ctrlKey)) return;
+  const t = e.target;
+  if (t.isContentEditable || (t.tagName === "INPUT" && t.type !== "range" && t.type !== "checkbox")) return;
+  const k = e.key.toLowerCase();
+  if (k === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+  else if ((k === "z" && e.shiftKey) || k === "y") { e.preventDefault(); redo(); }
+});
 $("size").addEventListener("input", () => { $("preview").style.fontSize = $("size").value + "px"; });
 $("download").addEventListener("click", () => {
   download(`${info.family.replace(/ /g, "")}-${master()}${$("italic").checked ? "-Italic" : ""}.otf`, lastOtf, "font/otf").click();

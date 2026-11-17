@@ -43,7 +43,8 @@ from the upright (`ductus.italic`, declared as `font.italic`):
 
 **M7 (the compiler in the browser), working.** `web/` is a browser-only
 editor:
-- Pyodide runs the compiler itself.
+- Pyodide runs the compiler itself, in a Web Worker, so the page stays
+  responsive. Every edit can be undone.
 - Paper.js stands in for skia-pathops, which has no Pyodide build
   (`ductus/_pathops_js.py`, used automatically when `import pathops`
   fails).

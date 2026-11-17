@@ -8,6 +8,7 @@
 // and edit that master's own values; in the glyph view drags a stroke point, an outline
 // point and a parameter handle, moves a point at one master only, edits a node's width,
 // drags in the italic view; reloads the page (the edits are kept), exports the files;
+// undoes and redoes; checks the page keeps drawing while the worker compiles;
 // switches face. Saves a screenshot of each state. Exits 1 if any step reports an error
 // or a check fails.
 import http from "node:http";
@@ -105,6 +106,32 @@ try {
   await step("n_shoulder_width", async () => { await page.fill('#nodectl input[data-k="dw"]', "14"); await page.dispatchEvent('#nodectl input[data-k="dw"]', "change"); });
   st = await appState();
   check(st.overrides.all["n.arch.shoulder"].dw === 14, `the width control wrote dw (${JSON.stringify(st.overrides.all["n.arch.shoulder"])})`);
+  // undo and redo (button, then keys with the focus out of text fields)
+  await step("undo_width", () => page.click("#undo"));
+  st = await appState();
+  check(!st.overrides.all["n.arch.shoulder"].dw, `undo took the width change back (${JSON.stringify(st.overrides.all["n.arch.shoulder"])})`);
+  await step("redo_width", async () => { await page.evaluate(() => document.activeElement.blur()); await page.keyboard.press("Control+Shift+Z"); });
+  st = await appState();
+  check(st.overrides.all["n.arch.shoulder"].dw === 14, "redo (Ctrl+Shift+Z) brought it back");
+  await step("undo_key", () => page.keyboard.press("Control+Z"));
+  check(!(await appState()).overrides.all["n.arch.shoulder"].dw, "Ctrl+Z undid it");
+  await step("redo_button", () => page.click("#redo"));
+  // a slider drag is one undo step, and the page keeps drawing frames while the worker compiles
+  const gap = await page.evaluate(async () => {
+    const el = document.querySelector("#params input[data-p=stem]");
+    for (const v of [86, 88, 90, 92]) { el.value = v; el.dispatchEvent(new Event("input")); }
+    let worst = 0, t = performance.now();
+    const end = t + 1500;
+    while (performance.now() < end) {
+      await new Promise((r) => requestAnimationFrame(r));
+      const n = performance.now(); worst = Math.max(worst, n - t); t = n;
+    }
+    return worst;
+  });
+  await step("stem_92", null);
+  check(gap < 150, `no frame longer than 150 ms during a compile (${Math.round(gap)} ms)`);
+  await step("undo_stem", () => page.click("#undo"));
+  check((await page.textContent("#v_stem")) === "84", "one undo took the whole slider drag back");
   // a move at the Bold only
   await step("bold_again", () => page.selectOption("#master", "700"));
   await page.selectOption("#scope", "master");
@@ -117,7 +144,7 @@ try {
   await step("bold_italic_view", () => page.check("#italic"));
   check((await page.textContent("#glyphname")).includes("italic"), "the glyph view shows the italic");
   await page.fill("#glyphchar", "l");
-  await page.waitForSelector("#glyphsvg circle.node");
+  await page.waitForFunction(() => document.getElementById("glyphname").textContent.startsWith("l "));
   const lnode = await page.getAttribute("#glyphsvg circle.node", "data-name");
   await step("italic_drag", () => drag(`#glyphsvg circle[data-name="${lnode}"]`, 30, 0));
   st = await appState();
@@ -129,6 +156,7 @@ try {
   await step("reloaded", () => page.reload());
   check(JSON.stringify(await appState()) === before, "the edits were restored after a reload");
   await page.click("#export");
+  await page.waitForSelector("#exports a");
   const files = await page.$$eval("#exports a", (as) => as.map((a) => a.textContent));
   check(files.includes("overrides.yaml") && files.includes("overrides_700.yaml") && files.includes("params_700.json"),
         `export offers the face's files (${files.join(", ")})`);

@@ -1,7 +1,10 @@
 # Ductus in the browser (SPEC M7)
 
-A browser-only editor: Pyodide runs the Ductus compiler in the page, so
-there is nothing to install.
+A browser-only editor: Pyodide runs the Ductus compiler in the browser, so
+there is nothing to install. It runs in a Web Worker (`worker.js`, which
+loads Paper.js and Pyodide and calls `driver.py`), so the page keeps
+responding while a preview compiles. Changes made during a compile are
+compiled together right after it.
 
 ```bash
 python web/build.py                 # -> web/_build/: the ductus wheel, examples.zip, driver.py
@@ -54,6 +57,9 @@ python -m http.server -d web 8000   # then open http://localhost:8000/
     `master_light.json`);
   - open "Changes" to see the overrides (in `overrides.yaml` format, per
     master) and the slider values per master;
+  - **undo / redo** every edit (buttons, ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Y; a
+    slider drag is one step; in the preview text the text's own undo
+    applies). The history is per face and lasts until the page is reloaded;
   - edit the preview text, which compiles only the glyphs it uses;
   - download the .otf.
 - **Offline.** `python web/build.py --pyodide <a Pyodide 0.27.7
@@ -73,7 +79,9 @@ python -m http.server -d web 8000   # then open http://localhost:8000/
     - a move at the Bold only;
     - a drag in the italic view (stored upright);
     - edits restored after a reload;
-    - the export.
+    - the export;
+    - undo and redo (button and keys; a slider drag is one step);
+    - that the page keeps drawing frames (none over 150 ms) while the worker compiles.
 
     It then switches face and saves screenshots. Each preview takes about 0.5–0.8 s.
 - **Where Paper.js needed help** (the guards in `JS_SOURCE`):
