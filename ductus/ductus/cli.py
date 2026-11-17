@@ -146,6 +146,8 @@ def kern(font_py: Path,
          punct_strength: float = typer.Option(0.3, help="... for pairs with punctuation"),
          clearance: float = typer.Option(90, help="closest the outlines may come (font units)"),
          min_abs: int = typer.Option(10, help="drop smaller kerns"),
+         saturate: float = typer.Option(0.0, help="fade the style weights out as a pair's optical difference "
+                                                  "grows past about this many units (0: off)"),
          style: Optional[Path] = typer.Option(None, help="per-glyph style weights JSON (default: kern_style.json beside the font, if present)"),
          master: Optional[int] = typer.Option(None, help="kern a weight master of font.variable (its axis value); "
                                                           "default output kerning_<value>.json beside the font"),
@@ -156,10 +158,10 @@ def kern(font_py: Path,
     as data for the font to load."""
     from .italic import italic_mode
     with italic_mode(italic):
-        _kern(font_py, out, strength, punct_strength, clearance, min_abs, style, master, italic)
+        _kern(font_py, out, strength, punct_strength, clearance, min_abs, style, master, italic, saturate)
 
 
-def _kern(font_py, out, strength, punct_strength, clearance, min_abs, style, master, italic):
+def _kern(font_py, out, strength, punct_strength, clearance, min_abs, style, master, italic, saturate=0.0):
     import unicodedata
     from .kerning import autokern
     font = load_font(font_py)
@@ -199,13 +201,14 @@ def _kern(font_py, out, strength, punct_strength, clearance, min_abs, style, mas
                                                 if len(wl) > 2 or len(wf) > 2 else [])
     t0 = time.perf_counter()
     pairs = autokern(cf.glyphs, names, min_abs=min_abs, strength=strength, punct_strength=punct_strength,
-                     clearance=clearance, weights=weights)
+                     clearance=clearance, weights=weights, saturate=saturate)
     stem = "kerning_italic" if italic else "kerning"
     out = out or font_py.parent / (f"{stem}.json" if master is None else f"{stem}_{master}.json")
     out.write_text(json.dumps({
         "generated_by": "ductus kern",
         "settings": {"strength": strength, "punct_strength": punct_strength, "clearance": clearance,
-                     "min_abs": min_abs, "style": style.name if weights else None},
+                     "min_abs": min_abs, "style": style.name if weights else None,
+                     **({"saturate": saturate} if saturate else {})},
         "glyphs": len(names),
         "pairs": [[a, b, v] for (a, b), v in sorted(pairs.items())]}, indent=0, ensure_ascii=False) + "\n")
     typer.echo(f"{len(pairs)} pairs from {len(names)} glyphs in {time.perf_counter() - t0:.1f}s -> {out}")

@@ -118,7 +118,7 @@ python examples/sans/make_sheet.py NN                            # docs/sans/NN.
 python tools/fitting/gfit.py 400 GLYPH 200                       # per-glyph refit (700 / 300 for the masters); see docs/fitting.md
 ductus kern  examples/sans/font.py --clearance 60 --min-abs 5 --italic   # and --master 700 / 300: italic kerning
 ductus build examples/sans/font.py --variable --italic -o out/   # DuctusSans-Italic-VF.otf
-ductus kern  examples/display_serif/font.py --master 9           # the text master's kerning (opsz 9)
+ductus kern  examples/display_serif/font.py --saturate 150 --master 9   # the text master's kerning (opsz 9)
 ductus build examples/display_serif/font.py --variable -o out/   # DuctusDisplay-VF.otf, opsz 9-72
 
 ductus build examples/test_font/font.py -o out/                 # static .otf (validated with fontTools + OTS)

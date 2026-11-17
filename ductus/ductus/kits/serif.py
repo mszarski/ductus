@@ -269,6 +269,13 @@ DEFAULTS: dict[str, tuple] = {
     "U_t": (1.0, (0.75, 1.5)), "J_t": (1.0, (0.75, 1.5)),
     "ss_t": (1.0, (0.75, 1.5)),
     "at_root_dy": (20, (0, 120)),            # @: where the ring leaves the inner stem, above its foot
+    "at_stem_dx": (0, (-40, 80)),            # @: the inner stem (and the ring's root) moved right of the bowl's wall
+    "at_stem_top": (0, (-40, 80)),           # @: the inner stem's top above the inner bowl's top
+    # at_style="hook" (@): the hook's lowest point, as a share of the way from the stem to the ring's right
+    # side, and its height above the inner bowl's foot; at_hook_dw: added to the ring's width there
+    "at_in_bk": (1.0, (0.7, 1.6)),           # @: the inner bowl's walls against the inner stem's weight
+    "at_stem_taper": (0, (0, 0.7)),          # @ (at_style="hook"): the inner stem thins by this share toward its foot
+    "at_hook_x": (0.3, (0.05, 0.8)), "at_hook_y": (0, (-40, 80)), "at_hook_dw": (0, (-40, 40)),
     # amp_style="branch" (&): leg end x, the diagonal's direction (from the leg) and where it reaches the loop,
     # the loop's right side, top x, left side, the waist below it (and its direction), the bowl's left side,
     # bottom x, where the bowl rejoins the diagonal (and its direction), the arm's root (and direction) and end
@@ -453,8 +460,10 @@ DEFAULTS: dict[str, tuple] = {
     "diaer_r": (56, (35, 75)), "diaer_gap": (180, (130, 240)), "diaer_y": (662, (620, 700)), "diaer_wk": (1.0, (0.6, 1.3)),
     "ring_w": (166, (120, 220)), "ring_h": (160, (120, 220)), "ring_y0": (577, (540, 620)),
     "ring_thick": (38, (20, 60)), "ring_thin": (22, (10, 50)),
-    "ced_w": (60, (30, 90)), "ced_thin": (20, (8, 40)), "ced_len": (125, (80, 180)), "ced_drop": (200, (150, 240)),
+    "ced_w": (60, (30, 90)), "ced_thin": (20, (8, 60)), "ced_len": (125, (80, 180)), "ced_drop": (200, (150, 240)),
     "ced_neck": (-60, (-100, -20)),
+    "ced_curl_dy": (0, (-60, 60)),
+    "ced_hook_dx": (0, (-40, 60)),           # ced_style="tick2": where the hook starts, right of the tick's foot           # the cedilla's rightmost point (curl) moved up from its default height
     # the neck may start right of the hook and slant down-left into it; the hook's end reaches back ced_end_x * len
     "ced_root_dx": (0, (-20, 120)), "ced_root_dir": (262, (200, 280)), "ced_end_x": (0.25, (0.0, 0.8)), "ced_end_dir": (180, (120, 200)), "ced_end_dy": (0, (-20, 120)), "ced_bot_x": (0.3, (-0.2, 0.7)), "ced_top": (60, (-20, 120)), "ced_t": (1.0, (0.7, 1.4)), "ced_neck_dir": (0, (-60, 40)),
     # placement: acute and grave sit by their foot, not their centre, so their
@@ -505,12 +514,15 @@ DEFAULTS: dict[str, tuple] = {
     "caret_t": (50, (25, 80)),
     "atilde_dy": (-391, (-460, -320)), "tl_len": (286, (220, 500)), "tl_amp": (64, (30, 200)),
     "tl_w": (54, (20, 120)), "tl_dir": (60, (20, 90)), "tl_hx": (0.35, (0.2, 0.5)), "tl_tr": (0.2, (-0.3, 0.5)), "tl_rr": (0.3, (-0.3, 0.6)),
+    # the ~'s pen: its angle and contrast (0: an even stroke; a broad nib near -45 makes the rises heavy, the fall thin)
+    "tl_pen": (0, (-90, 90)), "tl_contrast": (0, (0, 0.8)),
     # ---- Æ Œ Ø æ œ ø ß ------------------------------------------------------
     "oslash_w": (56, (30, 90)), "Oslash_x0": (22, (-40, 100)), "Oslash_x1": (610, (520, 720)),
     "oslash_x0": (0, (-40, 80)), "oslash_x1": (430, (360, 520)), "oslash_os": (12, (-20, 40)),
     "AE_x": (522, (440, 600)), "AE_top_x": (421, (340, 500)), "AE_thick": (90, (20, 130)),
     "AE_top_l": (40, (0, 120)), "AE_bar_y": (243, (180, 300)), "AE_bar_t": (34, (20, 60)),
     "AE_top_w": (384, (300, 460)), "AE_mid_w": (303, (220, 380)), "AE_bot_w": (427, (340, 500)),
+    "AE_foot_dx": (0, (-60, 60)),            # the Æ's diagonal foot moved right (the diagonal slides, not only pivots)
     "OE_dw": (0, (-60, 0)), "OE_right_k": (0.5, (0.2, 1.2)), "OE_x": (585, (400, 680)), "OE_top_w": (352, (280, 440)),
     "OE_mid_w": (270, (200, 350)), "OE_bot_w": (390, (300, 470)),
     "ae_dx": (328, (260, 400)), "oe_dx": (412, (340, 480)),
@@ -756,7 +768,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
            dot_style: str = "round", ligatures: bool = True,
            b_style: str = "bowl", E_serifs: str = "rect",
            G_jaw: str = "bar", r_style: str = "ear", ec_aperture: str = "tip", ced_style: str = "curl",
-           pound_foot: str = "stem", euro_aperture: str = "cut"):
+           pound_foot: str = "stem", euro_aperture: str = "cut", at_style: str = "ring"):
     """Register the kit's glyphs on ``font``. ``g_ear``: ``"stroke"`` (a
     short stroke taking the ``ear`` terminal, e.g. a ball) or ``"flag"`` (a
     four-sided flag). ``g_band``: ``"flat"`` puts a flat bar across the top of
@@ -813,7 +825,9 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     set cuts it level, as a grotesque's). ``chevron_style`` (< >): ``"stroke"``
     (two strokes meeting in a point) or ``"level"`` (one polygon: arms
     ``lt_t`` thick measured vertically, ends cut vertically, the tip a
-    vertical face ``lt_tip`` tall). ``amp_style``: ``"stroke"`` (one stroke
+    vertical face ``lt_tip`` tall). ``at_style``: ``"ring"`` (the @'s ring leaves
+    the inner a's stem from its side) or ``"hook"`` (the stem runs on down into
+    a hook that rises into the ring, ``at_hook_*``). ``amp_style``: ``"stroke"`` (one stroke
     from the arm round to the leg) or ``"branch"`` (a grotesque's: a
     straight diagonal from the leg up into the loop, round the loop, down
     through the crossing into the lower bowl and back into the diagonal;
@@ -2149,13 +2163,30 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     def cedilla_(gl):
         pen = Pen(angle=0, width=P.ced_w, contrast=1 - P.ced_thin / P.ced_w)
         L, d = P.ced_len, P.ced_drop
+        if ced_style == "tick2":
+            # a grotesque's cedilla as two strokes: the tick, slanting down-left from under the letter, and
+            # the hook, starting level from the tick's foot (a single stroke turning that sharply folds)
+            gl.line((P.ced_root_dx, 15), (0, P.ced_neck), name="tick", names=("root", "foot"),
+                    terminal=(False, False), pen=pen)
+            (gl.path(name="mark", pen=pen)
+                .start((P.ced_hook_dx, P.ced_neck), name="neck", dir=P.ced_neck_dir, terminal=False)
+                .curve_to((L * 0.75, -(d + P.ced_neck) / 2 + P.ced_neck * 0.3 + P.ced_curl_dy), name="curl", dir=270,
+                          tension=P.ced_t)
+                .curve_to((L * P.ced_bot_x, -d + P.ced_thin / 2), name="bottom", dir=180, tension=P.ced_t)
+                .curve_to((-L * P.ced_end_x, -d + P.ced_thin / 2 + P.ced_end_dy), name="end", dir=P.ced_end_dir,
+                          terminal="ced_end", tension=P.ced_t))
+            if level_trim:
+                (gl.cut("top").move((-400, P.ced_top), "a").line((600, P.ced_top), "b").line((600, P.ced_top + 400), "c")
+                    .line((-400, P.ced_top + 400), "d").close())
+            return
         if ced_style == "tick":
             # a grotesque's cedilla: a straight tick slanting down-left from under the letter
             # into a corner, then the hook round to the left
             (gl.path(name="mark", pen=pen)
                 .start((P.ced_root_dx, 15), name="root", terminal=False)
                 .line_to((0, P.ced_neck), name="neck", dir=P.ced_neck_dir)
-                .curve_to((L * 0.75, -(d + P.ced_neck) / 2 + P.ced_neck * 0.3), name="curl", dir=270, tension=P.ced_t)
+                .curve_to((L * 0.75, -(d + P.ced_neck) / 2 + P.ced_neck * 0.3 + P.ced_curl_dy), name="curl", dir=270,
+                          tension=P.ced_t)
                 # the hook passes level under the curl at ced_bot_x, then may run on round and up
                 # (ced_end_dir / ced_end_dy), ending heading up-left
                 .curve_to((L * P.ced_bot_x, -d + P.ced_thin / 2), name="bottom", dir=180, tension=P.ced_t)
@@ -2243,10 +2274,10 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         ch, X = P.capheight, P.AE_x
         cap_stem(gl, x=X, head=False, foot="cap_foot_l")
         thick = Pen(angle=0, width=P.AE_thick, contrast=0)
-        gl.line((P.AE_top_x, ch), (0, 0), name="diag", names=("top", "foot"), terminal=("apex", "A_lfoot"), pen=thick)
+        gl.line((P.AE_top_x, ch), (P.AE_foot_dx, 0), name="diag", names=("top", "foot"), terminal=("apex", "A_lfoot"), pen=thick)
         e_arms(gl, X, P.AE_top_x - P.AE_top_l, P.AE_top_w, P.AE_mid_w, P.AE_bot_w)
-        k = P.AE_top_x / ch
-        rect(gl, "bar", P.AE_bar_y * k, P.AE_bar_y - P.AE_bar_t / 2, X, P.AE_bar_y + P.AE_bar_t / 2)
+        k = (P.AE_top_x - P.AE_foot_dx) / ch       # the bar starts on the diagonal
+        rect(gl, "bar", P.AE_foot_dx + P.AE_bar_y * k, P.AE_bar_y - P.AE_bar_t / 2, X, P.AE_bar_y + P.AE_bar_t / 2)
 
     @g("OE", sb=(0, 0))
     def OE(gl):
@@ -2511,19 +2542,32 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         pen = Pen(angle=0, width=t * P.at_pen_k, contrast=1 - t / (t * P.at_pen_k))
         # at_in_k: the inner a's weight against the lowercase stem (Geist's Bold @ has a lighter a)
         st = P.stem * P.at_in_k
-        sx = ix + iw + st / 2                       # the inner stem's centre
+        sx = ix + iw + st / 2 + P.at_stem_dx        # the inner stem's centre
         # at_in_tr: the inner bowl's right wall (against the stem) as a share of its left one -- an a's bowl
         # thins into its stem; at 1 both walls are the stem's weight and the junction doubles up
-        gl += bowl(name="inner", x=ix, width=iw, bottom=iy, top=iy + ih, thick=st, thin=P.hairline * P.at_in_k,
-                   thick_right=st * P.at_in_tr)
+        bk = P.at_in_bk
+        gl += bowl(name="inner", x=ix, width=iw, bottom=iy, top=iy + ih, thick=st * bk, thin=P.hairline * P.at_in_k * bk,
+                   thick_right=st * bk * P.at_in_tr)
         # at_lean: the inner stem's top moves right by this much (Geist's leans like an italic a)
         # at_stem_dy: the stem's bottom stops this far above the inner bowl's foot (the ring's root carries
         # the junction, as Geist's does, instead of a square stem end below it)
-        gl.line((sx - st / 2, iy + P.at_stem_dy), (sx - st / 2 + P.at_lean, iy + ih), name="stem", names=("bottom", "top"),
-                terminal=(False, False), pen=Pen(angle=0, width=st, contrast=0))
+        gl.line((sx - st / 2, iy + P.at_stem_dy), (sx - st / 2 + P.at_lean, iy + ih + P.at_stem_top), name="stem", names=("bottom", "top"),
+                terminal=(False, False), pen=Pen(angle=0, width=st, contrast=0),
+                profile=Profile((0, 1 - P.at_stem_taper), (1, 1)) if at_style == "hook" else None)
         cy = bot + H / 2
-        (gl.path(name="ring", pen=pen)
-            .start((sx - st / 2, iy + P.at_root_dy), name="root", dir=P.at_root_dir, terminal=False)
+        ring = gl.path(name="ring", pen=pen)
+        if at_style == "hook":
+            # the stem runs on into the ring: from its foot (at_stem_dy) down along the stem, round a
+            # hook (at_hook_x/y) and up into the ring's right side -- as Geist's, an a's stem curling out
+            x0, y0 = val(sx) - val(st) / 2, val(iy) + val(P.at_stem_dy)
+            x1, y1 = x0 + val(P.at_lean), val(iy) + val(ih) + val(P.at_stem_top)
+            down = math.degrees(math.atan2(y0 - y1, x0 - x1))
+            xr = W * P.at_right_x - t
+            (ring.start((x0, y0), name="root", dir=down, terminal=False, width=st * (1 - P.at_stem_taper) - t * P.at_pen_k)
+                 .curve_to((x0 + (xr - x0) * P.at_hook_x, iy + P.at_hook_y), name="hook", dir=0, width=P.at_hook_dw))
+        else:
+            ring.start((sx - st / 2, iy + P.at_root_dy), name="root", dir=P.at_root_dir, terminal=False)
+        (ring
             .curve_to((W * P.at_right_x - t, cy), name="right", dir=90)
             .curve_to((W * 0.5, bot + H - t / 2), name="top", dir=180)
             .curve_to((t, cy), name="left", dir=270)
@@ -2633,7 +2677,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         L, a = P.tl_len, P.tl_dir
         lo = P.tilde_lo + P.atilde_dy
         hi = lo + P.tl_amp
-        wave(gl, "wave", sym_pen(P.tl_w), L, lo, hi, a, P.tl_hx, P.tl_tr, P.tl_rr)
+        wave(gl, "wave", Pen(angle=P.tl_pen, width=P.tl_w, contrast=P.tl_contrast), L, lo, hi, a, P.tl_hx, P.tl_tr, P.tl_rr)
 
     # ---- punctuation ----------------------------------------------------
     def dot(gl, name, cx, cy, r, round_=False, circle=False, wk=1.0):

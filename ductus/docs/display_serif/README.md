@@ -990,3 +990,52 @@ more open, hairlines holding. The display master greys out and looks
 cramped there. Large, the text master reads as a sturdy text face. It is
 a little loose at 24 px, which is the right side of the trade-off for a
 9 pt master.
+
+## 36 — kerning: large pairs kerned as measured
+
+![“A, LT, AV before and after](36_kerning.png)
+
+The outliers “A, LT and AV came from the house style, not the optical
+measure:
+- **LT:** the measure gives −152, but the L's right side (0.63) times the
+  T's left side (0.50) scaled it to −48. Geist kerns it −140.
+- **AV:** the V's left weight (1.36) pushed it to −160, against Geist's
+  −110.
+
+The style is one weight per side, fitted mostly on small kerns, so it
+cannot say "these two sides together kern hard". A second weight pair per
+glyph (k = c·(wl·wr + ul·ur)) predicted held-out pairs no better.
+
+**New `saturate` setting** (`ductus kern --saturate`, `Kerner(saturate=)`;
+default 0 = off, so the sans and the benchmark are unchanged). The style
+weights fade out as a pair's optical difference grows: with
+s = exp(−|difference| / saturate), the weights' product w counts as
+1 + (w − 1)·s. Large pairs (an overhang, parallel diagonals) are kerned
+as the optical measure says.
+
+The style was refitted with it, at saturate 150, and now has per-side
+biases like the sans and benchmark styles. That adds small positive
+kerns: about 2.7% of pairs, against about 5% in Geist Serif's own
+kerning.
+
+Agreement with Geist Serif:
+
+| | letters corr / MAE | punctuation corr | big kerns (≥ 60) MAE | LT | AV | “A |
+|---|---|---|---|---|---|---|
+| before | 0.767 / 11.5 u | 0.753 | 33.0 u | −50 | −160 | −30 |
+| after | 0.797 / 10.5 u | 0.731 | 29.5 u | −110 | −145 | −40 |
+| Geist | | | | −140 | −110 | −140 |
+
+Self-critique:
+- **LT** now reads right.
+- **AV** is looser but still looks tight at display size: the V's left
+  weight is still high.
+- **“A** barely moves: quotes are kerned at the light punctuation
+  strength, and fading that too made punctuation as a whole agree much
+  less (0.75 → 0.66).
+- A larger clearance would loosen AV but makes everything else agree
+  less.
+
+All three files were re-kerned (`kerning.json`, `kerning_9.json`,
+`kerning_italic.json`) with
+`ductus kern examples/display_serif/font.py --saturate 150 [--master 9] [--italic]`.

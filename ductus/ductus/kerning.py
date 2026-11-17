@@ -101,7 +101,7 @@ class Kerner:
     def __init__(self, glyphs: dict, power: float = -32.0, depth: float = 500.0, strength: float = 0.5,
                  punct_strength: float | None = None, edge: float = 40.0, clearance: float = 20.0,
                  limit: tuple = (-160.0, 60.0), serif_height: float = 80.0, serif_reach: float = 100.0,
-                 weights: dict | None = None):
+                 weights: dict | None = None, saturate: float = 0.0):
         self.adv = {n: g.advance for n, g in glyphs.items()}
         self.raw = {n: profiles(g.contours) for n, g in glyphs.items() if g.contours}
         # the optical measure reads stems, not serif tips; collisions use the raw outline
@@ -120,6 +120,13 @@ class Kerner:
         # a side's house tightening the optical measure can't see (a class kern, e.g. the r's arm against
         # every x-height letter). Pairs of two punctuation marks take no bias.
         self.weights = weights or {}
+        # saturate (font units, 0 = off): the house style fades out as a pair's optical difference grows.
+        # A pair whose two sides together make a large difference (an overhang, parallel diagonals, quotes
+        # over an apex: LT, AV, "A) is kerned as the optical measure says, not scaled by per-glyph weights
+        # fitted mostly on small kerns: with s = exp(-|difference| / saturate), the weights' product w
+        # counts as 1 + (w - 1) s. (Fading punctuation's lighter strength too made the display serif's
+        # punctuation agree less with its reference, so only the weights fade.)
+        self.saturate = saturate
         self._d: dict = {}
 
     def gap(self, left: str, right: str) -> np.ndarray:
@@ -135,16 +142,29 @@ class Kerner:
             self._d[key] = _distance(self.gap(left, right), self.power, self.depth)
         return self._d[key]
 
-    def correction(self, left: str, right: str) -> float:
-        """The optical correction before style weights, limits and clearance."""
+    def difference(self, left: str, right: str) -> float:
+        """The pair's optical distance minus what its sides give against the neutral edge."""
         if left not in self.prof or right not in self.prof:
             return 0.0
         d = self.distance(left, right)
         exp = self.distance(left, "|") + self.distance("|", right) - self.distance("|", "|")
         if np.isnan(d) or np.isnan(exp):
             return 0.0
+        return d - exp
+
+    def style_share(self, left: str, right: str) -> float:
+        """How much of the house style applies to the pair: 1, or less with ``saturate``."""
+        if not self.saturate:
+            return 1.0
+        return float(np.exp(-abs(self.difference(left, right)) / self.saturate))
+
+    def correction(self, left: str, right: str) -> float:
+        """The optical correction before style weights, limits and clearance."""
+        diff = self.difference(left, right)
+        if not diff:
+            return 0.0
         st = self.punct_strength if (left in self.punct or right in self.punct) else self.strength
-        return -st * (d - exp)
+        return -st * diff
 
     def kern(self, left: str, right: str) -> int:
         if left not in self.prof or right not in self.prof:
@@ -153,7 +173,7 @@ class Kerner:
         if self.weights:
             wl = self.weights.get(left, (1.0, 1.0))
             wr = self.weights.get(right, (1.0, 1.0))
-            k *= wl[0] * wr[1]
+            k *= 1 + (wl[0] * wr[1] - 1) * self.style_share(left, right)
             if not (left in self.punct and right in self.punct):
                 k += (wl[2] if len(wl) > 2 else 0.0) + (wr[3] if len(wr) > 3 else 0.0)
         k = float(np.clip(k, *self.limit))

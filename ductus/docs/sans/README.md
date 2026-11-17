@@ -1292,3 +1292,55 @@ A corrected oblique derived from the upright by rules (`ductus.italic`,
   gives `DuctusSans-Italic-VF.otf` (wght 300–700, every glyph varying,
   instances "Light Italic" … "Bold Italic"). The italic flags are set in
   post, OS/2, head and hhea.
+
+## 32 — the @ and the cedilla rebuilt
+
+![@ and ç before and after, Light / Regular / Bold](32_at_cedilla.png)
+
+Both stalled because of their construction, not their values:
+- **@.** Geist's inner stem does not stand on the baseline: it runs on
+  down into a hook that rises into the ring. Ours was a square-footed
+  stem with the ring leaving its side, which no fit could turn into the
+  hook. New `kit.define(..., at_style="hook")`:
+  - the stem hands over to the ring at `at_stem_dy`, going down along the
+    stem;
+  - the ring rounds a hook (`at_hook_x`, `at_hook_y`, `at_hook_dw`) and
+    rises into its right side;
+  - the ring starts at the stem's width, so there is no step.
+
+  New controls for both styles, all defaulting to the old outline:
+  `at_stem_dx`, `at_stem_top`, `at_in_bk` (the inner bowl's walls against
+  the stem) and `at_stem_taper` (hook style).
+  IoU: Light 0.842 → 0.879, Regular 0.886 → 0.896, Bold 0.907 → 0.912.
+- **Cedilla.** At display size ours had a kinked stub where the tick
+  turned into the hook, and a wavy end cut off vertically:
+  - its thin was larger than its stroke width (an inverted pen);
+  - its tension was 0.77;
+  - the end left level, with the cut at 0.
+
+  Fixes:
+  - New `ced_style="tick2"`: the tick and the hook are two overlapping
+    strokes. One stroke turning about 110° folds over itself.
+  - `ced_curl_dy`: the hook's right side was placed by a fixed formula.
+  - `ced_hook_dx`: where the hook starts under the tick.
+  - Values re-measured from Geist's outline (a tick into an even-weight
+    round hook, ending steeply up-left), then fitted with `--composites`
+    at every weight.
+  - The Bold had kept the Regular's mark scaled by weight, heavier than
+    Geist's; it is now lighter and longer.
+
+  Results:
+  - ¸: Light 0.849 → 0.926, Regular 0.852 → 0.926, Bold 0.878 → 0.916.
+  - ç: 0.914 / 0.924 / 0.943.
+  - Ç: 0.894 / 0.887 / 0.854, slightly down (about 0.005, from the C's
+    terminals, not the mark).
+
+Self-critique: the Regular @'s inner bowl meets its stem with a short
+straight flat where Geist's is round. The Bold's inner a is still
+lighter than Geist's: a heavier one shrinks the counter, so bigger walls
+need a construction where the counter is set directly. The standalone ¸
+is set low on the baseline, which is right but easy to miss in proofs.
+
+Mean IoU vs Geist Sans: Light 0.9432 -> 0.9438, Regular 0.9575 -> 0.9580,
+Bold 0.9532 -> 0.9533. Kerning re-run at all three masters, upright and
+italic; both variable fonts build with every glyph varying.

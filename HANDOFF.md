@@ -94,19 +94,19 @@ points:
 
 | Font | Glyphs | Status |
 |---|---|---|
-| Ductus Sans (`examples/sans/`) | 183, incl. ¿ ¡ ¢; no fi ligature | Iterations 01–29 (`docs/sans/README.md`, sheets `NN.png` / `NN_sheet.png`; 19–29 are the per-glyph refits with `tools/fitting/gfit.py`). Mean IoU vs Geist Sans **0.9575** (Bold 0.9532, Light 0.9432). Kerning per master (`kerning.json`, `kerning_700.json`, `kerning_300.json`); agreement with Geist Sans corr 0.823, MAE 7.0 u |
-| Ductus Display (`examples/display_serif/`) | 184, incl. ¿ ¡ ¢ | Iterations 01–34 (34: by-eye review, ¢ added). Letters ≈ 0.944 vs Geist Serif. Kerning 5,378 pairs |
-| Benchmark (`benchmarks/geist_serif/`) | full kit set (184); core 16 = `CORE` | Core 16: 0.96–0.995 (mean 0.9767), 0 overrides. Whole set fitted per glyph (round 8): mean 0.936 over 122 base glyphs; side bearings fitted to Geist Serif (`spacing.json`), optical kerning with a fitted house style (agreement with Geist Serif corr 0.831); @ still 0.70 (internal only, never released) |
+| Ductus Sans (`examples/sans/`) | 183, incl. ¿ ¡ ¢; no fi ligature | Iterations 01–29 (`docs/sans/README.md`, sheets `NN.png` / `NN_sheet.png`; 19–29 are the per-glyph refits with `tools/fitting/gfit.py`). Mean IoU vs Geist Sans **0.9580** (Bold 0.9533, Light 0.9438; iteration 32). Kerning per master (`kerning.json`, `kerning_700.json`, `kerning_300.json`); agreement with Geist Sans corr 0.823, MAE 7.0 u |
+| Ductus Display (`examples/display_serif/`) | 184, incl. ¿ ¡ ¢ | Iterations 01–34 (34: by-eye review, ¢ added). Letters ≈ 0.944 vs Geist Serif. Kerning 8,167 pairs (iteration 36: the style refitted with `--saturate 150`; letters corr 0.797 with Geist Serif) |
+| Benchmark (`benchmarks/geist_serif/`) | full kit set (184); core 16 = `CORE` | Core 16: 0.96–0.995 (mean 0.9767), 0 overrides. Whole set fitted per glyph (round 8): mean 0.9391 over 122 base glyphs (~ 0.926, ¸ 0.804, Æ 0.872 since the broad-nib ~, the two-stroke cedilla and the Æ's foot offset); side bearings fitted to Geist Serif (`spacing.json`), optical kerning with a fitted house style (agreement with Geist Serif corr 0.831); @ still 0.70 (internal only, never released) |
 | Test font (`examples/test_font/`) | 7 | The M1 font |
 
 ### Ductus Sans weakest glyphs (IoU)
 
 | Glyph | IoU |
 |---|---|
-| standalone cedilla | 0.46 (ç Ç ≈ 0.88) |
+| Ç | 0.85–0.89 (the C's terminals; the cedilla itself is 0.92–0.93 since iteration 32) |
 | ~ | 0.74 |
 | ^ | 0.77 |
-| @ | 0.82 (Geist's inner a leans; ours is upright) |
+| @ | 0.88 Light, 0.90 Regular, 0.91 Bold (iteration 32: the stem now hooks into the ring) |
 | tilde mark, = | 0.82–0.83 |
 | quotes, comma | 0.83–0.84 (Geist's are wedges; ours are balls with tails) |
 | £ | 0.84 |
@@ -308,15 +308,20 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
    Set words in Light / Regular / Bold beside Geist and let the user mark
    what still reads wrong, including the per-weight kerning.
 3. **Remaining weak glyphs** (construction, not values):
-   - @ at Light (0.84) and in the serif benchmark (0.70: Geist Serif's
-     inner a differs);
-   - the cedilla's hook (Geist's ¸ curls up; the curled shape fits ¸ but
-     hurts ç / Ç, so it was kept for ç / Ç);
-   - the benchmark's ~ (contrast) and Æ (0.86).
+   - the serif benchmark's @ (0.70). Geist Serif's is a calligraphic italic
+     a: a pointed spur, a tapering stem running into the ring, and a
+     thin-thick ring. `at_style="hook"` with `at_stem_taper` was tried and
+     made a blob at the foot. It wants an italic-a construction, which a
+     single-storey italic a for the display serif could share;
+   - the sans @: the Regular's inner bowl has a short flat at the stem,
+     and the Bold's inner a is lighter than Geist's;
+   - Ç (0.85–0.89, the C's terminals).
 4. **Release preparation** (a new milestone; ask first): names, vertical
    metrics, the fi ligature (the sans has none), final variable-font
    validation, browser and word-processor tests.
-5. **Display serif kerning outliers:** “A, LT, AV.
+5. **Display serif kerning:** LT is fixed (iteration 36, `--saturate`). AV is still a little tight
+   (−145 against Geist's −110), and “A barely moved (−40 against −140): quotes kern at the light
+   punctuation strength.
 6. **M4 / M6 follow-ups:** an opsz axis for the sans; true italic forms
    (single-storey a, cursive f) for the display serif as an option; review
    the italics and the text cut in words with the user.
