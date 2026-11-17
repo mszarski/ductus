@@ -27,10 +27,33 @@ python -m http.server -d web 8000   # then open http://localhost:8000/
     circles are a stroke's skeleton points, squares the named points of
     the expanded outline (every glyph has those, including the ones built
     from shapes, like the e). Each drag is an override delta, as in
-    `overrides.yaml`, and applies at every master. An accented letter
-    shows its base's points. The view follows the caret in the preview;
-  - open "Changes" to see the overrides (in `overrides.yaml` format) and
-    the slider values per master;
+    `overrides.yaml`. An accented letter shows its base's points. The view
+    follows the caret in the preview;
+  - **click a circle** for that node's stroke controls: width (`dw`),
+    direction (`da`), tension (`dt`) and pen angle (`dp`, on turning-pen
+    strokes);
+  - **drag a triangle** (a primitive handle: join height, notch depth,
+    taper length, bowl thin...) along its dashed arm to change that
+    parameter for this glyph only (`<glyph>.@<param>: {dv}`);
+  - **moves apply to all masters, or to this master only** ("Moves apply
+    to"). A master's own moves are exported to `overrides_<value>.yaml`,
+    which both faces read for that master (`compile_master` adds a
+    setting's `"overrides"`). A move at the default master only is
+    exported as an all-master move plus the opposite move at every other
+    master, which is exactly that in a variable font;
+  - **in italic the glyph view is the italic as built** (slanted, round
+    glyphs half rotated). Drags are turned back into the upright move by
+    the inverse of the glyph's map (`ductus.italic.slant_matrix`), since
+    the italic is derived from the upright;
+  - **edits are kept in the browser** (per face; a reload restores them).
+    *Save edits…* downloads them as a JSON file; *Open edits* loads one
+    back. *Export files* offers the face's files: `overrides.yaml`,
+    `overrides_<value>.yaml`, and `params_<value>.json`, the slider values
+    per master. Put the default's into `font.py`'s `kit.params`; put another
+    master's into its `"params"` (for the sans, `master_bold.json` or
+    `master_light.json`);
+  - open "Changes" to see the overrides (in `overrides.yaml` format, per
+    master) and the slider values per master;
   - edit the preview text, which compiles only the glyphs it uses;
   - download the .otf.
 - **Offline.** `python web/build.py --pyodide <a Pyodide 0.27.7
@@ -43,9 +66,16 @@ python -m http.server -d web 8000   # then open http://localhost:8000/
     against skia (same contours, area within 0.5%).
   - `tests/test_web_driver.py` checks the page's Python side.
   - `node web/browser_test.mjs` (after `build.py --pyodide … --paper …`)
-    opens the page in headless Chromium. It checks that each master's sliders show
-    and store that master's own values, drags a stroke point and an
-    outline point, switches italic and face, and saves screenshots. Each preview takes about 0.5–0.75 s.
+    opens the page in headless Chromium and checks:
+    - each master's sliders show and store that master's own values;
+    - drags of a stroke point, an outline point and a handle;
+    - a node's width control;
+    - a move at the Bold only;
+    - a drag in the italic view (stored upright);
+    - edits restored after a reload;
+    - the export.
+
+    It then switches face and saves screenshots. Each preview takes about 0.5–0.8 s.
 - **Where Paper.js needed help** (the guards in `JS_SOURCE`):
   - **Self-union.** Uniting a compound path with an empty path
     mis-resolves overlapping strokes. Instead, each hole goes to the

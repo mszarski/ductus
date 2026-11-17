@@ -51,9 +51,14 @@ editor:
   preview text, and see it set in the freshly compiled font, then download
   the .otf.
 - Sliders show and edit the selected master's own values.
-- A glyph view shows the outline, skeleton and named points; dragging a
-  point writes an override delta, as the desktop editor does.
-- In headless Chromium a preview of about 40 glyphs compiles in 0.5–0.75 s
+- A glyph view shows the outline, skeleton, named points and primitive
+  handles (the italic as built, in italic). Dragging a point or handle, or
+  a node's width / direction / tension / pen-angle control, writes an
+  override delta, as the desktop editor does. Moves apply to all masters
+  or to one (its own `overrides_<value>.yaml`).
+- Edits are kept in the browser, saved and opened as a file, and exported
+  as the face's files.
+- In headless Chromium a preview of about 40 glyphs compiles in 0.5–0.8 s
   (`node web/browser_test.mjs`).
 - Through real Paper.js, every glyph of both faces, upright and italic,
   matches skia's outlines (contours, and area within 0.5%).

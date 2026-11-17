@@ -108,35 +108,70 @@ def _transform(contours, fn):
     return out
 
 
-def slant_glyph(g, angle: float, y0: float, rotate_k: float = 0.0):
-    """The glyph slanted by ``angle`` degrees about height ``y0``; with
-    ``rotate_k`` the first share of the slant is a rotation about the ink
-    centre, then a vertical re-scale back to the upright height."""
-    if not g.contours:
-        return g
+def _mul(m2, m1):
+    """The affine map m2 after m1; (a, b, c, d, e, f) maps (x, y) to (a x + c y + e, b x + d y + f)."""
+    a2, b2, c2, d2, e2, f2 = m2
+    a1, b1, c1, d1, e1, f1 = m1
+    return (a2 * a1 + c2 * b1, b2 * a1 + d2 * b1, a2 * c1 + c2 * d1, b2 * c1 + d2 * d1,
+            a2 * e1 + c2 * f1 + e2, b2 * e1 + d2 * f1 + f2)
+
+
+def apply(m, x, y):
+    return m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]
+
+
+def invert_linear(m):
+    """The inverse of ``m``'s linear part (a, b, c, d): turns a slanted move back into an upright one."""
+    a, b, c, d = m[:4]
+    det = a * d - b * c
+    return (d / det, -b / det, -c / det, a / det)
+
+
+def slant_matrix(g, angle: float, y0: float, rotate_k: float = 0.0):
+    """The affine map that slants the glyph ``g`` (its upright contours): sheared by
+    ``angle`` degrees about height ``y0``; with ``rotate_k`` the first share of the slant
+    is a clockwise rotation about the ink centre, then a vertical re-scale back to the
+    upright height, measured on the curves (not the control points) so the overshoots
+    land exactly where the upright's do."""
     th = math.radians(angle)
-    contours = g.contours
-    b = _bounds(contours)
+    m = (1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
     shear = math.tan(th)
-    if rotate_k:
+    if rotate_k and g.contours:
+        b = _bounds(g.contours)
         a = rotate_k * th
         cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
         ca, sa = math.cos(a), math.sin(a)
         # clockwise rotation: the top moves right
-        contours = _transform(contours, lambda x, y: (cx + (x - cx) * ca + (y - cy) * sa,
-                                                      cy - (x - cx) * sa + (y - cy) * ca))
-        # back to the upright height, measured on the curves (not the control points), so the
-        # overshoots land exactly where the upright's do
+        m = (ca, -sa, sa, ca, cx - cx * ca - cy * sa, cy + cx * sa - cy * ca)
         y_lo, y_hi = _curve_ys(g.contours)
-        r_lo, r_hi = _curve_ys(contours)
+        r_lo, r_hi = _curve_ys(_transform(g.contours, lambda x, y: apply(m, x, y)))
         sy = (y_hi - y_lo) / (r_hi - r_lo) if r_hi > r_lo else 1.0
-        contours = _transform(contours, lambda x, y: (x, y_lo + (y - r_lo) * sy))
+        m = _mul((1.0, 0.0, 0.0, sy, 0.0, y_lo - r_lo * sy), m)
         shear = math.tan(th) - math.tan(a)
-    contours = _transform(contours, lambda x, y: (round(x + (y - y0) * shear, 2), round(y, 2)))
+    return _mul((1.0, 0.0, shear, 1.0, -y0 * shear, 0.0), m)
+
+
+def slant_glyph(g, angle: float, y0: float, rotate_k: float = 0.0):
+    """The glyph slanted by ``slant_matrix``."""
+    if not g.contours:
+        return g
+    m = slant_matrix(g, angle, y0, rotate_k)
+    contours = _transform(g.contours, lambda x, y: tuple(round(v, 2) for v in apply(m, x, y)))
+    th = math.radians(angle)
     pieces = _transform(g.pieces, lambda x, y: (x + (y - y0) * math.tan(th), y)) if g.pieces else g.pieces
     nb = _bounds(contours)
     return dataclasses.replace(g, contours=contours, bounds=nb, pieces=pieces,
                                lsb=nb[0], rsb=g.advance - nb[2])
+
+
+def glyph_matrix(font, name: str, g, metrics) -> tuple:
+    """The affine map ``italicize`` applies to the compiled upright glyph ``g`` called ``name``."""
+    spec = font.italic
+    angle = float(spec.get("angle", 10))
+    y0 = spec.get("origin")
+    y0 = float(y0) if y0 is not None else metrics["xheight"] / 2
+    k = float(spec.get("round_k", 0.5)) if name in round_names(font) else 0.0
+    return slant_matrix(g, angle, y0, k)
 
 
 def italicize(cf, font, loc=None):

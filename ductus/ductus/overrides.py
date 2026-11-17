@@ -62,6 +62,18 @@ def parse_overrides(data: dict | None) -> dict[str, Override]:
     return out
 
 
+def merge_overrides(base: dict[str, Override], extra) -> dict[str, Override]:
+    """``base`` with ``extra`` (Overrides, or their dict form as in overrides.yaml)
+    added on top: deltas on the same name are summed; a new name takes its own stage."""
+    extra = parse_overrides(extra) if extra and not isinstance(next(iter(extra.values())), Override) else (extra or {})
+    out = dict(base)
+    for name, o in extra.items():
+        b = out.get(name)
+        out[name] = o if b is None else Override(name, stage=b.stage,
+                                                 **{k: getattr(b, k) + getattr(o, k) for k in DELTAS})
+    return out
+
+
 def load_overrides(path) -> dict[str, Override]:
     p = Path(path)
     if not p.exists():

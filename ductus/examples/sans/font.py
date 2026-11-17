@@ -9,6 +9,7 @@ single-storey g. Values are tuned toward Geist Sans (OFL-1.1, Vercel) from
 overlays and the bench's IoU, then rounded; no outlines are copied.
 """
 from ductus import Font
+from ductus.overrides import load_overrides
 from ductus.kits import serif as kit
 
 font = Font("Ductus Sans", upm=1000)
@@ -490,6 +491,8 @@ def _designed(name):
 
 
 _bold, _light = _designed("bold"), _designed("light")
+# each master's own hand adjustments (overrides_<axis value>.yaml), on top of overrides.yaml
+_own = {_loc: load_overrides(_Path(__file__).with_name(f"overrides_{_loc}.yaml")) for _loc in (300, 700)}
 
 
 def _master(params, setting):
@@ -500,8 +503,10 @@ def _master(params, setting):
 
 font.variable = {
     "tag": "wght", "name": "Weight", "default": 400,
-    "masters": {300: {"k": 0.79, "params": _light.get("params", {}), "spacing": _light.get("spacing", {})},
-                700: {"k": 1.79, "kh": 1.49, "params": _bold.get("params", {}), "spacing": _bold.get("spacing", {})}},
+    "masters": {300: {"k": 0.79, "params": _light.get("params", {}), "spacing": _light.get("spacing", {}),
+                      "overrides": _own[300]},
+                700: {"k": 1.79, "kh": 1.49, "params": _bold.get("params", {}), "spacing": _bold.get("spacing", {}),
+                      "overrides": _own[700]}},
     "params": _master,
     "instances": {"Light": 300, "Regular": 400, "Medium": 500, "SemiBold": 600, "Bold": 700},
     # each master's own kerning, measured from its outlines (`ductus kern --master 700`)

@@ -32,6 +32,7 @@ ref = Reference(REF)
 def master_params(extra):
     s = dict(setting); s["params"] = {**data.get("params", {}), **extra}
     s["spacing"] = data.get("spacing", {})
+    s["overrides"] = setting.get("overrides", {})
     return s
 
 

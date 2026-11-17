@@ -126,3 +126,76 @@ def test_glyph_view_and_dragged_points(driver):
     assert e2["outline_points"]["e.bar.bl"][1] == pytest.approx(e["outline_points"]["e.bar.bl"][1] - 30, abs=0.01)
     assert e2["svg"] != json.loads(driver.glyph("sans", "{}", "e", 400))["svg"]
     assert "error" in json.loads(driver.glyph("sans", "{}", "\u4e00", 400))
+
+
+def test_a_move_at_one_master_only(driver):
+    ov = json.dumps({"masters": {"700": {"n.arch.shoulder": {"dx": 40}}}})
+    bold0 = json.loads(driver.glyph("sans", "{}", "n", 700))
+    bold1 = json.loads(driver.glyph("sans", "{}", "n", 700, ov))
+    reg0 = json.loads(driver.glyph("sans", "{}", "n", 400))
+    reg1 = json.loads(driver.glyph("sans", "{}", "n", 400, ov))
+    node = lambda g: {n["name"]: n for s in g["skeleton"] for n in s["nodes"]}["n.arch.shoulder"]
+    assert node(bold1)["x"] == pytest.approx(node(bold0)["x"] + 40, abs=0.01)
+    assert reg1["svg"] == reg0["svg"]
+    # at the default master: in the preview there only, exported as a move for all with the
+    # opposite move at the other masters
+    ov = json.dumps({"masters": {"400": {"n.arch.shoulder": {"dx": 10}}}})
+    assert json.loads(driver.glyph("sans", "{}", "n", 400, ov))["svg"] != reg0["svg"]
+    assert json.loads(driver.glyph("sans", "{}", "n", 700, ov))["svg"] == bold0["svg"]
+    files = json.loads(driver.export("sans", json.dumps({"700": {"stem": 150}}), ov))
+    assert "n.arch.shoulder: { dx: 10" in files["overrides.yaml"]
+    assert "n.arch.shoulder: { dx: -10" in files["overrides_700.yaml"]
+    assert "n.arch.shoulder: { dx: -10" in files["overrides_300.yaml"]
+    assert json.loads(files["params_700.json"]) == {"stem": 150}
+
+
+def test_exported_master_files_are_read_by_the_face(driver, tmp_path):
+    from ductus.loader import load_font
+    from ductus.variable import compile_master
+    ov = json.dumps({"masters": {"700": {"n.arch.shoulder": {"dx": 40}}}})
+    for name, text in json.loads(driver.export("sans", "{}", ov)).items():
+        (tmp_path / "sans" / name).write_text(text)
+    f = load_font(tmp_path / "sans/font.py")
+    from ductus.compile import compile_font
+    reg = compile_font(f, glyphs=["n"])
+    bold = compile_master(f, reg.params, f.variable["masters"][700], glyphs=["n"])
+    want = json.loads(driver.glyph("sans", "{}", "n", 700, ov))["svg"]
+    assert bold.glyphs["n"].to_json()["svg"] == want
+
+
+def test_stroke_shape_and_handle_deltas(driver):
+    g0 = json.loads(driver.glyph("sans", "{}", "n", 400))
+    node0 = {n["name"]: n for s in g0["skeleton"] for n in s["nodes"]}["n.arch.shoulder"]
+    ov = json.dumps({"all": {"n.arch.shoulder": {"dw": 12, "da": 5, "dt": 0.1}}})
+    g1 = json.loads(driver.glyph("sans", "{}", "n", 400, ov))
+    node1 = {n["name"]: n for s in g1["skeleton"] for n in s["nodes"]}["n.arch.shoulder"]
+    assert node1["width"] > node0["width"] + 8              # dw blends into the stroke's width profile
+    assert node1["dir"] == pytest.approx(node0["dir"] + 5, abs=0.01)
+    assert g1["svg"] != g0["svg"]
+    h = {x["param"]: x for x in g0["handles"]}
+    assert "n_join_at" in h and h["n_join_at"]["per_unit"]
+    g2 = json.loads(driver.glyph("sans", "{}", "n", 400, json.dumps({"n.@n_notch": {"dv": 8}})))
+    assert {x["param"]: x for x in g2["handles"]}["n_notch"]["value"] == pytest.approx(h["n_notch"]["value"] + 8)
+    assert g2["svg"] != g0["svg"]
+
+
+@pytest.mark.parametrize("ch", ["n", "o", "e"])
+def test_italic_glyph_view(driver, ch):
+    from ductus.italic import apply
+    up = json.loads(driver.glyph("sans", "{}", ch, 400))
+    it = json.loads(driver.glyph("sans", "{}", ch, 400, "{}", True))
+    assert it["italic_angle"] > 0 and it["svg"] != up["svg"]
+    m, inv = it["matrix"], it["inverse"]
+    # the view is the italic as built
+    otf, _, _ = driver.build("sans", "{}", ch, True, 400)
+    from fontTools.pens.boundsPen import BoundsPen
+    t = TTFont(io.BytesIO(otf)); gs = t.getGlyphSet(); bp = BoundsPen(gs)
+    gs[t.getBestCmap()[ord(ch)]].draw(bp)
+    xs = [p for c in it["outline_points"].values() for p in c[:1]] or [0]
+    assert bp.bounds[0] - 2 <= min(xs) and max(xs) <= bp.bounds[2] + 2
+    # points are the upright's mapped; a move in the view maps back by the inverse
+    for name, p in up["outline_points"].items():
+        assert it["outline_points"][name] == pytest.approx(list(apply(m, *p)), abs=1e-6)
+    dx, dy = 10.0, 20.0
+    ux, uy = inv[0] * dx + inv[2] * dy, inv[1] * dx + inv[3] * dy
+    assert (m[0] * ux + m[2] * uy, m[1] * ux + m[3] * uy) == pytest.approx((dx, dy))

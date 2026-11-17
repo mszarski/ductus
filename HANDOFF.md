@@ -320,10 +320,20 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 6. **M4 / M6 follow-ups:** an opsz axis for the sans; true italic forms
    (single-storey a, cursive f) for the display serif as an option; review
    the italics and the text cut in words with the user.
-7. **M7 follow-ups:** the browser editor now has per-master sliders and a glyph view with draggable
-   skeleton and outline points. Still to do: save / export the changes (state and overrides live only
-   in the page), compile in a worker, primitive handles and width / direction handles as in
-   `ductus serve`, hosting (mind the licensing question for the sans), the user's review.
+7. **M7 follow-ups:** the browser editor now has:
+   - per-master sliders;
+   - a glyph view with draggable skeleton points, outline points and primitive handles;
+   - node width / direction / tension / pen-angle controls;
+   - moves for all masters or one (`overrides_<value>.yaml`, read via a master setting's `"overrides"`);
+   - an italic glyph view (drags inverted to upright moves);
+   - edits kept in the browser, saved and opened as a file, and exported as the face's files.
+
+   Still to do:
+   - compile in a worker (the page blocks for about 0.6 s per compile);
+   - dragging width / direction handles on the canvas (the page has number fields);
+   - undo;
+   - hosting (mind the licensing question for the sans);
+   - the user's review.
 8. **Later:** more scripts or languages.
 
 **Other open questions:**

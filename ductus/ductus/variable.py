@@ -26,6 +26,7 @@ from pathlib import Path
 
 from .compat import compatible
 from . import compat
+from .overrides import merge_overrides
 from .compile import CompiledFont, compile_font
 from .emit import build_otf, ps_name
 from .parts import DuctusError
@@ -34,9 +35,14 @@ from .parts import DuctusError
 def compile_master(font, default_params, setting, overrides=None, glyphs=None):
     """One master: the font compiled with ``font.variable["params"](default
     params, setting)``; a dict setting may also carry ``"spacing"``, per-glyph
-    (dl, dr) side-bearing deltas added to ``font.spacing`` for this master."""
+    (dl, dr) side-bearing deltas added to ``font.spacing`` for this master, and
+    ``"overrides"``, this master's own hand adjustments (overrides.yaml format)
+    added to ``overrides``, which apply at every master."""
     spec = font.variable
     extra = setting.get("spacing", {}) if isinstance(setting, dict) else {}
+    own = setting.get("overrides") if isinstance(setting, dict) else None
+    if own:
+        overrides = merge_overrides(overrides or {}, own)
     saved = dict(getattr(font, "spacing", {}))
     try:
         if extra:

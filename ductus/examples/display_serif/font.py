@@ -7,6 +7,7 @@ outlines are copied -- every glyph is still drawn by the kit's strokes, pens and
 terminals. Iteration notes: docs/display_serif/README.md.
 """
 from ductus import Font
+from ductus.overrides import load_overrides
 from ductus.kits import serif as kit
 
 font = Font("Ductus Display", upm=1000)
@@ -310,7 +311,9 @@ font.italic = {
 # Kerning per master: `ductus kern examples/display_serif/font.py --master 9`.
 font.variable = {
     "tag": "opsz", "name": "Optical size", "default": 72,
-    "masters": {9: {"k": 1.05, "kh": 1.6, "serif_k": 0.85, "sb_d": 18, "xh_d": 10}},
+    "masters": {9: {"k": 1.05, "kh": 1.6, "serif_k": 0.85, "sb_d": 18, "xh_d": 10,
+                    # the text master's own hand adjustments, on top of overrides.yaml
+                    "overrides": load_overrides(_Path(__file__).with_name("overrides_9.yaml"))}},
     "params": kit.optical_master,
     "instances": {"Text": 9, "Subhead": 24, "Display": 72},
     "kerning": {_loc: {(_l, _r): _v for _l, _r, _v in _json.loads(_p.read_text())["pairs"]}
