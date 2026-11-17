@@ -516,6 +516,14 @@ font.variable = {
                       "overrides": _own[700]}},
     "params": _master,
     "instances": {"Light": 300, "Regular": 400, "Medium": 500, "SemiBold": 600, "Bold": 700},
+    # an optical-size axis (SPEC M4) across every weight: the design above is the default (opsz 14); a caption
+    # master (opsz 8) derived from each weight master by kit.optical_master's rules -- stems x1.04, thin joins
+    # and horizontals x1.15 (a touch less contrast), 10 more side bearing a side, x-height +8 -- for UI text at
+    # 8-11 px. Its kerning is its weight master's.
+    "second": {"tag": "opsz", "name": "Optical size", "default": 14,
+               # the l's and t's turns rise 20 so the heavier Bold stem doesn't fold into a pinhole there
+               "masters": {8: {"k": 1.04, "kh": 1.15, "sb_d": 10, "xh_d": 8, "dparams": {"l_turn": 20, "t_turn": 20}}},
+               "params": kit.optical_master, "instances": {"Caption": 8}},
     # each master's own kerning, measured from its outlines (`ductus kern --master 700`)
     "kerning": {_loc: {(_l, _r): _v for _l, _r, _v in _json.loads(_p.read_text())["pairs"]}
                 for _loc in (300, 700) if (_p := _Path(__file__).with_name(f"kerning_{_loc}.json")).exists()},

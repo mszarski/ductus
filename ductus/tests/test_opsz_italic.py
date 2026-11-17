@@ -107,3 +107,53 @@ def test_italic_is_off_without_rules():
     font = load_font(ROOT / "examples/test_font/font.py")
     cf = compile_font(font, italic=True)      # no font.italic: unchanged
     assert cf.style == "Regular" and cf.italic_angle == 0
+
+
+def test_sans_caption_optical_size_on_both_axes(tmp_path):
+    """The sans's second axis (font.variable["second"]): a caption master derived from every weight
+    master, so the variable font is a full wght x opsz grid with every glyph varying."""
+    from fontTools.ttLib import TTFont
+    from ductus.variable import build_variable, compile_grid_master
+    font = load_font(ROOT / "examples/sans/font.py")
+    path, held = build_variable(font, tmp_path / "s.otf")
+    assert not held
+    t = TTFont(path)
+    assert [a.axisTag for a in t["fvar"].axes] == ["wght", "opsz"]
+    names = {t["name"].getDebugName(i.subfamilyNameID): i.coordinates for i in t["fvar"].instances}
+    assert names["Bold Caption"] == {"wght": 700.0, "opsz": 8.0} and names["Regular"] == {"wght": 400.0, "opsz": 14.0}
+    # the caption is the weight master with the optical rules on top: looser, a taller x-height
+    reg = compile_font(font, glyphs=["n", "l"])
+    cap = compile_grid_master(font, reg.params, 400, 8, glyphs=["n", "l"])
+    assert cap.metrics["xheight"] == pytest.approx(reg.metrics["xheight"] + 8)
+    assert cap.glyphs["n"].advance >= reg.glyphs["n"].advance + 20      # 10 more side bearing a side
+    # dparams raise the Bold Caption's l turn so its heavier stem keeps one contour
+    bold = compile_grid_master(font, reg.params, 700, 8, glyphs=["l"])
+    assert len(bold.glyphs["l"].contours) == 1
+
+
+@pytest.mark.parametrize("opsz", [72, 9])
+def test_display_true_italic_forms(opsz):
+    """font.italic["forms"]: the display italic's single-storey a and cursive f, lint-clean at both
+    optical sizes, accents clear of the a; the upright keeps its own a and f."""
+    from ductus.italic import italic_mode
+    from ductus.lint import check_direction, check_self_intersections
+    from ductus.variable import compile_master
+    font = load_font(ROOT / "examples/display_serif/font.py")
+    assert set(font.italic["forms"]) == {"a", "f"}
+    names = ["a", "f", "f_i", "acircumflex", "adieresis", "aring", "atilde", "aacute"]
+
+    def build():
+        base = compile_font(font, glyphs=names)
+        return base if opsz == 72 else compile_master(font, base.params, font.variable["masters"][9], glyphs=names)
+    up = build()
+    with italic_mode(True):
+        it = build()
+    assert it.glyphs["f"].bounds[1] < -100 < up.glyphs["f"].bounds[1] + 100     # the cursive f descends
+    assert it.glyphs["a"].bounds[3] < it.metrics["xheight"] + 25                # a single-storey a, x-height tall
+    assert up.glyphs["a"].bounds[3] < up.metrics["xheight"] + 25
+    for n in names:
+        g = it.glyphs[n]
+        assert not [x for x in check_self_intersections(g) + check_direction(g) if x.level == "error"], n
+    # every accent stays a separate contour above the a
+    assert len(it.glyphs["acircumflex"].contours) == len(it.glyphs["a"].contours) + 1
+    assert len(it.glyphs["adieresis"].contours) == len(it.glyphs["a"].contours) + 2

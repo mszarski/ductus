@@ -1344,3 +1344,43 @@ is set low on the baseline, which is right but easy to miss in proofs.
 Mean IoU vs Geist Sans: Light 0.9432 -> 0.9438, Regular 0.9575 -> 0.9580,
 Bold 0.9532 -> 0.9533. Kerning re-run at all three masters, upright and
 italic; both variable fonts build with every glyph varying.
+
+## 33 — an optical-size axis: Caption (M4)
+
+![Regular and Bold at 9 / 11 / 14 px, opsz 14 against opsz 8 (enlarged x3)](33_caption.png)
+
+A second axis beside the weight, `opsz` 8–14. The design so far is the
+default (14).
+
+**The Caption master (8)** is derived from each weight master by
+`kit.optical_master`'s rules:
+- stems ×1.04;
+- thin joins and horizontals ×1.15 (a touch less contrast);
+- 10 more side bearing a side;
+- x-height +8.
+
+**Building it (`ductus.variable`).** A face may declare
+`font.variable["second"]`. Its masters are built on every first-axis
+master, so the variable font is a full grid: 6 masters, every glyph
+varying, and 10 named instances ("Light" … "Bold Caption"). The grid
+lets the two axes interact as designed instead of adding their deltas.
+
+**Bold Caption pinhole.** The heavier Bold stem folded inside the l's and
+t's turn into their tail and left a pinhole. Optical settings now take
+`dparams`, deltas on each master's own values: the caption raises
+`l_turn` and `t_turn` by 20.
+
+Self-critique:
+- At 9 px the caption is clearly more open: "illegible", "items" and the
+  Bold no longer clog.
+- At 14 px it is a little loose, the right side of the trade-off for a
+  caption cut.
+- Its kerning is its weight master's, unmeasured. An optical-size change
+  moves both sides of a pair alike, so that should hold.
+
+## 34 — the italics in words, for review
+
+![Light / Regular / Bold and their italics](34_italic_review.png)
+
+A review sheet for the user: each weight with its italic, in words. No
+outline changes.

@@ -17,6 +17,15 @@ shapes are unchanged, only the point structure is matched). The masters are
 written as CFF fonts and merged by ``fontTools.varLib`` into a CFF2 variable
 font. Each master carries its own kerning (font.variable["kerning"]), merged
 by varLib into variable GPOS kerning.
+
+A second axis (``font.variable["second"]``, same keys: tag, name, default,
+masters, params, instances) is derived from every master of the first by
+rules: its master at value v on top of the first axis's master at w is the
+first master's parameters with ``second["params"](those parameters,
+setting)`` applied (and both settings' spacing). The masters form a full grid,
+so the two axes interact as designed rather than adding up. A grid master
+takes the kerning of its first-axis master (an optical-size change moves
+both sides of a pair alike).
 """
 from __future__ import annotations
 
@@ -56,6 +65,38 @@ def compile_master(font, default_params, setting, overrides=None, glyphs=None):
         font.spacing.update(saved)
 
 
+def _grid_setting(font, default_params, loc1, setting2):
+    """The setting of the grid master at (first-axis value loc1, second-axis setting): the first
+    axis's own setting (none at its default), then the second axis's rules on its parameters."""
+    spec, sec = font.variable, font.variable["second"]
+    s1 = spec["masters"].get(loc1) if loc1 != spec["default"] else None
+    s1 = (dict(s1) if isinstance(s1, dict) else {"k": s1}) if s1 is not None else None
+    if s1 is not None:
+        p1 = compile_font(font, spec["params"](default_params, s1), glyphs=[]).params
+    else:
+        p1 = default_params
+    s2 = dict(setting2) if isinstance(setting2, dict) else {"k": setting2}
+    ov = dict(spec["params"](default_params, s1)) if s1 is not None else {}
+    ov.update(sec["params"](p1, s2))
+    spacing = dict((s1 or {}).get("spacing", {}))
+    for g, (dl, dr) in s2.get("spacing", {}).items():
+        l0, r0 = spacing.get(g, (0, 0))
+        spacing[g] = (l0 + dl, r0 + dr)
+    return {"spacing": spacing, "overrides": {**((s1 or {}).get("overrides") or {}), **(s2.get("overrides") or {})},
+            "_params": ov}
+
+
+def compile_grid_master(font, default_params, loc1, loc2, overrides=None, glyphs=None):
+    """The grid master at (loc1, loc2) of a font with a second axis."""
+    st = _grid_setting(font, default_params, loc1, font.variable["second"]["masters"][loc2])
+    saved_params = font.variable["params"]
+    font.variable["params"] = lambda _p, s: s["_params"]
+    try:
+        return compile_master(font, default_params, st, overrides, glyphs=glyphs)
+    finally:
+        font.variable["params"] = saved_params
+
+
 def compile_masters(font, overrides=None):
     """[(axis value, CompiledFont)] with the default first, every glyph's
     outlines made point-compatible across them; and the glyphs that could
@@ -65,6 +106,14 @@ def compile_masters(font, overrides=None):
     masters = [(spec["default"], default)]
     for loc, setting in sorted(spec["masters"].items()):
         masters.append((loc, compile_master(font, default.params, setting, overrides)))
+    sec = spec.get("second")
+    if sec:
+        # a full grid: every first-axis value (the default too) at every second-axis master;
+        # locations become (first, second) with the second axis at its default for the masters above
+        masters = [((loc, sec["default"]), cf) for loc, cf in masters]
+        for loc1 in [spec["default"], *sorted(spec["masters"])]:
+            for loc2 in sorted(sec["masters"]):
+                masters.append(((loc1, loc2), compile_grid_master(font, default.params, loc1, loc2, overrides)))
     failed = {}
     unified: dict[str, list] = {}
     for name in default.glyphs:
@@ -95,35 +144,52 @@ def build_variable(font, path, overrides=None) -> tuple[Path, dict]:
     path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         ds = DesignSpaceDocument()
+        sec = spec.get("second")
         locs = [loc for loc, _ in masters]
+        first = [l[0] for l in locs] if sec else locs
         ax = AxisDescriptor()
         ax.tag, ax.name = spec["tag"], spec.get("name", spec["tag"])
-        ax.minimum, ax.default, ax.maximum = min(locs), spec["default"], max(locs)
+        ax.minimum, ax.default, ax.maximum = min(first), spec["default"], max(first)
         ds.addAxis(ax)
+        if sec:
+            ax2 = AxisDescriptor()
+            ax2.tag, ax2.name = sec["tag"], sec.get("name", sec["tag"])
+            vals = [l[1] for l in locs]
+            ax2.minimum, ax2.default, ax2.maximum = min(vals), sec["default"], max(vals)
+            ds.addAxis(ax2)
+        where = (lambda loc: {ax.name: loc[0], ax2.name: loc[1]}) if sec else (lambda loc: {ax.name: loc})
+        first_of = (lambda loc: loc[0]) if sec else (lambda loc: loc)
         # kerning: each master its own (font.variable["kerning"][axis value], measured from
         # that master's outlines by `ductus kern --master`; the default's otherwise), over
         # one shared set of pairs (0 where a master has none) so varLib can merge them
         from .italic import active as _italic_active
         italic = _italic_active(font)
         mk = font.italic.get("kerning", {}) if italic else spec.get("kerning", {})
-        kerns = {loc: (default.kerning if loc == spec["default"] else mk.get(loc, default.kerning)) or {}
+        kerns = {loc: (default.kerning if first_of(loc) == spec["default"] else mk.get(first_of(loc), default.kerning)) or {}
                  for loc, _ in masters}
         pairs = sorted(set().union(*[set(k) for k in kerns.values()]))
         for loc, cf in masters:
             kern = {p: kerns[loc].get(p, 0) for p in pairs}
             cf = dataclasses.replace(cf, kerning=kern, ligatures=cf.ligatures)
-            p = Path(tmp) / f"master_{loc}.otf"
+            tag = "_".join(str(v) for v in loc) if sec else loc
+            p = Path(tmp) / f"master_{tag}.otf"
             build_otf(cf, p, optimize=False)
             src = SourceDescriptor()
-            src.path, src.name = str(p), f"master.{loc}"
-            src.location = {ax.name: loc}
+            src.path, src.name = str(p), f"master.{tag}"
+            src.location = where(loc)
             ds.addSource(src)
-        for iname, loc in spec.get("instances", {}).items():
+        named = [(n, (l, sec["default"]) if sec else l) for n, l in spec.get("instances", {}).items()]
+        if sec:
+            # every first-axis instance at each named second-axis value too ("Bold Caption")
+            for n2, l2 in sec.get("instances", {}).items():
+                if l2 != sec["default"]:
+                    named += [(n2 if n == "Regular" else f"{n} {n2}", (l, l2)) for n, l in spec.get("instances", {}).items()]
+        for iname, loc in named:
             inst = InstanceDescriptor()
             if italic:
                 iname = "Italic" if iname == "Regular" else f"{iname} Italic"
             inst.styleName, inst.familyName = iname, font.family
-            inst.location = {ax.name: loc}
+            inst.location = where(loc)
             inst.postScriptFontName = f"{ps_name(default).split('-')[0]}-{iname.replace(' ', '')}"
             ds.addInstance(inst)
         vf, _, _ = varLib.build(ds)

@@ -301,6 +301,9 @@ font.italic = {
     "angle": 11,
     "round": "o O c C Q zero degree s S",
     "round_k": 0.5,
+    # true italic forms (kit: italic_form): a single-storey a (the d's lobe, its stem curling out into
+    # a tail) and a cursive f (its stem running below the baseline into a hook); [] for a pure oblique
+    "forms": ["a", "f"],
     "kerning": {"default": {(_l, _r): _v for _l, _r, _v in _json.loads(_kit_italic.read_text())["pairs"]}}
                if _kit_italic.exists() else {},
 }

@@ -322,9 +322,17 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 5. **Display serif kerning:** LT is fixed (iteration 36, `--saturate`). AV is still a little tight
    (−145 against Geist's −110), and “A barely moved (−40 against −140): quotes kern at the light
    punctuation strength.
-6. **M4 / M6 follow-ups:** an opsz axis for the sans; true italic forms
-   (single-storey a, cursive f) for the display serif as an option; review
-   the italics and the text cut in words with the user.
+6. **M4 / M6 follow-ups.** Done:
+   - the sans has an opsz axis (Caption at 8, a wght × opsz grid);
+   - the display italic has true forms (single-storey a, cursive f; `font.italic["forms"]`);
+   - review sheets: `docs/sans/33_caption.png`, `docs/sans/34_italic_review.png`,
+     `docs/display_serif/37_italic_forms.png`.
+
+   Still open:
+   - the user's verdict on those sheets;
+   - a display opsz for the sans (above 14);
+   - the caption master's own kerning (it uses its weight master's);
+   - the browser editor shows only the first axis.
 7. **M7 follow-ups:** the browser editor now has:
    - per-master sliders;
    - a glyph view with draggable skeleton points, outline points and primitive handles;

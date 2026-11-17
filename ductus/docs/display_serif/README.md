@@ -1039,3 +1039,36 @@ Self-critique:
 All three files were re-kerned (`kerning.json`, `kerning_9.json`,
 `kerning_italic.json`) with
 `ductus kern examples/display_serif/font.py --saturate 150 [--master 9] [--italic]`.
+
+## 37 — true italic forms (M6)
+
+![upright, oblique, true forms at 72 and at 9](37_italic_forms.png)
+
+The italic was a corrected oblique. It now takes two true italic forms,
+declared in `font.italic["forms"]` (`[]` gives back the pure oblique):
+- **Single-storey a** (`a_italic`). The d's lobe sits on an x-height stem
+  (the q's pointed top) whose foot curls out to the right into an exit
+  tail (the t's pen): `ai_turn`, `ai_tail`, `ai_tail_y`, `ai_end_dir`,
+  `ai_end_w`, `ai_dfar`, `ai_top_dy`.
+- **Cursive f.** The stem runs on below the baseline into a hook to the
+  left, the j's: `fc_bot`, `fc_hook`, `fc_end_y`, `fc_end_dir`,
+  `fc_end_w`. The f_i ligature follows.
+
+The kit decides at compile time (`italic_form(name)`: italic mode and the
+form asked for). The upright and the other faces are untouched; every
+upright display glyph is identical.
+
+**A catch at the text size.** In a d or a q the lobe's top wall enters a
+tall stem. The text master's heavier wall rose 50 units above the x-height
+there, and in the a nothing hid it: it met the circumflex. The a now caps
+that wall's thickness so its outer edge stays at the x-height
+(`d_lobe(..., top_thin=)`).
+
+Self-critique:
+- In words the true forms give the italic a voice of its own. The a's
+  tail and the f's hook carry the rhythm the oblique lacked.
+- The a is slightly wider than the n, which reads right in "banana".
+- "ff" overlaps hook into stem, as a cursive ff should.
+- Still oblique: e, n, and the others; the g is the upright's double-storey g.
+- Italic kerning re-run at both sizes (`--italic`, `--italic --master 9`,
+  `--saturate 150`).

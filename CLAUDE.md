@@ -129,6 +129,10 @@ ask the user if you need it. `trajectory_classifier` was removed; it is unrelate
 - Italic rules (`ductus/italic.py`): glyphs with level strokes (e bar, G spur) must not be in `round` (rotation
   tilts them). Stem compensation (`params`) gave the sans Bold a / l a pinhole; the sans uses none. After outline
   changes re-kern the italics too (`--italic`, each master).
+- Second axis (`font.variable["second"]`, the sans's opsz Caption): masters on every first-axis master
+  (a full grid, `compile_grid_master`); its kerning is the first-axis master's. Optical settings take
+  `dparams` (deltas on each master's own values). True italic forms: `font.italic["forms"]` + the kit's
+  `italic_form(name)`; a form that shortens a stem can expose what a tall stem hid (the italic a's lobe wall).
 - Per-master hand adjustments: a master setting's `"overrides"` (both faces load `overrides_<value>.yaml`)
   are added on top of `overrides.yaml` by `compile_master`; the browser editor exports them.
 - Browser (M7): `ductus.compile` falls back to `ductus/_pathops_js.py` (Paper.js) when skia-pathops is missing.

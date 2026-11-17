@@ -274,7 +274,15 @@ DEFAULTS: dict[str, tuple] = {
     # at_style="hook" (@): the hook's lowest point, as a share of the way from the stem to the ring's right
     # side, and its height above the inner bowl's foot; at_hook_dw: added to the ring's width there
     "at_in_bk": (1.0, (0.7, 1.6)),           # @: the inner bowl's walls against the inner stem's weight
-    "at_stem_taper": (0, (0, 0.7)),          # @ (at_style="hook"): the inner stem thins by this share toward its foot
+    "at_stem_taper": (0, (0, 0.7)),
+    # true italic forms (font.italic["forms"]): the single-storey a -- its stem's turn into the exit tail,
+    # the tail's reach / end height / direction / end width, the lobe's width against the d's; the cursive
+    # f -- its stem's foot below the baseline, the hook's reach / end height / direction / end width
+    "ai_top_dy": (0, (-60, 40)),            # the italic a's stem top against the q's
+    "ai_turn": (120, (50, 220)), "ai_tail": (100, (60, 200)), "ai_tail_y": (70, (20, 160)),
+    "ai_end_dir": (65, (20, 100)), "ai_end_w": (0.55, (0.2, 1.2)), "ai_dfar": (20, (-80, 60)),
+    "fc_bot": (-170, (-240, -100)), "fc_hook": (130, (60, 220)), "fc_end_y": (-140, (-220, -60)),
+    "fc_end_dir": (150, (100, 200)), "fc_end_w": (0.6, (0.2, 1.2)),          # @ (at_style="hook"): the inner stem thins by this share toward its foot
     "at_hook_x": (0.3, (0.05, 0.8)), "at_hook_y": (0, (-40, 80)), "at_hook_dw": (0, (-40, 40)),
     # amp_style="branch" (&): leg end x, the diagonal's direction (from the leg) and where it reaches the loop,
     # the loop's right side, top x, left side, the waist below it (and its direction), the bowl's left side,
@@ -882,6 +890,12 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             return fn
         return deco
 
+    def italic_form(name) -> bool:
+        """True while compiling the italic of a font whose rules ask for ``name``'s true italic form
+        (``font.italic["forms"]``); the upright and other faces are untouched."""
+        from ..italic import active
+        return active(font) and name in (font.italic.get("forms") or ())
+
     # ---- parts ----------------------------------------------------------
     @part
     def stem_(p, x, top, bottom=0, pen=None, foot="foot", head="foot"):
@@ -1095,8 +1109,25 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         (gl.cut("aperture").move((w * P.e_cut_x, y - t / 2), "a").line((R, y - t / 2), "b")
             .line((R, P.e_term_y), "c").line(tip, "tip").curve(c1, c2, d_, "d").close())
 
+    def a_italic(gl):
+        """The single-storey italic a: the d's lobe on an x-height stem whose foot curls out to the
+        right into an exit tail (the t's pen), as a cursive hand writes it."""
+        pen = Pen(angle=P.t_angle, width=P.stem, contrast=P.t_contrast)
+        (gl.path(name="stem", bias=0.5, pen=pen, profile=Profile((0, 1), (0.6, 1), (1, P.ai_end_w)))
+            .start((0, xh + os_ + P.q_top + P.ai_top_dy), name="top", terminal="apex")
+            .line_to((0, P.ai_turn), name="turn")
+            .curve_to((P.ai_tail * 0.5, -os_ + pen.width_at(0) / 2), name="bottom", dir=0)
+            .curve_to((P.ai_tail, P.ai_tail_y), name="end", dir=P.ai_end_dir, terminal="t_tail"))
+        # its stem stops at the x-height, so the lobe's top wall must not rise above it where it enters the
+        # stem (a d or q hides that under a tall stem; a text master's heavier wall rose 50 u past it)
+        cap = (val(xh) + val(os_) - val(P.d_top_at)) * math.cos(math.radians(val(P.d_top_angle)))
+        d_lobe(gl, -P.d_far - P.ai_dfar, top_thin=min(val(P.d_top_thin), cap))
+
     @g("a")
     def a(gl):
+        if italic_form("a"):
+            a_italic(gl)
+            return
         sx = P.a_stem_x
         stem_top = P.a_stem_top + P.a_stem_up
         # the a's stem may be a little lighter than the n's, and dip below the baseline
@@ -1327,7 +1358,15 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         # vertical -- at 25 degrees the hook went thick-thin-thick, a hump)
         hook_pen = Pen(angle=P.arch_angle + P.f_angle_d, width=P.stem, contrast=P.arch_contrast)
         y0 = xh + (top - xh) * 0.35
-        gl += stem_(x=0, top=y0, head=False, foot="foot_wide")
+        if italic_form("f"):
+            # the cursive f: the stem runs on below the baseline into a hook to the left (the j's)
+            gl += stem_(x=0, bottom=P.fc_bot, top=y0, head=False, foot=False)
+            low_pen = Pen(angle=0, width=P.stem, contrast=1 - P.hairline / P.stem)
+            (gl.path(name="tail", pen=low_pen, profile=Profile((0, 1), (0.5, 1), (1, P.fc_end_w)))
+                .start((0, P.fc_bot + 2), name="root", dir=270, terminal=False)
+                .curve_to((-P.fc_hook, P.fc_end_y), name="end", dir=P.fc_end_dir, terminal="ear"))
+        else:
+            gl += stem_(x=0, top=y0, head=False, foot="foot_wide")
         (gl.path(name="hook", pen=hook_pen, bias=P.n_bias, profile=Profile((0, 1), (0.6, 1), (1, P.f_end_w)))
             # f_root_dy: how far down the stem the hook starts (a deeper overlap keeps the stem's top corner
             # inside the hook when its inner edge leaves the stem low)
@@ -1522,7 +1561,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
                    thin=P.b_ov_thin, thick_right=P.stem * P.round_gain, stress=P.b_ov_stress,
                    full=(P.b_ov_full_h, P.b_ov_full_v), in_full=(P.b_ov_in_full_h, P.b_ov_in_full_v))
 
-    def d_lobe(gl, far, bottom=None):
+    def d_lobe(gl, far, bottom=None, top_thin=None):
         if d_style == "bowl":
             left, right = -P.stem / 2 + far, P.stem / 2 + P.d_bowl_r
             gl += bowl(x=left, width=right - left, bottom=-os_ if bottom is None else bottom, top=xh + os_, thick=P.stem * P.round_gain,
@@ -1530,8 +1569,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
                        full=(P.d_full_h, P.d_full_v), in_full=(P.d_in_full_h, P.d_in_full_v))
             return
         gl.lobe(-P.stem / 2, -1, far, -os_,
-                join(P.d_top_at, P.d_top_thin, P.d_top_angle), join(P.d_bot_at, P.d_bot_thin, P.d_bot_angle),
-                thick=P.d_lobe_thick, thin_bottom=P.d_lobe_thin_b, out_mid=P.d_out_mid, in_mid=P.d_in_mid,
+                join(P.d_top_at, P.d_top_thin if top_thin is None else top_thin, P.d_top_angle),
+                join(P.d_bot_at, P.d_bot_thin, P.d_bot_angle), thick=P.d_lobe_thick, thin_bottom=P.d_lobe_thin_b, out_mid=P.d_out_mid, in_mid=P.d_in_mid,
                 bx_out=P.d_bx_out, bx_in=P.d_bx_in, prefix="bowl.",
                 crown=dict(x=P.d_crown_x, y=xh + os_, thick=P.d_crown_t))
 
@@ -2942,5 +2981,9 @@ def optical_master(params: dict, setting: dict) -> dict:
             ov[n] = float(params[n]) + setting.get("sb_d", 0.0)
     if "xheight" in params:
         ov["xheight"] = float(params["xheight"]) + setting.get("xh_d", 0.0)
+    # dparams: deltas on the master's own values (each weight keeps its own, e.g. a turn raised so a
+    # heavier stem doesn't fold inside it)
+    for n, dv in setting.get("dparams", {}).items():
+        ov[n] = float(ov.get(n, params[n])) + dv
     ov.update(setting.get("params", {}))
     return ov

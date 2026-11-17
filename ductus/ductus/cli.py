@@ -63,9 +63,9 @@ def _build(font, font_py, out, set_, sweep, overrides, debug_json, variable, ita
         name = font.family.replace(' ', '') + ("-Italic" if italic else "") + "-VF.otf"
         path, held = build_variable(font, out / name, ovs)
         problems = validate_otf(path)
-        typer.echo(f"wrote {path}  (axis {font.variable['tag']} "
-                   f"{min([font.variable['default'], *font.variable['masters']])}-"
-                   f"{max([font.variable['default'], *font.variable['masters']])})")
+        axes = [font.variable] + ([font.variable["second"]] if font.variable.get("second") else [])
+        typer.echo(f"wrote {path}  (axes " + ", ".join(
+            f"{a['tag']} {min([a['default'], *a['masters']])}-{max([a['default'], *a['masters']])}" for a in axes) + ")")
         for g, why in held.items():
             typer.secho(f"held static (masters incompatible): {g}: {why}", fg="yellow")
         for p in problems:

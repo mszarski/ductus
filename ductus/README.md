@@ -31,7 +31,10 @@ the latest numbers and open questions.
 (Text) to 72 (Display). The text master is derived by rules
 (`kit.optical_master`): heavier hairlines, a little more stem, shorter
 serifs, looser spacing and a larger x-height. A FreeType test checks that
-its hairlines hold at 12 px.
+its hairlines hold at 12 px. Ductus Sans has a second axis beside its
+weight, `opsz` 8–14. Its Caption master (8) is derived by the same rules
+from every weight master, so the variable font is a full wght × opsz grid
+(`font.variable["second"]`, `ductus.variable`).
 
 **M6 (italics by rules), started.** Both faces derive a corrected oblique
 from the upright (`ductus.italic`, declared as `font.italic`):
@@ -39,7 +42,9 @@ from the upright (`ductus.italic`, declared as `font.italic`):
 - round glyphs are half rotated, half sheared, then re-set to their
   upright height;
 - the italic has its own kerning;
-- `ductus build --italic` (with `--variable` for the sans).
+- `ductus build --italic` (with `--variable` for the sans);
+- true italic forms where the face asks for them (`font.italic["forms"]`):
+  Ductus Display's italic has a single-storey a and a cursive f.
 
 **M7 (the compiler in the browser), working.** `web/` is a browser-only
 editor:
