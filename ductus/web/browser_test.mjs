@@ -8,7 +8,7 @@
 // and edit that master's own values; in the glyph view drags a stroke point, an outline
 // point and a parameter handle, moves a point at one master only, edits a node's width,
 // drags in the italic view; reloads the page (the edits are kept), exports the files;
-// undoes and redoes; checks the page keeps drawing while the worker compiles;
+// drags a node's direction and width handles; undoes and redoes; checks the page keeps drawing while the worker compiles;
 // switches face. Saves a screenshot of each state. Exits 1 if any step reports an error
 // or a check fails.
 import http from "node:http";
@@ -116,6 +116,20 @@ try {
   await step("undo_key", () => page.keyboard.press("Control+Z"));
   check(!(await appState()).overrides.all["n.arch.shoulder"].dw, "Ctrl+Z undid it");
   await step("redo_button", () => page.click("#redo"));
+  // the selected node's handles on the canvas: turn it (◆), widen it (□, dragged away from the node)
+  await page.waitForSelector("#glyphsvg path.hdir");
+  await step("drag_direction", () => drag("#glyphsvg path.hdir", 0, -40));
+  st = await appState();
+  const od = st.overrides.all["n.arch.shoulder"];
+  check(od.da && od.da > 0, `dragging the direction handle up turned the stroke counter-clockwise (${JSON.stringify(od)})`);
+  await page.waitForSelector("#glyphsvg rect.hwidth");
+  const [nb, wb] = [await page.locator('#glyphsvg circle[data-name="n.arch.shoulder"]').boundingBox(),
+                    await page.locator("#glyphsvg rect.hwidth").first().boundingBox()];
+  const away = [wb.x + wb.width / 2 - (nb.x + nb.width / 2), wb.y + wb.height / 2 - (nb.y + nb.height / 2)];
+  const k = 15 / Math.hypot(...away);
+  await step("drag_width", () => drag("#glyphsvg rect.hwidth >> nth=0", away[0] * k, away[1] * k));
+  st = await appState();
+  check(st.overrides.all["n.arch.shoulder"].dw > 14, `dragging a width handle outwards widened the stroke (${JSON.stringify(st.overrides.all["n.arch.shoulder"])})`);
   // a slider drag is one undo step, and the page keeps drawing frames while the worker compiles
   const gap = await page.evaluate(async () => {
     const el = document.querySelector("#params input[data-p=stem]");

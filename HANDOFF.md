@@ -323,14 +323,13 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
 7. **M7 follow-ups:** the browser editor now has:
    - per-master sliders;
    - a glyph view with draggable skeleton points, outline points and primitive handles;
-   - node width / direction / tension / pen-angle controls;
+   - node width / direction / tension / pen-angle controls, with direction and width handles on the canvas;
    - moves for all masters or one (`overrides_<value>.yaml`, read via a master setting's `"overrides"`);
    - an italic glyph view (drags inverted to upright moves);
    - edits kept in the browser, saved and opened as a file, and exported as the face's files;
    - compiling in a Web Worker (`web/worker.js`), and undo / redo.
 
    Still to do:
-   - dragging width / direction handles on the canvas (the page has number fields);
    - hosting (mind the licensing question for the sans);
    - the user's review.
 8. **Later:** more scripts or languages.

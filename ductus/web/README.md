@@ -32,9 +32,12 @@ python -m http.server -d web 8000   # then open http://localhost:8000/
     from shapes, like the e). Each drag is an override delta, as in
     `overrides.yaml`. An accented letter shows its base's points. The view
     follows the caret in the preview;
-  - **click a circle** for that node's stroke controls: width (`dw`),
-    direction (`da`), tension (`dt`) and pen angle (`dp`, on turning-pen
-    strokes);
+  - **click a circle** to select that node. Drag its ◆ handle to turn
+    the stroke there (`da`; ⇧ snaps to 15°). Drag a □ handle on either side
+    to change the stroke width (`dw`; the edge follows the pointer, so the
+    width changes by twice the move). Number fields give width, direction,
+    tension (`dt`) and pen angle (`dp`, on turning-pen strokes). In italic
+    the handles follow the slant and still set upright values;
   - **drag a triangle** (a primitive handle: join height, notch depth,
     taper length, bowl thin...) along its dashed arm to change that
     parameter for this glyph only (`<glyph>.@<param>: {dv}`);
@@ -75,7 +78,7 @@ python -m http.server -d web 8000   # then open http://localhost:8000/
     opens the page in headless Chromium and checks:
     - each master's sliders show and store that master's own values;
     - drags of a stroke point, an outline point and a handle;
-    - a node's width control;
+    - a node's width control, and its direction and width handles on the canvas;
     - a move at the Bold only;
     - a drag in the italic view (stored upright);
     - edits restored after a reload;
