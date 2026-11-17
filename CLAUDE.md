@@ -29,6 +29,9 @@ and `ductus/docs/sans/README.md` (sans design log) are the best long-form refere
   side bearings in `font.spacing`, `kerning.json` loaded at the end of `font.py`.
 - `examples/display_serif/` high-contrast display serif: pulled toward Geist Serif from iteration 18 at the user's request,
   now refined by eye only (never run `gfit` on it).
+- `examples/notch/` **Ductus Notch**, an ink-trap grotesque designed by eye from the kit defaults (never fit it to a
+  reference): `font.traps` (`ductus/traps.py`, a notch cut into every sharp concave corner after merge; the stems
+  lint measures `CompiledGlyph.untrapped`), options `g_tail`/`y_tail="foot"`, `e_bar_tilt`. Log: `docs/notch/README.md`.
 - `examples/test_font/` M1 sans test font (used by most unit tests via `tests/conftest.py`).
 - `benchmarks/geist_serif/`, `benchmarks/geist_sans/` reference fetchers. The serif benchmark (internal, never released)
   defines the kit's full set (core 16 in `CORE`): `fitted.yaml`, `spacing.json`, `kern_style.json`, `kerning.json`.
@@ -47,6 +50,7 @@ ductus kern  examples/sans/font.py --clearance 60 --min-abs 5   # rewrites examp
 ductus kern  examples/sans/font.py --clearance 60 --min-abs 5 --master 700   # kerning_700.json (also 300); re-run all three after outline changes
 ductus build examples/sans/font.py --variable -o out/    # wght 300-700 variable .otf (font.variable)
 ductus kern  examples/display_serif/font.py --saturate 150   # clearance 90, min-abs 10 defaults; also --master 9, --italic
+ductus kern  examples/notch/font.py                     # Ductus Notch (defaults, no house style)
 ductus kern  benchmarks/geist_serif/font.py --clearance 75 --min-abs 5   # benchmark (after tools/fitting/bench_space.py)
 python tools/fitting/gfit.py 400|700|300 GLYPH N [prefixes] [--wide] [--bench] [--composites]   # per-glyph refit
 ductus build examples/sans/font.py --variable --italic -o out/   # italic VF (font.italic rules, ductus/italic.py)

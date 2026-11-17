@@ -278,6 +278,13 @@ DEFAULTS: dict[str, tuple] = {
     # true italic forms (font.italic["forms"]): the single-storey a -- its stem's turn into the exit tail,
     # the tail's reach / end height / direction / end width, the lobe's width against the d's; the cursive
     # f -- its stem's foot below the baseline, the hook's reach / end height / direction / end width
+    # ink traps (font.traps, ductus.traps): notch depth into the ink, its mouth along each edge, and the
+    # widest crotch (white angle, degrees) that gets one; depth 0 = none
+    # e_bar_tilt: the e's bar rises this many degrees to the right; y_foot_r: y_tail="foot"'s corner
+    # radius (the tail turns level into a foot to the left); sans_cut_ttop: a cut angle a face may give
+    # the t's top (its terminal set's t_top)
+    "e_bar_tilt": (0, (-20, 30)), "y_foot_r": (45, (10, 120)), "sans_cut_ttop": (90, (0, 180)),
+    "trap_depth": (0, (0, 80)), "trap_mouth": (12, (2, 40)), "trap_angle": (75, (20, 120)),
     "ai_top_dy": (0, (-60, 40)),            # the italic a's stem top against the q's
     "ai_turn": (120, (50, 220)), "ai_tail": (100, (60, 200)), "ai_tail_y": (70, (20, 160)),
     "ai_end_dir": (65, (20, 100)), "ai_end_w": (0.55, (0.2, 1.2)), "ai_dfar": (20, (-80, 60)),
@@ -776,7 +783,8 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
            dot_style: str = "round", ligatures: bool = True,
            b_style: str = "bowl", E_serifs: str = "rect",
            G_jaw: str = "bar", r_style: str = "ear", ec_aperture: str = "tip", ced_style: str = "curl",
-           pound_foot: str = "stem", euro_aperture: str = "cut", at_style: str = "ring"):
+           pound_foot: str = "stem", euro_aperture: str = "cut", at_style: str = "ring",
+           g_tail: str = "hook", y_tail: str = "hook"):
     """Register the kit's glyphs on ``font``. ``g_ear``: ``"stroke"`` (a
     short stroke taking the ``ear`` terminal, e.g. a ball) or ``"flag"`` (a
     four-sided flag). ``g_band``: ``"flat"`` puts a flat bar across the top of
@@ -1089,8 +1097,12 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         y = xh * P.e_bar_y
         t = P.e_bar_t
         bx = w - P.e_bar_rin            # the bar stops short of the bowl's curved outer edge
-        gl.contour("bar").move((th * 0.5, y - t / 2), "bl").line((bx, y - t / 2), "br") \
-            .line((bx, y + t / 2), "tr").line((th * 0.5, y + t / 2), "tl").close()
+        # e_bar_tilt: the bar rises to the right about its middle (0: level)
+        slope = math.tan(math.radians(val(P.e_bar_tilt)))
+        xm = (val(th) * 0.5 + val(bx)) / 2
+        lift = lambda x_: (val(x_) - xm) * slope
+        gl.contour("bar").move((th * 0.5, y - t / 2 + lift(th * 0.5)), "bl").line((bx, y - t / 2 + lift(bx)), "br") \
+            .line((bx, y + t / 2 + lift(bx)), "tr").line((th * 0.5, y + t / 2 + lift(th * 0.5)), "tl").close()
         # aperture: right of the counter, between the bar and the terminal.
         # Its lower edge *is* the terminal's upper edge: it leaves the
         # terminal tip at ``e_cut_angle`` and runs into the counter.
@@ -1106,7 +1118,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             xb = w * P.e_vcut_x
             (gl.cut("term_face").move((xb, -200), "a").line((R, -200), "b").line((R, P.e_term_y + 1), "c")
                 .line((xb + P.e_vcut_dx, P.e_term_y + 1), "d").close())
-        (gl.cut("aperture").move((w * P.e_cut_x, y - t / 2), "a").line((R, y - t / 2), "b")
+        (gl.cut("aperture").move((w * P.e_cut_x, y - t / 2 + lift(w * P.e_cut_x)), "a").line((R, y - t / 2 + lift(R)), "b")
             .line((R, P.e_term_y), "c").line(tip, "tip").curve(c1, c2, d_, "d").close())
 
     def a_italic(gl):
@@ -1203,6 +1215,13 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             d_lobe(gl, -P.d_far - P.gs_dfar, bottom=P.gs_bowl_b)
             hook_pen = Pen(angle=0, width=P.stem, contrast=1 - P.hairline / P.stem)
             bot = P.descender_g + P.hairline / 2
+            if g_tail == "foot":
+                # the stem turns at its foot into a level flag to the left (the j's foot): a flat-footed g
+                (gl.path(name="hook", pen=hook_pen)
+                    .start((0, P.gs_bot + 2), name="root", dir=270, terminal=False)
+                    .curve_to((-P.gs_w * P.gs_bot_x, bot), name="bottom", dir=180, tension=P.gs_t)
+                    .line_to((-P.gs_w, bot), name="end", terminal="g_end"))
+                return
             (gl.path(name="hook", pen=hook_pen, profile=Profile((0, 1), (0.7, 1), (1, P.gs_end_w)))
                 .start((0, P.gs_bot + 2), name="root", dir=270, terminal=False)
                 .curve_to((-P.gs_w * P.gs_bot_x, bot), name="bottom", dir=180, tension=P.gs_t)
@@ -1699,6 +1718,17 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         dx, dy = val(W) - val(vx), val(xh) + val(P.v_os)
         tx = val(vx) - (val(P.y_tail_y) + val(P.v_os)) * -dx / dy
         ang = math.degrees(math.atan2(-dy, -dx))
+        if y_tail == "foot":
+            # the tail runs straight down to the descender, turns a tight corner and runs level to the left
+            # into a flag (the g's and j's flat feet)
+            bot = val(P.y_end_y)
+            xb = val(vx) - (bot + val(P.v_os)) * -dx / dy           # where the straight arm reaches the foot
+            (gl.path(name="tail", pen=thin)
+                .start((W, xh), name="top", dir=ang, terminal="vtop_r")
+                .line_to((xb + val(P.y_foot_r) * dx / dy, bot + val(P.y_foot_r)), name="bend", dir=ang, terminal=False)
+                .curve_to((xb - val(P.y_foot_r), bot), name="corner", dir=180)
+                .line_to((P.y_end_x, bot), name="end", terminal="ear"))
+            return
         (gl.path(name="tail", pen=thin, profile=Profile((0, 1), (0.6, 1), (1, P.y_end_w)))
             .start((W, xh), name="top", dir=ang, terminal="vtop_r")
             .line_to((tx, P.y_tail_y), name="bend", dir=ang, terminal=False)

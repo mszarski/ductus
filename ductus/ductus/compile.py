@@ -51,6 +51,9 @@ class CompiledGlyph:
     # variable build interpolates when the merged outline's structure changes
     # across masters; (A u B) - C = (A - C) u (B - C), so it fills the same)
     pieces: list[Contour] | None = field(default=None, repr=False)
+    # with font.traps (ductus.traps): the outline before its crotches were notched (the stems lint
+    # measures this one -- a trap narrows a stem by design)
+    untrapped: list[Contour] | None = field(default=None, repr=False)
     piece_signature: str = ""
 
     def to_json(self) -> dict:
@@ -117,6 +120,9 @@ def compile_font(font: Font, params: dict[str, float] | None = None,
         cf = _compile_font(font, params, overrides, terminals, glyphs)
     finally:
         _PIECES.reset(token)
+    if getattr(font, "traps", None):
+        from . import traps as _traps                 # ink traps by rule (font.traps), before any slant
+        cf = _traps.apply(cf, font)
     return _it.italicize(cf, font) if on else cf
 
 
