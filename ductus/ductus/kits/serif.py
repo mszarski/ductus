@@ -1718,6 +1718,12 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         dx, dy = val(W) - val(vx), val(xh) + val(P.v_os)
         tx = val(vx) - (val(P.y_tail_y) + val(P.v_os)) * -dx / dy
         ang = math.degrees(math.atan2(-dy, -dx))
+        if y_tail == "straight":
+            # the tail runs straight on to the descender and stops on a level cut (a contemporary grotesque's)
+            bot = val(P.y_end_y)
+            xb = val(vx) - (bot + val(P.v_os)) * -dx / dy
+            gl.line((W, xh), (xb, bot), name="tail", names=("top", "end"), terminal=("vtop_r", "vfoot_l"), pen=thin)
+            return
         if y_tail == "foot":
             # the tail runs straight down to the descender, turns a tight corner and runs level to the left
             # into a flag (the g's and j's flat feet)

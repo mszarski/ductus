@@ -31,7 +31,7 @@ and `ductus/docs/sans/README.md` (sans design log) are the best long-form refere
   now refined by eye only (never run `gfit` on it).
 - `examples/notch/` **Ductus Notch**, an ink-trap grotesque designed by eye from the kit defaults (never fit it to a
   reference): `font.traps` (`ductus/traps.py`, a notch cut into every sharp concave corner after merge; the stems
-  lint measures `CompiledGlyph.untrapped`), options `g_tail`/`y_tail="foot"`, `e_bar_tilt`. Log: `docs/notch/README.md`.
+  lint measures `CompiledGlyph.untrapped`), options `y_tail="straight"` (draft 2; draft 1's `g_tail`/`y_tail="foot"`, `e_bar_tilt` stay in the kit). Log: `docs/notch/README.md`.
 - `examples/test_font/` M1 sans test font (used by most unit tests via `tests/conftest.py`).
 - `benchmarks/geist_serif/`, `benchmarks/geist_sans/` reference fetchers. The serif benchmark (internal, never released)
   defines the kit's full set (core 16 in `CORE`): `fitted.yaml`, `spacing.json`, `kern_style.json`, `kerning.json`.

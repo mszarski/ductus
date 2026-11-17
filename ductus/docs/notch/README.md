@@ -58,3 +58,38 @@ Self-critique, for the next round:
 - C, S, c and s ends are a little sharp;
 - the figures are plain;
 - it covers 66 glyphs: no accents yet, no Bold.
+
+## 02 — more modern: a second attempt
+
+![draft 1 against draft 2, then draft 2's character set](02.png)
+
+The user found draft 1 weird. It had too many quirks at once:
+- tilted e and a bars, flat-footed descenders, the R's leg from the stem;
+- a light weight with airy spacing, and slanted stroke ends;
+- traps that read as thin slits.
+
+Draft 2 moves toward a contemporary neo-grotesque:
+- **Weight:** medium (stem 112, thin 98, capitals 118), with a big x-height
+  (560) and compact widths.
+- **Shape:** slightly squarer bowls (fullness 0.66), level stroke ends
+  (the kit's grotesque cuts), and the f's hook cut square.
+- **Traps:** shallow and clean (30 deep, mouth 24): functional at small
+  sizes, a quiet detail large. The G is skipped, because its jaw meets the
+  bowl at an acute angle that a trap turned into an arrowhead. Its bar also
+  sits a little higher (`G_bar_y` 0.5) and its jaw 8 units out
+  (`G_jaw_dx`), so at this weight the jaw stands clear of the bowl's wall
+  and the bar.
+- **Signatures, fewer and quieter:**
+  - the branched k and K;
+  - a straight-tailed y (new `y_tail="straight"`: the tail runs on to the
+    descender and stops on a level cut);
+  - the hooked @ and the looped &;
+  - a plain single-storey g and a hooked j.
+- **Dropped:** the tilted bars, the flat feet, the stem-sprung R and the
+  slanted t top. Their kit options remain for other faces.
+
+Self-critique:
+- the C's lower terminal tapers;
+- the t's curled tail is a little old-fashioned beside the rest;
+- the 1's arm is thin;
+- still 66 glyphs, Regular only.

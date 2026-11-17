@@ -95,7 +95,7 @@ points:
 | Font | Glyphs | Status |
 |---|---|---|
 | Ductus Sans (`examples/sans/`) | 183, incl. ¿ ¡ ¢; no fi ligature | Iterations 01–29 (`docs/sans/README.md`, sheets `NN.png` / `NN_sheet.png`; 19–29 are the per-glyph refits with `tools/fitting/gfit.py`). Mean IoU vs Geist Sans **0.9580** (Bold 0.9533, Light 0.9438; iteration 32). Kerning per master (`kerning.json`, `kerning_700.json`, `kerning_300.json`); agreement with Geist Sans corr 0.823, MAE 7.0 u |
-| Ductus Notch (`examples/notch/`) | 66 (letters, figures, basic punctuation) | First draft (`docs/notch/README.md` 01): an ink-trap grotesque designed by eye, no reference fitted. Traps by rule (`ductus/traps.py`, `font.traps`); signatures: flat-footed g/j/y, branched k/K, R leg from the stem, angled e/a bars, slanted t top, looped &, hooked @. Optical kerning, no house style |
+| Ductus Notch (`examples/notch/`) | 66 (letters, figures, basic punctuation) | Draft 2 (`docs/notch/README.md` 02, "more modern" after the user found draft 1 weird): a medium ink-trap neo-grotesque designed by eye, no reference fitted. Traps by rule (`ductus/traps.py`, `font.traps`), shallow; signatures: branched k/K, straight-tailed y, hooked @, looped &. Optical kerning, no house style |
 | Ductus Display (`examples/display_serif/`) | 184, incl. ¿ ¡ ¢ | Iterations 01–34 (34: by-eye review, ¢ added). Letters ≈ 0.944 vs Geist Serif. Kerning 8,167 pairs (iteration 36: the style refitted with `--saturate 150`; letters corr 0.797 with Geist Serif) |
 | Benchmark (`benchmarks/geist_serif/`) | full kit set (184); core 16 = `CORE` | Core 16: 0.96–0.995 (mean 0.9767), 0 overrides. Whole set fitted per glyph (round 8): mean 0.9391 over 122 base glyphs (~ 0.926, ¸ 0.804, Æ 0.872 since the broad-nib ~, the two-stroke cedilla and the Æ's foot offset); side bearings fitted to Geist Serif (`spacing.json`), optical kerning with a fitted house style (agreement with Geist Serif corr 0.831); @ still 0.70 (internal only, never released) |
 | Test font (`examples/test_font/`) | 7 | The M1 font |
@@ -346,8 +346,8 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
    Still to do:
    - hosting (mind the licensing question for the sans);
    - the user's review.
-8. **Ductus Notch next round** (awaiting the user's reaction to the first draft):
-   - capital spacing, the A's busy trapped crossbar, the a's tilted top, the G's arrow-like jaw;
+8. **Ductus Notch next round** (awaiting the user's reaction to draft 2):
+   - the C's tapering lower terminal, the t's curled tail, the 1's thin arm;
    - accents and the rest of the punctuation;
    - a Bold master (trap depth would scale with weight).
 9. **Later:** more scripts or languages.

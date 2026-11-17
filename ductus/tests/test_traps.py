@@ -40,24 +40,25 @@ def notch():
 def test_notch_traps_its_crotches_and_stays_clean(notch):
     plain = compile_font(notch, {"trap_depth": 0})
     trapped = compile_font(notch)
-    for g in "nkvdAMK":
+    for g in "nkvdAMK":            # (the G is skipped: see font.traps)
         assert abs(sum(c.area() for c in trapped.glyphs[g].contours)) < \
-            abs(sum(c.area() for c in plain.glyphs[g].contours)) - 200, g
+            abs(sum(c.area() for c in plain.glyphs[g].contours)) - 50, g
         assert trapped.glyphs[g].advance == plain.glyphs[g].advance
     for n, g in trapped.glyphs.items():
         assert not [x for x in check_self_intersections(g) + check_direction(g) if x.level == "error"], n
     # skipped marks keep their outline (a comma's dot-to-tail joint is no crotch)
     assert trapped.glyphs["comma"].to_json()["svg"] == plain.glyphs["comma"].to_json()["svg"]
-    # the italic slants the trapped outline (traps first)
-    from ductus.italic import italic_mode
-    assert not getattr(notch, "italic", None) or True
+    assert trapped.glyphs["G"].to_json()["svg"] == plain.glyphs["G"].to_json()["svg"]
 
 
 def test_notch_signatures(notch):
     cf = compile_font(notch, glyphs=["g", "y", "j", "k", "K", "R", "e", "t"])
-    # flat-footed descenders: g and y end level at the descender
+    # descenders reach the descender; the y's tail runs straight (one straight stroke: two segments' worth of
+    # on-curve points at most)
     for g in "gy":
         assert cf.glyphs[g].bounds[1] < -170
+    tail = [s for s in cf.glyphs["y"].to_json()["skeleton"] if s["name"].endswith("tail")][0]
+    assert len(tail["nodes"]) == 2
     # the branched k: its leg starts well off the stem
     leg = [s for s in cf.glyphs["k"].to_json()["skeleton"] if s["name"].endswith("leg")][0]
     assert leg["nodes"][0]["x"] > 100
