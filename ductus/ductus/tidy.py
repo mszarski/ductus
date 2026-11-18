@@ -11,6 +11,8 @@ and after each glyph is merged (before any ink traps):
 * **steps and nubs** -- two corners joined by a segment (straight or curved)
   whose chord is shorter than ``step`` units collapse into one point at its
   middle, so the edges either side meet directly;
+* **pinholes** -- counters smaller than ``hole`` square units (default 40,
+  as after any merge) are filled;
 * **spikes** -- an on-curve point turning more than ``spike`` degrees between
   two straight segments, one of them shorter than four ``step``\\ s, is removed.
 
@@ -84,11 +86,13 @@ def tidy_contour(c: Contour, step: float, spike: float) -> Contour:
     return Contour(pts, types, names)
 
 
-def tidy_glyph(g, step: float, spike: float):
+def tidy_glyph(g, step: float, spike: float, hole: float = 40.0):
     if not g.contours:
         return g
     contours = [tidy_contour(c, step, spike) for c in g.contours]
-    contours = [c for c in contours if len(c.pts) >= 3 and abs(c.area()) >= 40.0]
+    # pinholes: tiny counters (clockwise, negative area) left where strokes overlap almost exactly
+    contours = [c for c in contours if len(c.pts) >= 3 and abs(c.area()) >= 40.0
+                and not (c.area() < 0 and abs(c.area()) < hole)]
     if [c.pts for c in contours] == [c.pts for c in g.contours]:
         return g
     from .compile import _bounds
@@ -101,5 +105,5 @@ def apply(cf, font):
     spec = getattr(font, "tidy", None)
     if not spec:
         return cf
-    step, spike = float(spec.get("step", 12)), float(spec.get("spike", 150))
-    return dataclasses.replace(cf, glyphs={n: tidy_glyph(g, step, spike) for n, g in cf.glyphs.items()})
+    step, spike, hole = float(spec.get("step", 12)), float(spec.get("spike", 150)), float(spec.get("hole", 40))
+    return dataclasses.replace(cf, glyphs={n: tidy_glyph(g, step, spike, hole) for n, g in cf.glyphs.items()})

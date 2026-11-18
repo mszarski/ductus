@@ -93,3 +93,14 @@ def test_notch_outlines_are_tidy_and_traps_only_at_real_crotches(notch):
     # the f is skipped (its hook-to-bar corner is no crotch between two strokes)
     f_ = cf.glyphs["f"]
     assert f_.untrapped is None or [c.pts for c in f_.contours] == [c.pts for c in f_.untrapped]
+
+
+def test_notch_bold_interpolates_with_its_traps(tmp_path):
+    """The weight axis: the Bold keeps every glyph's structure (no counter closes, the traps fall on the same
+    crotches), so the variable font holds nothing static."""
+    from fontTools.ttLib import TTFont
+    from ductus.variable import build_variable
+    font = load_font(ROOT / "examples/notch/font.py")
+    path, held = build_variable(font, tmp_path / "n.otf")
+    assert not held, held
+    assert [a.axisTag for a in TTFont(path)["fvar"].axes] == ["wght"]

@@ -179,3 +179,41 @@ Lint clean, re-kerned (5,651 pairs over 147 glyphs).
 
 Self-critique: the set has no « » guillemets (no face has them yet). The
 math signs could sit a touch higher. Still Regular only.
+
+## 05 — the Bold and a weight axis
+
+![Regular and Bold in words, the Bold's set, then wght 400-700 from the variable font](05.png)
+
+`font.variable`: wght 400–700, with instances Regular, Medium, SemiBold and
+Bold. The Bold master is derived by `kit.weight_master` (stems ×1.42,
+horizontals and thin parts ×1.25, so counters stay open), then given its
+own values:
+- **Traps:** deeper and wider (40 deep, mouth 28), since a heavier crotch
+  fills in sooner.
+- **Widths and spacing:** wider letters (n, m, u, o, e, c, b, s, a, H, O,
+  S) and slightly tighter side bearings.
+- **Open counters:**
+  - the e's eye is larger (its bar lower and lighter);
+  - the a's bowl is taller with a lighter top;
+  - the %'s rings are wider;
+  - the ? stem stops clear of its heavier dot;
+  - the t has a longer bar and tail.
+- **Structure kept for interpolation:** no counter may close or open
+  between the masters.
+  - the ß's lower stroke ends clear of its stem;
+  - the @'s ring is a little larger around the hook;
+  - the &'s loop is wider;
+  - the ring mark is larger and lighter.
+
+  The tidy rule also fills pinholes now (`"hole": 120` square units),
+  which the a and & left at the Bold.
+
+The traps fall on the same crotches at both weights, so they interpolate:
+the variable font builds with no glyph held static (a new test checks
+it). Kerning per master: `kerning_700.json` (`ductus kern
+examples/notch/font.py --master 700`).
+
+Self-critique:
+- the Bold's word spaces look wide (the space isn't scaled);
+- the e's lower terminal is heavy at the Bold;
+- no Light yet.

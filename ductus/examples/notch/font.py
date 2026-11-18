@@ -121,7 +121,7 @@ kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 
 # ink traps by rule (ductus.traps)
 # overlap leftovers (steps, nubs, spikes under 16 units) tidied by rule first (ductus.tidy)
-font.tidy = {"step": 16, "spike": 150}
+font.tidy = {"step": 16, "spike": 150, "hole": 120}
 font.traps = {"depth": "trap_depth", "mouth": "trap_mouth", "angle": "trap_angle", "min_angle": 30,
               # marks too small to trap (a comma's dot-to-tail joint is no crotch); A (its crossbar corners
               # made it busy), G, e, 8 and Q, whose acute
@@ -142,3 +142,42 @@ _kern = _Path(__file__).with_name("kerning.json")
 if _kern.exists():
     for _l, _r, _v in _json.loads(_kern.read_text())["pairs"]:
         font.kern(_l, _r, _v)
+
+# ---- a weight axis (wght 400-700) ---------------------------------------------------------
+# The Bold is the Regular with its stroke thicknesses scaled by kit.weight_master (stems x k, horizontals and
+# thin parts x kh, so counters stay open), then its own values below: deeper ink traps (a heavier crotch fills
+# in sooner) and a little more width where the heavier stems would crowd the counters. Kerning per master
+# (`ductus kern examples/notch/font.py --master 700`).
+_bold = dict(
+    trap_depth=40, trap_mouth=28,
+    # wider letters, so the heavier stems leave the counters open; slightly tighter side bearings
+    n_width=490, m_width=425, u_width=490, o_width=605, e_width=575, c_width=545, b_width=585, s_width=470,
+    a_stem_x=460, H_width=690, O_width=815, S_width=580, sb_straight=40, sb_round=26,
+    # counters kept open: the e's eye larger (its bar lower and lighter), the a's bowl taller with a lighter top,
+    # the %'s rings wider and lighter; the ? stem stopping clear of its heavier dot, with a shorter hook end;
+    # the t's longer bar and tail
+    e_bar_y=0.5, e_bar_t=100, a_bt_y=340, a_bs_thin=100, a_term_y=470, a_term_x=140,
+    pct_ring_w=330, pct_ring_h=360, pct_thick=105, quest_end_y=540, quest_bot=225,
+    t_tail=160, t_turn=160, t_tail_y=45, t_end_dir=10, t_bar_l=110, t_bar_r=180,
+    # no counter may close at the heavier weight (a variable font interpolates outlines of the same structure):
+    # the ss's lower stroke ends clear of the stem, the @'s ring a little larger around its hook, the &'s loop wider
+    ss_end_x=200, ss_end_y=70, ss_waist_x=210, ss_lr_x=470, at_bot=-180, at_h=920, at_w=960,
+    amp_loop_w=440, amp_loop_y=590,
+    ring_w=230, ring_h=210, ring_thick=78, ring_thin=68, ring_y0=600,   # the ring mark's counter stays open, clear of the a
+)
+
+
+def _master(params, setting):
+    ov = kit.weight_master(params, setting["k"], setting.get("kh"))
+    ov.update(setting.get("params", {}))
+    return ov
+
+
+font.variable = {
+    "tag": "wght", "name": "Weight", "default": 400,
+    "masters": {700: {"k": 1.42, "kh": 1.25, "params": _bold}},
+    "params": _master,
+    "instances": {"Regular": 400, "Medium": 500, "SemiBold": 600, "Bold": 700},
+    "kerning": {_loc: {(_l, _r): _v for _l, _r, _v in _json.loads(_p.read_text())["pairs"]}
+                for _loc in (700,) if (_p := _Path(__file__).with_name(f"kerning_{_loc}.json")).exists()},
+}

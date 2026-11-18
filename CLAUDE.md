@@ -51,7 +51,7 @@ ductus kern  examples/sans/font.py --clearance 60 --min-abs 5   # rewrites examp
 ductus kern  examples/sans/font.py --clearance 60 --min-abs 5 --master 700   # kerning_700.json (also 300); re-run all three after outline changes
 ductus build examples/sans/font.py --variable -o out/    # wght 300-700 variable .otf (font.variable)
 ductus kern  examples/display_serif/font.py --saturate 150   # clearance 90, min-abs 10 defaults; also --master 9, --italic
-ductus kern  examples/notch/font.py                     # Ductus Notch (defaults, no house style)
+ductus kern  examples/notch/font.py                     # Ductus Notch (defaults, no house style); also --master 700
 ductus kern  benchmarks/geist_serif/font.py --clearance 75 --min-abs 5   # benchmark (after tools/fitting/bench_space.py)
 python tools/fitting/gfit.py 400|700|300 GLYPH N [prefixes] [--wide] [--bench] [--composites]   # per-glyph refit
 ductus build examples/sans/font.py --variable --italic -o out/   # italic VF (font.italic rules, ductus/italic.py)

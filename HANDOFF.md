@@ -95,7 +95,7 @@ points:
 | Font | Glyphs | Status |
 |---|---|---|
 | Ductus Sans (`examples/sans/`) | 183, incl. ¿ ¡ ¢; no fi ligature | Iterations 01–29 (`docs/sans/README.md`, sheets `NN.png` / `NN_sheet.png`; 19–29 are the per-glyph refits with `tools/fitting/gfit.py`). Mean IoU vs Geist Sans **0.9580** (Bold 0.9533, Light 0.9438; iteration 32). Kerning per master (`kerning.json`, `kerning_700.json`, `kerning_300.json`); agreement with Geist Sans corr 0.823, MAE 7.0 u |
-| Ductus Notch (`examples/notch/`) | 183 (the sans set; `docs/notch/README.md` 04) | Draft 3 (`docs/notch/README.md` 03: overlap leftovers cleaned by a tidy rule, traps only at real crotches, joins fixed). Draft 2 ("more modern" after the user found draft 1 weird): a medium ink-trap neo-grotesque designed by eye, no reference fitted. Traps by rule (`ductus/traps.py`, `font.traps`), shallow; signatures: branched k/K, straight-tailed y, hooked @, looped &. Optical kerning, no house style |
+| Ductus Notch (`examples/notch/`) | 183 (the sans set; `docs/notch/README.md` 04); wght 400-700 variable font (Bold master, 05) | Draft 3 (`docs/notch/README.md` 03: overlap leftovers cleaned by a tidy rule, traps only at real crotches, joins fixed). Draft 2 ("more modern" after the user found draft 1 weird): a medium ink-trap neo-grotesque designed by eye, no reference fitted. Traps by rule (`ductus/traps.py`, `font.traps`), shallow; signatures: branched k/K, straight-tailed y, hooked @, looped &. Optical kerning, no house style |
 | Ductus Display (`examples/display_serif/`) | 184, incl. ¿ ¡ ¢ | Iterations 01–34 (34: by-eye review, ¢ added). Letters ≈ 0.944 vs Geist Serif. Kerning 8,167 pairs (iteration 36: the style refitted with `--saturate 150`; letters corr 0.797 with Geist Serif) |
 | Benchmark (`benchmarks/geist_serif/`) | full kit set (184); core 16 = `CORE` | Core 16: 0.96–0.995 (mean 0.9767), 0 overrides. Whole set fitted per glyph (round 8): mean 0.9391 over 122 base glyphs (~ 0.926, ¸ 0.804, Æ 0.872 since the broad-nib ~, the two-stroke cedilla and the Æ's foot offset); side bearings fitted to Geist Serif (`spacing.json`), optical kerning with a fitted house style (agreement with Geist Serif corr 0.831); @ still 0.70 (internal only, never released) |
 | Test font (`examples/test_font/`) | 7 | The M1 font |
@@ -346,8 +346,8 @@ Every letter and figure is now ≥ about 0.90. The visible defects found at
    Still to do:
    - hosting (mind the licensing question for the sans);
    - the user's review.
-8. **Ductus Notch next round** (the user preferred draft 3; 04 fixed its leftovers and completed the 183-glyph set):
-   - a Bold master (trap depth would scale with weight);
+8. **Ductus Notch next round** (draft 3 base; 04 the full set; 05 a Bold master and wght 400-700):
+   - the Bold's word space, the e's heavy lower terminal at the Bold, a Light master;
    - « » guillemets (no face has them yet).
 9. **Later:** more scripts or languages.
 
