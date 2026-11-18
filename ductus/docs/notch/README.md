@@ -267,3 +267,17 @@ Self-critique:
 Self-critique:
 - the guillemets still read a little small at 72 px against the big x-height;
 - the Bold's traps (40/28) may now be deeper than its lighter stems need.
+
+## 08 — bigger guillemets, shallower Bold traps
+
+![The Bold before (traps 40/28) and now (34/26); the Regular's guillemets at 460](08.png)
+
+- **Guillemets:** 460 units tall (was 400), 220 wide, the pair 55 apart. That is
+  about 80% of the x-height, from 60 up to 520.
+- **Bold traps:** 34 deep with a mouth of 26 (were 40/28), now that the Bold's
+  stems are lighter (×1.32). The traps still fall on the same crotches at every
+  weight, so the variable font holds nothing static.
+- All three masters re-kerned; lint clean.
+
+Self-critique: a downscaled sheet makes the guillemets look smaller than they
+are; judge them at 72 px or above.

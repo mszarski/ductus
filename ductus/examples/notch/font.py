@@ -108,7 +108,7 @@ symbols = dict(math_t=T * 0.85, eq_t=T * 0.8, lt_t=T * 0.85, under_t=T * 0.85, b
                pct_slash_w=T * 0.8, deg_t=T * 0.6, dollar_bar=S * 0.6, caret_t=T * 0.85, tl_w=T * 0.85,
                ast_tip_w=80, ast_root_w=30,
                math_w=470, tl_len=380, tl_amp=90,
-               guil_w=195, guil_h=400, guil_t=S * 0.85, guil_y=290, guil_gap=50)   # math signs and ~ sized to the large x-height
+               guil_w=220, guil_h=460, guil_t=S * 0.85, guil_y=290, guil_gap=55)   # math signs and ~ sized to the large x-height
 
 P = kit.params(**weights, **proportions, **traps, **f_hook, **branch, **tails, **at, **clean, **marks, **symbols)
 kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
@@ -152,7 +152,7 @@ if _kern.exists():
 # in sooner) and a little more width where the heavier stems would crowd the counters. Kerning per master
 # (`ductus kern examples/notch/font.py --master 700`).
 _bold = dict(
-    trap_depth=40, trap_mouth=28, space_add=-80,   # the word space at the Regular's share of an n
+    trap_depth=34, trap_mouth=26, space_add=-80,   # the word space at the Regular's share of an n
     # wider letters, so the heavier stems leave the counters open; slightly tighter side bearings
     n_width=490, m_width=425, u_width=490, o_width=605, e_width=575, c_width=545, b_width=585, s_width=470,
     a_stem_x=460, H_width=690, O_width=815, S_width=580, sb_straight=46, sb_round=32,
