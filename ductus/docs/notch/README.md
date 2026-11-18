@@ -281,3 +281,30 @@ Self-critique:
 
 Self-critique: a downscaled sheet makes the guillemets look smaller than they
 are; judge them at 72 px or above.
+
+## 09 — a new a
+
+![The a in words: the Regular of 08 and now, the Light, the Bold of 08 and now](09.png)
+
+The old a (`a_style="stroke"`) had three faults:
+- a flat-topped bowl;
+- a kink where the bowl met the stem;
+- a hood whose 30° pen thinned and dented near its terminal.
+
+In words it read as a different face, and in the Bold its counter nearly closed.
+
+It is now `a_style="bowl"`: a round bowl hung on the stem, under a hood drawn
+with the face's level pen at an even weight.
+- **Regular:** bowl top at 370 (`a_bowl_l` 30), stem at 445. The hood ends in
+  a level cut at 430 (`a_term_dir` 95, `a_taper` 1.0, `a_hood_angle` 0). Its weight leans
+  slightly inward (`a_bias` 0.45), so the stem keeps its 112.
+- **Bold:** stem at 485, the bowl wider (`a_bowl_l` 10) and lighter at its top
+  and bottom (105), the hood's end higher (480), so the counter and the
+  aperture stay open.
+- **Traps:** a single trap, at the real crotch where the bowl's top meets the
+  stem.
+
+All three masters re-kerned. The variable font holds no glyph static, and lint
+is clean.
+
+Self-critique: the Bold's bowl bottom still meets the stem with a slight step.

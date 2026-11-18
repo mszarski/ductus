@@ -21,7 +21,7 @@ weights = dict(
     stem=S, cap_stem=C, fig_stem=S + 4, seven_stem=S, hairline=T, round_gain=1.04,
     arch_contrast=0.1, t_contrast=0.1,
     n_join_thin=74, r_join_thin=78,
-    a_bowl_thin=T, a_bowl_thin_b=T, a_bs_thick=S, a_bs_thin=T, a_top_thin=74, a_bot_thin=T,
+    a_bowl_thin=T, a_bowl_thin_b=T, a_top_thin=74, a_bot_thin=T,
     a_lobe_thick=S, a_lobe_thin_b=T,
     b_top_thin=74, b_bot_thin=T, b_lobe_thick=S * 1.03, b_lobe_thin_b=T, b_crown_t=T, b_ov_thin=T,
     d_top_thin=74, d_bot_thin=T, d_lobe_thick=S * 1.03, d_lobe_thin_b=T, d_crown_t=T, d_bowl_thin=T,
@@ -58,7 +58,10 @@ branch = dict(k_arm_x=_k_arm, k_join_y=_k_join, k_leg_x0=_k_arm * _k_at, k_leg_y
               K_leg_y0=_K_join + (720 - _K_join) * _K_at, K_leg_x=500)
 # a straight-tailed y (y_tail="straight") and a plain single-storey g
 tails = dict(y_end_y=-200, descender_g=-200, gs_w=260, gs_bot=-40, gs_bot_x=0.45, gs_end_y=-110, gs_end_dir=160,
-             j_hook=170, j_end_y=-150, j_end_dir=165, a_bt_tilt=0, a_bb_x=250, a_bj_y=100, a_bj_dir=70, a_bs_t=1.1)
+             j_hook=170, j_end_y=-150, j_end_dir=165,
+             # the a (a_style="bowl"): a round bowl under an even, level-pen hood
+             a_bowl_t=370, a_stem_x=445, a_bowl_l=30, a_term_y=430, a_term_x=95, a_taper=1.0, a_hood_angle=0,
+             a_term_dir=95, a_top_x=0.5, a_out_y=0.4, a_bias=0.45)
 # an upright @ whose inner a's stem runs on into the ring (at_style="hook")
 at = dict(at_slant=0, at_w=900, at_h=870, at_bot=-150, at_ring_t=T * 0.8, at_pen_k=1.15, at_in_w=370, at_in_h=430,
           at_in_x=0.27, at_in_y=70, at_stem_dy=120, at_hook_y=10, at_hook_x=0.3, at_in_k=0.92, at_in_tr=0.6,
@@ -116,7 +119,7 @@ kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
                            "&*%·#$+<=>@[\\]^_{|}~…•°×€£¢.,:;-–—'\"‘’“”!?¿¡()/«»‹›",
            terminals=kit.sans_set(P), face_serifs=False, level_trim=True, dot_style="square", ligatures=False,
            l_style="stem", J_style="base", R_leg="line", Q_style="bar", one_style="arm", d_style="bowl",
-           a_style="stroke", b_style="oval", r_style="arch", y_left="poly", j_style="hook", g_style="single",
+           a_style="bowl", b_style="oval", r_style="arch", y_left="poly", j_style="hook", g_style="single",
            g_ear="flag", amp_style="stroke", at_style="hook", seven_style="curve",
            fig_ends="cut", y_tail="straight", ced_style="tick2")
 
@@ -155,11 +158,11 @@ _bold = dict(
     trap_depth=34, trap_mouth=26, space_add=-80,   # the word space at the Regular's share of an n
     # wider letters, so the heavier stems leave the counters open; slightly tighter side bearings
     n_width=490, m_width=425, u_width=490, o_width=605, e_width=575, c_width=545, b_width=585, s_width=470,
-    a_stem_x=460, H_width=690, O_width=815, S_width=580, sb_straight=46, sb_round=32,
-    # counters kept open: the e's eye larger (its bar lower and lighter), the a's bowl taller with a lighter top,
+    a_stem_x=485, H_width=690, O_width=815, S_width=580, sb_straight=46, sb_round=32,
+    # counters kept open: the e's eye larger (its bar lower and lighter), the a's bowl wider with lighter top and bottom and its hood higher,
     # the %'s rings wider and lighter; the ? stem stopping clear of its heavier dot, with a shorter hook end;
     # the t's longer bar and tail
-    e_bar_y=0.5, e_bar_t=100, a_bt_y=340, a_bs_thin=100, a_term_y=470, a_term_x=140,
+    e_bar_y=0.5, e_bar_t=100, a_term_y=480, a_term_x=100, a_bowl_l=10, a_bowl_t=370, a_bowl_thin=105, a_bowl_thin_b=105,
     pct_ring_w=330, pct_ring_h=360, pct_thick=105, quest_end_y=540, quest_bot=225,
     t_tail=160, t_turn=160, t_tail_y=45, t_end_dir=10, t_bar_l=110, t_bar_r=180,
     # the e's and c's lower terminals cut lower and flatter: the heavier bottom wall otherwise closes the aperture
