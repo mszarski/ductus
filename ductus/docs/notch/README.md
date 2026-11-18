@@ -308,3 +308,29 @@ All three masters re-kerned. The variable font holds no glyph static, and lint
 is clean.
 
 Self-critique: the Bold's bowl bottom still meets the stem with a slight step.
+
+## 10 — the a, again
+
+![nad large: 09 and now; then words: the Regular of 09 and now, the Light, the Bold of 09 and now](10.png)
+
+The a of 09 still looked wrong, for two reasons:
+- **The trap:** its trap sat at the narrow crotch where the bowl's top meets
+  the stem, and cut a needle of white up the stem. The counter above the bowl
+  read as a ∂.
+- **Two strokes:** its hood and stem were separate strokes that met part-way
+  down the stem.
+
+The fixes:
+- **One stroke:** a new kit option `a_hood="one"` (for `a_style="bowl"`;
+  default `"two"`, so other faces are unchanged) draws the hood and stem as one
+  stroke. It runs from the terminal over the top, round the shoulder
+  (`a_shoulder`) and straight down to the baseline, like the n's arch turned
+  round.
+- **No traps:** the a and its accented forms are untrapped. Their only crotch
+  is too narrow for a notch.
+- **Values:** the stem's foot drops 6 units (`a_stem_bot`) to meet the bowl's
+  bottom. The Bold's hood ends at 440 (was 480, a sliver there) and its bowl
+  top is at 340.
+
+All three masters re-kerned. The variable font holds no glyph static, and lint
+is clean.

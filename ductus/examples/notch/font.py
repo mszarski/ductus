@@ -59,9 +59,10 @@ branch = dict(k_arm_x=_k_arm, k_join_y=_k_join, k_leg_x0=_k_arm * _k_at, k_leg_y
 # a straight-tailed y (y_tail="straight") and a plain single-storey g
 tails = dict(y_end_y=-200, descender_g=-200, gs_w=260, gs_bot=-40, gs_bot_x=0.45, gs_end_y=-110, gs_end_dir=160,
              j_hook=170, j_end_y=-150, j_end_dir=165,
-             # the a (a_style="bowl"): a round bowl under an even, level-pen hood
-             a_bowl_t=370, a_stem_x=445, a_bowl_l=30, a_term_y=430, a_term_x=95, a_taper=1.0, a_hood_angle=0,
-             a_term_dir=95, a_top_x=0.5, a_out_y=0.4, a_bias=0.45)
+             # the a (a_style="bowl", a_hood="one"): a round bowl under an even, level-pen hood that runs on into the stem
+             # as one stroke (untrapped: a trap at its bowl's crotch cut a needle up the stem)
+             a_bowl_t=370, a_stem_x=445, a_bowl_l=30, a_term_y=430, a_term_x=95,
+             a_term_dir=95, a_top_x=0.5, a_stem_bot=-6)
 # an upright @ whose inner a's stem runs on into the ring (at_style="hook")
 at = dict(at_slant=0, at_w=900, at_h=870, at_bot=-150, at_ring_t=T * 0.8, at_pen_k=1.15, at_in_w=370, at_in_h=430,
           at_in_x=0.27, at_in_y=70, at_stem_dy=120, at_hook_y=10, at_hook_x=0.3, at_in_k=0.92, at_in_tr=0.6,
@@ -119,7 +120,7 @@ kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
                            "&*%·#$+<=>@[\\]^_{|}~…•°×€£¢.,:;-–—'\"‘’“”!?¿¡()/«»‹›",
            terminals=kit.sans_set(P), face_serifs=False, level_trim=True, dot_style="square", ligatures=False,
            l_style="stem", J_style="base", R_leg="line", Q_style="bar", one_style="arm", d_style="bowl",
-           a_style="bowl", b_style="oval", r_style="arch", y_left="poly", j_style="hook", g_style="single",
+           a_style="bowl", a_hood="one", b_style="oval", r_style="arch", y_left="poly", j_style="hook", g_style="single",
            g_ear="flag", amp_style="stroke", at_style="hook", seven_style="curve",
            fig_ends="cut", y_tail="straight", ced_style="tick2")
 
@@ -131,7 +132,7 @@ font.traps = {"depth": "trap_depth", "mouth": "trap_mouth", "angle": "trap_angle
               # made it busy), G, e, 8 and Q, whose acute
               # corners are a counter's or a tail's, not two strokes' crotch (a trap there cuts a sliver into
               # a thin bar or turns the G's jaw into an arrowhead)
-              "skip": ["A", "G", "e", "f", "eight", "Q", "comma", "semicolon", "quotesingle", "quotedbl", "quoteleft", "quoteright",
+              "skip": ["A", "G", "a", "agrave", "aacute", "acircumflex", "atilde", "adieresis", "aring", "e", "f", "eight", "Q", "comma", "semicolon", "quotesingle", "quotedbl", "quoteleft", "quoteright",
                        "quotedblleft", "quotedblright"]}
 
 # side bearings (left, right) on top of sb_straight / sb_round, set by eye
@@ -159,10 +160,10 @@ _bold = dict(
     # wider letters, so the heavier stems leave the counters open; slightly tighter side bearings
     n_width=490, m_width=425, u_width=490, o_width=605, e_width=575, c_width=545, b_width=585, s_width=470,
     a_stem_x=485, H_width=690, O_width=815, S_width=580, sb_straight=46, sb_round=32,
-    # counters kept open: the e's eye larger (its bar lower and lighter), the a's bowl wider with lighter top and bottom and its hood higher,
+    # counters kept open: the e's eye larger (its bar lower and lighter), the a's bowl wider, lower and lighter at top and bottom,
     # the %'s rings wider and lighter; the ? stem stopping clear of its heavier dot, with a shorter hook end;
     # the t's longer bar and tail
-    e_bar_y=0.5, e_bar_t=100, a_term_y=480, a_term_x=100, a_bowl_l=10, a_bowl_t=370, a_bowl_thin=105, a_bowl_thin_b=105,
+    e_bar_y=0.5, e_bar_t=100, a_term_y=440, a_term_x=90, a_bowl_l=10, a_bowl_t=340, a_bowl_thin=105, a_bowl_thin_b=105,
     pct_ring_w=330, pct_ring_h=360, pct_thick=105, quest_end_y=540, quest_bot=225,
     t_tail=160, t_turn=160, t_tail_y=45, t_end_dir=10, t_bar_l=110, t_bar_r=180,
     # the e's and c's lower terminals cut lower and flatter: the heavier bottom wall otherwise closes the aperture

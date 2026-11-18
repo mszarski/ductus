@@ -257,6 +257,8 @@ DEFAULTS: dict[str, tuple] = {
     "a_full_h": (0.6, (0.4, 0.9)), "a_full_v": (0.6, (0.4, 0.9)), "a_in_full_h": (0.6, (0.4, 0.9)),
     "a_in_full_v": (0.6, (0.4, 0.9)),
     "a_spur_len": (0, (0, 80)), "a_spur_h": (70, (30, 120)),
+    # a_hood="one": where the hood's right side turns straight down into the stem
+    "a_shoulder": (380, (250, 480)),
     # a_style="stroke": the bowl as one stroke -- its weight (vertical, level), the straight top's centre
     # height at the stem, tilt and left end, the left side's centre, the bottom's x, where it rejoins the
     # stem (height, direction), and the curve's tension
@@ -784,7 +786,7 @@ def didone_set(P) -> TerminalSet:
 def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "stroke", g_band: str = "none",
            g_style: str = "double", l_style: str = "stem", J_style: str = "hook", R_leg: str = "line",
            Q_style: str = "wedge", seven_style: str = "poly", fig_ends: str = "wedge", face_serifs: bool = True, one_style: str = "flag",
-           d_style: str = "lobe", a_style: str = "lobe", y_left: str = "stroke", level_trim: bool = False,
+           d_style: str = "lobe", a_style: str = "lobe", a_hood: str = "two", y_left: str = "stroke", level_trim: bool = False,
            brace_beak: str = "square", ss_style: str = "spine", j_style: str = "hook",
            paren_ends: str = "square", chevron_style: str = "stroke", amp_style: str = "stroke",
            dot_style: str = "round", ligatures: bool = True,
@@ -822,7 +824,9 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     runs ``d_bowl_in`` left of the stem's left edge). ``a_style``: the a's
     bowl, ``"lobe"`` or ``"bowl"`` (an oval ``a_bowl_l``..stem, baseline to
     ``a_bowl_t``, tilted ``a_bowl_rot`` degrees, overlapping the stem; with
-    a square spur ``a_spur_len`` x ``a_spur_h`` off the stem's foot) or
+    a square spur ``a_spur_len`` x ``a_spur_h`` off the stem's foot; with
+    ``a_hood="one"`` its hood and stem are one stroke, turning straight down
+    at ``a_shoulder``, and no spur) or
     ``"stroke"`` (one pen stroke with a straight top rising into the stem,
     round below, rejoining the stem near the baseline; ``a_bs_*``, ``a_bt_*``,
     ``a_bl_*``, ``a_bb_x``, ``a_bj_*``; its stem turns at ``a_turn`` into a
@@ -1149,6 +1153,23 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
             return
         sx = P.a_stem_x
         stem_top = P.a_stem_top + P.a_stem_up
+        if a_style == "bowl" and a_hood == "one":
+            # hood and stem as one stroke, the n's arch turned round: from the terminal over the top, round the
+            # shoulder and straight down to the baseline (two strokes meeting part-way down the stem leave a jog
+            # there, and the counter above the bowl a pointed tail)
+            pen = Pen(angle=0, width=P.stem * P.a_stem_w, contrast=1 - P.hairline * P.a_hood_thin / (P.stem * P.a_stem_w))
+            top_y = xh + os_ - pen.width_at(0) / 2
+            (gl.path(name="stem", pen=pen)
+                .start((P.a_term_x, P.a_term_y), name="terminal", dir=P.a_term_dir, terminal="hood")
+                .curve_to((P.a_term_x + (sx - P.a_term_x) * P.a_top_x, top_y), name="top", dir=0)
+                .curve_to((sx, P.a_shoulder), name="shoulder", dir=270)
+                .line_to((sx, P.a_stem_bot), name="bottom", terminal=False))
+            right = sx + P.stem * P.a_stem_w / 2 + P.a_bowl_r
+            gl += bowl(x=P.a_bowl_l, width=right - P.a_bowl_l, bottom=-os_, top=P.a_bowl_t,
+                       thick=P.stem * P.round_gain, thin=P.a_bowl_thin, thin_bottom=P.a_bowl_thin_b,
+                       thick_right=right - (sx - P.stem * P.a_stem_w / 2 - P.a_bowl_in), rotate=P.a_bowl_rot,
+                       full=(P.a_full_h, P.a_full_v), in_full=(P.a_in_full_h, P.a_in_full_v))
+            return
         # the a's stem may be a little lighter than the n's, and dip below the baseline
         a_pen = Pen(angle=0, width=P.stem * P.a_stem_w, contrast=1 - P.hairline / (P.stem * P.a_stem_w))
         if a_style == "stroke":
