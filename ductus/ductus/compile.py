@@ -120,6 +120,9 @@ def compile_font(font: Font, params: dict[str, float] | None = None,
         cf = _compile_font(font, params, overrides, terminals, glyphs)
     finally:
         _PIECES.reset(token)
+    if getattr(font, "tidy", None):
+        from . import tidy as _tidy                   # overlap leftovers tidied by rule (font.tidy)
+        cf = _tidy.apply(cf, font)
     if getattr(font, "traps", None):
         from . import traps as _traps                 # ink traps by rule (font.traps), before any slant
         cf = _traps.apply(cf, font)

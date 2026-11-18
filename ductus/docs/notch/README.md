@@ -93,3 +93,57 @@ Self-critique:
 - the t's curled tail is a little old-fashioned beside the rest;
 - the 1's arm is thin;
 - still 66 glyphs, Regular only.
+
+## 03 — rough edges from overlapping strokes
+
+![draft 2 against draft 3 in words, then draft 3's character set](03.png)
+
+The user found draft 2 interesting but rough where strokes overlap. A scan
+of the outlines before traps (corners with a neighbouring segment under
+14 units, needle spikes) plus 4× zooms of every hit found three kinds of
+fault.
+
+**Leftovers a few units long**, where one stroke ends inside another just
+off its edge: steps in U, z, Z, 2, 6, 7 and 9, the e's bar end, the t's
+tail and the Q's tail, and spikes in m, u and M. A new rule fixes them
+wherever they occur (`ductus/tidy.py`, `font.tidy = {"step": 16, "spike":
+150}`, run after merge and before the traps):
+- two corners joined by a segment (straight or curved) shorter than `step`
+  collapse into one point;
+- a needle spike between two straight edges is removed.
+
+Anything longer is left as design.
+
+**Traps where there is no crotch.** The rule now also asks for:
+- a white angle of at least `min_angle` (30°), since narrower crotches,
+  like the M's, are already slivers and a trap there read as a crack;
+- both edges of the crotch to run at least `min_edge` (1.5 mouths, measured
+  along the edge to its next corner).
+
+A, G, e, f, 8 and Q are skipped by name: their acute corners belong to a
+counter, a tail or a bar, not to two strokes.
+
+**Joins that don't line up at this weight** (construction values):
+- **n, h, m, u:** the legs started (`n_leg_top`, `u_leg_top` 0.7 now)
+  where the arch was still curving, so the leg's square corner stood out
+  27 units as a shelf.
+- **m:** the second arch is set onto the first leg below its shoulder
+  (`m_join_dx` −20; the first arch's outer curve showed as a hairline).
+- **N:** the diagonal is kept within the stem at the top (`N_dx0`).
+- **W:** its middle apex is trimmed level (new kit control `W_apex_trim`,
+  default 0: the thin stroke's square end poked above the cap line).
+- **e:** the bar runs into the bowl's wall (`e_bar_rin` −20; it stopped
+  short, leaving a hairline slit).
+- **c, e, C:** lower terminals cut clear of the heavier bottom wall (they
+  waved or ended in a tip).
+- **3 and 5:** lower ends cut level (`sans_cut_fig_low` 90; the 3's cut
+  left a sliver below the baseline).
+- **s and S:** an even spine (`s_ends` 0.9; the serif's spine thinned its
+  ends to 60%).
+- **6 and 9:** hooks to 70% weight at their ends.
+- **G:** the bar raised and the jaw moved out.
+- **&:** a wider loop, so its counter stays open.
+
+Self-critique: the u's right join still has a small corner. The 9's
+counter meets its hook in a sharp crotch, which reads as intended with the
+trap but is busier than the 6. Still 66 glyphs, Regular only.

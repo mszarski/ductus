@@ -284,6 +284,7 @@ DEFAULTS: dict[str, tuple] = {
     # radius (the tail turns level into a foot to the left); sans_cut_ttop: a cut angle a face may give
     # the t's top (its terminal set's t_top)
     "e_bar_tilt": (0, (-20, 30)), "y_foot_r": (45, (10, 120)), "sans_cut_ttop": (90, (0, 180)),
+    "W_apex_trim": (0, (0, 200)),           # the W's middle apex trimmed level at the cap height this far either side
     "trap_depth": (0, (0, 80)), "trap_mouth": (12, (2, 40)), "trap_angle": (75, (20, 120)),
     "ai_top_dy": (0, (-60, 40)),            # the italic a's stem top against the q's
     "ai_turn": (120, (50, 220)), "ai_tail": (100, (60, 200)), "ai_tail_y": (70, (20, 160)),
@@ -1979,6 +1980,11 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         gl.line((mx + P.W_mid3_dx, ch), (v2, -os_), name="a3", names=("top", "vertex"), terminal=("apex", "vertex"),
                 pen=thick)
         gl.line((W, ch), (t2, -os_), name="a4", names=("top", "vertex"), terminal=("vtop_r", "vertex"), pen=thin)
+        # the middle apex trimmed level at the cap height, W_apex_trim either side of it: the thin stroke's
+        # square end (it runs on into the thick one) would poke above it as a slanted step. At 0 the cut has
+        # no width and changes nothing (it is always there, so the structure stays fixed)
+        (gl.cut("apex_trim").move((mx - P.W_apex_trim, ch), "a").line((mx + P.W_apex_trim, ch), "b")
+            .line((mx + P.W_apex_trim, ch + 200), "c").line((mx - P.W_apex_trim, ch + 200), "d").close())
 
     @g("X")
     def X(gl):

@@ -40,7 +40,7 @@ def notch():
 def test_notch_traps_its_crotches_and_stays_clean(notch):
     plain = compile_font(notch, {"trap_depth": 0})
     trapped = compile_font(notch)
-    for g in "nkvdAMK":            # (the G is skipped: see font.traps)
+    for g in "nkvdMK":             # (A and G are skipped: see font.traps)
         assert abs(sum(c.area() for c in trapped.glyphs[g].contours)) < \
             abs(sum(c.area() for c in plain.glyphs[g].contours)) - 50, g
         assert trapped.glyphs[g].advance == plain.glyphs[g].advance
@@ -62,3 +62,34 @@ def test_notch_signatures(notch):
     # the branched k: its leg starts well off the stem
     leg = [s for s in cf.glyphs["k"].to_json()["skeleton"] if s["name"].endswith("leg")][0]
     assert leg["nodes"][0]["x"] > 100
+
+
+# ---- tidy (ductus.tidy): the small leftovers of overlapping strokes ----------------
+
+from ductus.tidy import tidy_contour
+
+
+def test_tidy_collapses_a_small_step_and_keeps_real_corners():
+    # a rectangle whose right side has a 6-unit step halfway up (a stroke ending a little off its neighbour)
+    c = _poly([(0, 0), (200, 0), (200, 100), (206, 100), (206, 300), (0, 300)])
+    t = tidy_contour(c, 12, 150)
+    assert len(t.pts) == 5 and [203, 100] in t.pts          # the step's two corners became one
+    big = _poly([(0, 0), (200, 0), (200, 100), (240, 100), (240, 300), (0, 300)])
+    assert len(tidy_contour(big, 12, 150).pts) == 6          # a 40-unit step is design, not a leftover
+
+
+def test_tidy_removes_a_needle_spike():
+    c = _poly([(0, 0), (200, 0), (200, 150), (230, 152), (200, 154), (200, 300), (0, 300)])
+    t = tidy_contour(c, 12, 150)
+    assert [230, 152] not in t.pts
+
+
+def test_notch_outlines_are_tidy_and_traps_only_at_real_crotches(notch):
+    cf = compile_font(notch)
+    # tidying is idempotent on the compiled outlines (nothing left to collapse)
+    for n, g in cf.glyphs.items():
+        for c in (g.untrapped or g.contours):
+            assert tidy_contour(c, 16, 150).pts == [[float(round(x)), float(round(y))] for x, y in c.pts], n
+    # the f is skipped (its hook-to-bar corner is no crotch between two strokes)
+    f_ = cf.glyphs["f"]
+    assert f_.untrapped is None or [c.pts for c in f_.contours] == [c.pts for c in f_.untrapped]

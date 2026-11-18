@@ -69,10 +69,30 @@ clean = dict(z_serif=0, z_wedge=0, z_serif_w=0, Z_serif=0, Z_wedge=0, seven_seri
              J_end_y=150, J_end_dir=100, J_bot=200, J_hook=270, U_end_w=1.0, paren_end_w=0.9, paren_bow=150,
              five_stem_w=S * 0.9, one_arm_t=T,
              eight_sp_x0=0.45, eight_sp_x1=0.55, eight_sp_y0=390, eight_sp_y1=390, eight_sp_w=0.3, eight_overlap=0.5,
-             five_lean=6, five_top_l=150, five_start_dir=90, five_stem_bot=360,
+             five_lean=6, five_top_l=120, five_start_dir=90, five_stem_bot=360,
              dot_r=58, comma_tail=150, comma_root=0.5, comma_tip_w=46, excl_w=S, excl_tip_w=S * 0.75,
              quote_w=S * 0.9, quote_h=200, quest_bot_w=1.0, amp_pen=S,
-             G_bar_y=0.5, G_jaw_dx=8)   # the G's bar a little higher, its jaw clear of the bowl's wall
+             G_bar_y=0.5, G_jaw_dx=8,
+             e_bar_rin=-20,   # the e's bar runs into the bowl's wall (stopping short left a hairline slit)
+             # joins that left rough edges at this weight: the N's diagonal no wider than its stem at the top, the
+             # W's middle apex trimmed level (its thin stroke's square end poked above the cap line), the C's
+             # lower cut clear of its heavier bottom wall, the 3's and 5's lower ends cut level
+             N_dx0=24, W_apex_trim=120,
+             # the m's second arch set onto the first one's leg below its still-curving shoulder (the first arch's
+             # outer curve poked into the second counter as a hairline)
+             m_join_dx=-20,
+             # the n, h, m and u legs start where their arch has turned upright (higher, the leg's square corner
+             # stood out past the still-curving arch as a shelf)
+             n_leg_top=0.7, u_leg_top=0.7,
+             # the &'s upper loop wide enough to keep its counter open at this weight
+             amp_loop_w=340, amp_w=670, amp_loop_y=600,
+             # monoline s, S, 6 and 9: an even spine (the serif's spine thins its ends to 60%) and hooks at full
+             # weight to their ends; the 5's bar reaching past its stem
+             # the c's and e's lower terminals ending blunt (the cut clear of the heavier bottom wall)
+             e_cut_y=140, e_term_y=200, c_cut_y=130, c_term_y=190, e_cut_h1=0.5, e_cut_h2=0.4, c_cut_angle=200,
+             c_cut_h1=0.5, c_cut_h2=0.4,
+             s_ends=0.9, s_swell=0.95, s_width=430, S_width=540, six_hook_w=0.7, nine_hook_w=0.7,
+             C_cut_y=150, C_term_y=230, C_cut_angle=200, C_cut_h1=0.5, C_cut_h2=0.4, sans_cut_fig_low=90)   # the G's bar a little higher, its jaw clear of the bowl's wall
 
 P = kit.params(**weights, **proportions, **traps, **f_hook, **branch, **tails, **at, **clean)
 kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
@@ -84,10 +104,14 @@ kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
            fig_ends="cut", y_tail="straight")
 
 # ink traps by rule (ductus.traps)
-font.traps = {"depth": "trap_depth", "mouth": "trap_mouth", "angle": "trap_angle",
-              # marks too small to trap (a comma's dot-to-tail joint is no crotch), and the G (its jaw meets the
-              # bowl at an acute angle that a trap turns into an arrowhead)
-              "skip": ["G", "comma", "semicolon", "quotesingle", "quotedbl", "quoteleft", "quoteright",
+# overlap leftovers (steps, nubs, spikes under 16 units) tidied by rule first (ductus.tidy)
+font.tidy = {"step": 16, "spike": 150}
+font.traps = {"depth": "trap_depth", "mouth": "trap_mouth", "angle": "trap_angle", "min_angle": 30,
+              # marks too small to trap (a comma's dot-to-tail joint is no crotch); A (its crossbar corners
+              # made it busy), G, e, 8 and Q, whose acute
+              # corners are a counter's or a tail's, not two strokes' crotch (a trap there cuts a sliver into
+              # a thin bar or turns the G's jaw into an arrowhead)
+              "skip": ["A", "G", "e", "f", "eight", "Q", "comma", "semicolon", "quotesingle", "quotedbl", "quoteleft", "quoteright",
                        "quotedblleft", "quotedblright"]}
 
 # side bearings (left, right) on top of sb_straight / sb_round, set by eye
