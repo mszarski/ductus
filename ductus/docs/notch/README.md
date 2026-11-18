@@ -147,3 +147,35 @@ counter, a tail or a bar, not to two strokes.
 Self-critique: the u's right join still has a small corner. The 9's
 counter meets its hook in a sharp crotch, which reads as intended with the
 trap but is busier than the 6. Still 66 glyphs, Regular only.
+
+## 04 — the leftovers, and the full character set
+
+![text, accents, symbols and figures in words](04.png)
+
+**Leftovers from 03:**
+- **t:** a short level tail with a square end (`t_tail` 130, `t_end_dir` 0,
+  `t_end_w` 1, `sans_cut_t` 0).
+- **1:** its arm at full stem weight.
+- **u:** a sturdier join (`u_join_thin` 90).
+- **9:** its hook leaves the bowl lower (`nine_root_y` 0.4).
+
+**The full set:** 183 glyphs, the same as Ductus Sans (accented letters,
+ı, æ œ ø ß, Æ Œ Ø, the spacing marks, * % · # $ + < = > [ \\ ] ^ _ { | } ~
+… • ° × € £ ¢ – — ‘ ’ “ ” ¿ ¡).
+
+The kit's defaults for the marks and symbols are a high-contrast serif's
+hairlines, so a `marks` and a `symbols` block derive them from the face's
+weight numbers:
+- the acute and grave are heavier;
+- the circumflex legs and the ~ mark are at 80% of the thin stroke;
+- the dieresis dots are smaller and spaced wider, and the ring is heavier;
+- the cedilla is the two-stroke `ced_style="tick2"`, with this face's own
+  values;
+- the math signs, brackets, braces, bar, underscore, caret, #, %, °, $ and
+  * sit at 75–85% of the stem or thin weight;
+- the math signs and ~ are larger for the big x-height.
+
+Lint clean, re-kerned (5,651 pairs over 147 glyphs).
+
+Self-critique: the set has no « » guillemets (no face has them yet). The
+math signs could sit a touch higher. Still Regular only.

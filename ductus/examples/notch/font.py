@@ -20,7 +20,7 @@ S, T, C = 112, 98, 118
 weights = dict(
     stem=S, cap_stem=C, fig_stem=S + 4, seven_stem=S, hairline=T, round_gain=1.04,
     arch_contrast=0.1, t_contrast=0.1,
-    n_join_thin=74, u_join_thin=74, r_join_thin=78,
+    n_join_thin=74, r_join_thin=78,
     a_bowl_thin=T, a_bowl_thin_b=T, a_bs_thick=S, a_bs_thin=T, a_top_thin=74, a_bot_thin=T,
     a_lobe_thick=S, a_lobe_thin_b=T,
     b_top_thin=74, b_bot_thin=T, b_lobe_thick=S * 1.03, b_lobe_thin_b=T, b_crown_t=T, b_ov_thin=T,
@@ -34,7 +34,7 @@ weights = dict(
     g_loop_t=T, g_loop_top_t=T, g_loop_bot_t=T,
     two_bar_t=T, five_bar_t=T, seven_bar_t=T, four_bar_t=T, four_thin=T, fig_thin_k=1.0,
     quest_w=S, quest_thin=T, paren_w=S * 0.9, slash_w=S * 0.75,
-    dash_t=T, ring_thick=T * 0.7, ring_thin=T * 0.6,
+    dash_t=T, ring_thick=T * 0.7,
 )
 # a large x-height, compact widths and tight spacing; bowls a little squarer than round (superelliptic)
 proportions = dict(
@@ -67,7 +67,7 @@ at = dict(at_slant=0, at_w=900, at_h=870, at_bot=-150, at_ring_t=T * 0.8, at_pen
 # a J whose hook rounds the baseline, a quiet 8 and 5
 clean = dict(z_serif=0, z_wedge=0, z_serif_w=0, Z_serif=0, Z_wedge=0, seven_serif=0, seven_wedge=0, seven_top_w=S,
              J_end_y=150, J_end_dir=100, J_bot=200, J_hook=270, U_end_w=1.0, paren_end_w=0.9, paren_bow=150,
-             five_stem_w=S * 0.9, one_arm_t=T,
+             five_stem_w=S * 0.9,
              eight_sp_x0=0.45, eight_sp_x1=0.55, eight_sp_y0=390, eight_sp_y1=390, eight_sp_w=0.3, eight_overlap=0.5,
              five_lean=6, five_top_l=120, five_start_dir=90, five_stem_bot=360,
              dot_r=58, comma_tail=150, comma_root=0.5, comma_tip_w=46, excl_w=S, excl_tip_w=S * 0.75,
@@ -86,6 +86,10 @@ clean = dict(z_serif=0, z_wedge=0, z_serif_w=0, Z_serif=0, Z_wedge=0, seven_seri
              n_leg_top=0.7, u_leg_top=0.7,
              # the &'s upper loop wide enough to keep its counter open at this weight
              amp_loop_w=340, amp_w=670, amp_loop_y=600,
+             # a short level t tail with a square end, the 1's arm at full weight, a sturdier u join, the 9's hook
+             # leaving its bowl lower
+             t_tail=130, t_tail_y=30, t_end_dir=0, t_end_w=1.0, sans_cut_t=0, t_turn=130, one_arm_t=S, one_arm_y=590,
+             u_join_thin=90, u_join_at=0.75, nine_root_y=0.4, nine_root_x=0.5,
              # monoline s, S, 6 and 9: an even spine (the serif's spine thins its ends to 60%) and hooks at full
              # weight to their ends; the 5's bar reaching past its stem
              # the c's and e's lower terminals ending blunt (the cut clear of the heavier bottom wall)
@@ -94,14 +98,26 @@ clean = dict(z_serif=0, z_wedge=0, z_serif_w=0, Z_serif=0, Z_wedge=0, seven_seri
              s_ends=0.9, s_swell=0.95, s_width=430, S_width=540, six_hook_w=0.7, nine_hook_w=0.7,
              C_cut_y=150, C_term_y=230, C_cut_angle=200, C_cut_h1=0.5, C_cut_h2=0.4, sans_cut_fig_low=90)   # the G's bar a little higher, its jaw clear of the bowl's wall
 
-P = kit.params(**weights, **proportions, **traps, **f_hook, **branch, **tails, **at, **clean)
+# marks and symbols at the face's weight (the kit's defaults are a high-contrast serif's hairlines)
+marks = dict(acute_bot_w=70, acute_top_w=112, circ_leg_w=T * 0.8, circ_top_w=124, circ_in=52, tilde_w=T * 0.8,
+             diaer_r=48, diaer_gap=200, ring_thin=T * 0.6, ring_w=190, ring_h=180,
+             ced_w=S * 0.75, ced_thin=T * 0.7, ced_root_dx=30, ced_neck=-55, ced_len=130, ced_drop=210,
+             ced_curl_dy=-20, ced_bot_x=0.15, ced_end_x=0.5, ced_end_dy=55, ced_end_dir=100, sans_cut_ced=100)
+symbols = dict(math_t=T * 0.85, eq_t=T * 0.8, lt_t=T * 0.85, under_t=T * 0.85, bar_w=S * 0.75, brk_stem=S * 0.85,
+               brk_arm=T * 0.85, brace_pen=S * 0.85, hash_t=T * 0.85, hash_bar_t=T * 0.8, pct_thick=S * 0.8,
+               pct_slash_w=T * 0.8, deg_t=T * 0.6, dollar_bar=S * 0.6, caret_t=T * 0.85, tl_w=T * 0.85,
+               ast_tip_w=80, ast_root_w=30,
+               math_w=470, tl_len=380, tl_amp=90)   # math signs and ~ sized to the large x-height
+
+P = kit.params(**weights, **proportions, **traps, **f_hook, **branch, **tails, **at, **clean, **marks, **symbols)
 kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
-                           "&@?!.,:;-'\"()/",
+                           "ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüýÿı´`¨¸˚ÆŒØæœøß"
+                           "&*%·#$+<=>@[\\]^_{|}~…•°×€£¢.,:;-–—'\"‘’“”!?¿¡()/",
            terminals=kit.sans_set(P), face_serifs=False, level_trim=True, dot_style="square", ligatures=False,
            l_style="stem", J_style="base", R_leg="line", Q_style="bar", one_style="arm", d_style="bowl",
            a_style="stroke", b_style="oval", r_style="arch", y_left="poly", j_style="hook", g_style="single",
            g_ear="flag", amp_style="stroke", at_style="hook", seven_style="curve",
-           fig_ends="cut", y_tail="straight")
+           fig_ends="cut", y_tail="straight", ced_style="tick2")
 
 # ink traps by rule (ductus.traps)
 # overlap leftovers (steps, nubs, spikes under 16 units) tidied by rule first (ductus.tidy)
