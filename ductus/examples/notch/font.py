@@ -107,12 +107,13 @@ symbols = dict(math_t=T * 0.85, eq_t=T * 0.8, lt_t=T * 0.85, under_t=T * 0.85, b
                brk_arm=T * 0.85, brace_pen=S * 0.85, hash_t=T * 0.85, hash_bar_t=T * 0.8, pct_thick=S * 0.8,
                pct_slash_w=T * 0.8, deg_t=T * 0.6, dollar_bar=S * 0.6, caret_t=T * 0.85, tl_w=T * 0.85,
                ast_tip_w=80, ast_root_w=30,
-               math_w=470, tl_len=380, tl_amp=90)   # math signs and ~ sized to the large x-height
+               math_w=470, tl_len=380, tl_amp=90,
+               guil_w=195, guil_h=400, guil_t=S * 0.85, guil_y=290, guil_gap=50)   # math signs and ~ sized to the large x-height
 
 P = kit.params(**weights, **proportions, **traps, **f_hook, **branch, **tails, **at, **clean, **marks, **symbols)
 kit.define(font, P, glyphs="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
                            "ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüýÿı´`¨¸˚ÆŒØæœøß"
-                           "&*%·#$+<=>@[\\]^_{|}~…•°×€£¢.,:;-–—'\"‘’“”!?¿¡()/",
+                           "&*%·#$+<=>@[\\]^_{|}~…•°×€£¢.,:;-–—'\"‘’“”!?¿¡()/«»‹›",
            terminals=kit.sans_set(P), face_serifs=False, level_trim=True, dot_style="square", ligatures=False,
            l_style="stem", J_style="base", R_leg="line", Q_style="bar", one_style="arm", d_style="bowl",
            a_style="stroke", b_style="oval", r_style="arch", y_left="poly", j_style="hook", g_style="single",
@@ -133,6 +134,8 @@ font.traps = {"depth": "trap_depth", "mouth": "trap_mouth", "angle": "trap_angle
 # side bearings (left, right) on top of sb_straight / sb_round, set by eye
 font.spacing.update({
     "f": (-10, -40), "r": (0, -25), "L": (0, -35), "t": (0, -10), "T": (-10, -10), "j": (-10, 0), "J": (40, 0),
+    # the guillemets sit apart from the word they mark
+    "guillemotleft": (0, 20), "guillemotright": (20, 0), "guilsinglleft": (0, 20), "guilsinglright": (20, 0),
 })
 
 # optical kerning, measured from these outlines (`ductus kern examples/notch/font.py`)
@@ -152,7 +155,7 @@ _bold = dict(
     trap_depth=40, trap_mouth=28, space_add=-80,   # the word space at the Regular's share of an n
     # wider letters, so the heavier stems leave the counters open; slightly tighter side bearings
     n_width=490, m_width=425, u_width=490, o_width=605, e_width=575, c_width=545, b_width=585, s_width=470,
-    a_stem_x=460, H_width=690, O_width=815, S_width=580, sb_straight=40, sb_round=26,
+    a_stem_x=460, H_width=690, O_width=815, S_width=580, sb_straight=46, sb_round=32,
     # counters kept open: the e's eye larger (its bar lower and lighter), the a's bowl taller with a lighter top,
     # the %'s rings wider and lighter; the ? stem stopping clear of its heavier dot, with a shorter hook end;
     # the t's longer bar and tail
@@ -172,19 +175,25 @@ _bold = dict(
 # the Light: thinner strokes with the thins following less (kh), so it stays monolinear; shallower traps (a thin
 # crotch hardly fills in: they become a quiet detail) and a little narrower
 _light = dict(
-    trap_depth=20, trap_mouth=18, space_add=40,
+    trap_depth=20, trap_mouth=18, space_add=30,
 )
+# ...and narrower: every letter's and figure's width (and the x positions that don't follow them) x 0.94
+_NARROW = [n for n in kit.DEFAULTS if n.endswith("_width")] + [
+    "zero_w", "two_w", "three_w", "five_w", "six_w", "seven_w", "eight_w", "nine_w", "a_stem_x",
+    "k_arm_x", "k_leg_x0", "k_leg_x", "K_arm_x", "K_leg_x0", "K_leg_x", "amp_w", "at_w", "gs_w"]
 
 
 def _master(params, setting):
     ov = kit.weight_master(params, setting["k"], setting.get("kh"))
+    if "narrow" in setting:
+        ov.update({n: float(params[n]) * setting["narrow"] for n in _NARROW if n in params})
     ov.update(setting.get("params", {}))
     return ov
 
 
 font.variable = {
     "tag": "wght", "name": "Weight", "default": 400,
-    "masters": {300: {"k": 0.7, "kh": 0.78, "params": _light}, 700: {"k": 1.42, "kh": 1.25, "params": _bold}},
+    "masters": {300: {"k": 0.7, "kh": 0.78, "narrow": 0.94, "params": _light}, 700: {"k": 1.32, "kh": 1.2, "params": _bold}},
     "params": _master,
     "instances": {"Light": 300, "Regular": 400, "Medium": 500, "SemiBold": 600, "Bold": 700},
     "kerning": {_loc: {(_l, _r): _v for _l, _r, _v in _json.loads(_p.read_text())["pairs"]}

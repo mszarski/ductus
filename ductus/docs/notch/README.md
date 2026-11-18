@@ -242,3 +242,28 @@ Self-critique:
 - the Light's traps are barely visible at text sizes (they are meant to be quiet);
 - the Light keeps the Regular's widths, but a Light usually runs a little narrower;
 - still no « » guillemets.
+
+## 07 — guillemets, a narrower Light, a lighter Bold
+
+![Light, Regular and Bold in words (the last row is the Bold of 06), then wght 300-700](07.png)
+
+- **« » ‹ ›:** new in the kit (`guil_w`, `guil_h`, `guil_t`, `guil_y`,
+  `guil_gap`). Each is a chevron with parallel arms and level-cut ends. They
+  are built only when a face asks for them by character, so the benchmark's
+  full set and the other faces are unchanged. `guil_t` scales with weight.
+  - In Notch they are 400 units tall (about 70% of the x-height), centred at 290.
+  - Each has 20 units of extra side bearing on the side that faces the word.
+  - Their inner corner (about 90°) is wider than the trap angle, so they get no
+    traps.
+- **Light narrower:** every letter's and figure's width, plus the k/K/a x
+  positions that don't follow those widths, is ×0.94 (`"narrow"` in the master
+  setting). The word space is +30 units instead of +40.
+- **Bold lighter and looser:** stems ×1.32 (was 1.42) and thin strokes ×1.20
+  (was 1.25). Side bearings are 46/32 (were 40/26, tighter than the Regular's
+  44/30). It now reads as a bold of the same face rather than a black.
+- All three masters re-kerned. The variable font holds no glyph static, and
+  lint is clean.
+
+Self-critique:
+- the guillemets still read a little small at 72 px against the big x-height;
+- the Bold's traps (40/28) may now be deeper than its lighter stems need.

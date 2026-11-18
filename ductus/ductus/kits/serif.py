@@ -303,7 +303,11 @@ DEFAULTS: dict[str, tuple] = {
     "amb_bj_t": (120, (40, 260)), "amb_bj_off": (48, (-20, 100)), "amb_bj_dir": (45, (0, 90)),
     "amb_a0_x": (480, (380, 600)), "amb_a0_y": (130, (60, 220)), "amb_a0_dir": (60, (20, 90)),
     "amb_arm_x": (540, (440, 640)), "amb_arm_y": (314, (220, 420)),
-    "lt_tip": (100, (20, 200)),              # chevron_style="level": the < >'s flat tip
+    "lt_tip": (100, (20, 200)),
+    # the guillemets « » ‹ ›: chevrons guil_w wide, guil_h tall, their arms guil_t thick (across the arm),
+    # ends cut level, centred at guil_y; the pair guil_gap apart
+    "guil_w": (150, (60, 300)), "guil_h": (260, (120, 450)), "guil_t": (60, (20, 160)), "guil_y": (250, (100, 450)),
+    "guil_gap": (40, (0, 150)),              # chevron_style="level": the < >'s flat tip
     "hash_bar_shift": (0, (0, 1)),           # #: how far the bars follow the slant
     "t_bot_dy": (0, (-10, 40)), "l_bot_dy": (0, (-10, 40)),
     # j_style="foot": the foot's centre height, where the turn meets it (a share of j_hook), the turn's tension
@@ -2447,6 +2451,39 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
     def greater(gl):
         chevron(gl, True)
 
+    def guil(gl, name, x0, flip):
+        # a chevron with parallel arms and level ends: the inner edge is the outer moved tx along x
+        w, h, cy = P.guil_w, P.guil_h, P.guil_y
+        tx = P.guil_t * (w ** 2 + (h / 2) ** 2) ** 0.5 / (h / 2)
+        pts = [((x0 + w, cy + h / 2), "end_hi"), ((x0, cy), "tip"), ((x0 + w, cy - h / 2), "end_lo"),
+               ((x0 + w + tx, cy - h / 2), "end_lo_in"), ((x0 + tx, cy), "inner"), ((x0 + w + tx, cy + h / 2), "end_hi_in")]
+        if flip:
+            pts = [((2 * x0 + w + tx - x, y), nm) for (x, y), nm in reversed(pts)]
+        poly_(gl, name, pts)
+
+    # only when a face asks for them (the benchmark's full set has none)
+    if want is not None:
+        def _gstep():
+            return P.guil_w + P.guil_t * (P.guil_w ** 2 + (P.guil_h / 2) ** 2) ** 0.5 / (P.guil_h / 2) + P.guil_gap
+
+        @g("guillemotleft", sb=(0, 0))
+        def guillemotleft(gl):
+            guil(gl, "a", 0, False)
+            guil(gl, "b", _gstep(), False)
+
+        @g("guillemotright", sb=(0, 0))
+        def guillemotright(gl):
+            guil(gl, "a", 0, True)
+            guil(gl, "b", _gstep(), True)
+
+        @g("guilsinglleft", sb=(0, 0))
+        def guilsinglleft(gl):
+            guil(gl, "a", 0, False)
+
+        @g("guilsinglright", sb=(0, 0))
+        def guilsinglright(gl):
+            guil(gl, "a", 0, True)
+
     @g("multiply", sb=(0, 0))
     def multiply(gl):
         w, t = P.times_w, P.math_t
@@ -2961,7 +2998,7 @@ b_lobe_thick b_lobe_thin_b b_top_thin b_bot_thin b_crown_t b_ov_thin
 d_lobe_thick d_lobe_thin_b d_top_thin d_bot_thin d_crown_t d_bowl_thin
 e_bar_t f_bar_t t_bar_t k_thick k_thin v_thick v_thin w_thick w_thin x_thick x_thin z_thick z_bar_t
 n_join_thin u_join_thin r_join_thin one_arm_t two_bar_t five_bar_t five_stem_w four_bar_t four_thin
-seven_bar_t amp_pen brace_pen at_ring_t caret_t dash_t deg_t eq_t math_t hash_t hash_bar_t lt_t under_t
+seven_bar_t amp_pen brace_pen at_ring_t caret_t dash_t deg_t eq_t math_t hash_t hash_bar_t lt_t under_t guil_t
 pct_thick pct_slash_w slash_w oslash_w paren_w excl_w quest_w quest_thin quote_w tl_w ring_thick ring_thin
 ced_thin dot_r i_dot_r diaer_r
 B_th B_hair D_th bar_w dollar_bar lt_tip A_apex acute_top_w acute_bot_w circ_top_w circ_leg_w tilde_w
