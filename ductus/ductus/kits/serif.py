@@ -599,6 +599,8 @@ DEFAULTS: dict[str, tuple] = {
     "E_mid_sk": (0.45, (0.2, 0.8)), "E_bot_sk": (1.1, (0.6, 1.6)), "E_bracket_k": (1.0, (0.3, 2.5)),
     "ball_r": (42, (20, 80)), "ball_drop": (0, (-40, 60)),
     "foot_tip": (26, (4, 60)),
+    # the word space: stem x 2.4 plus this (a bold's heavier stem would otherwise open its word gaps)
+    "space_add": (0, (-200, 200)),
 }
 
 
@@ -2934,7 +2936,7 @@ def define(font, P, glyphs: str | None = None, terminals=None, g_ear: str = "str
         poly_(gl, "bar", [((0, P.slash_bot), "bl"), ((w, P.slash_bot), "br"),
                           ((run + w, P.slash_top), "tr"), ((run, P.slash_top), "tl")])
 
-    @g("space", advance=P.stem * 2.4)
+    @g("space", advance=P.stem * 2.4 + P.space_add)
     def space(gl):
         pass
 

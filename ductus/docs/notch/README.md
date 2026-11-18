@@ -213,7 +213,32 @@ the variable font builds with no glyph held static (a new test checks
 it). Kerning per master: `kerning_700.json` (`ductus kern
 examples/notch/font.py --master 700`).
 
-Self-critique:
+Self-critique (addressed in 06):
 - the Bold's word spaces look wide (the space isn't scaled);
 - the e's lower terminal is heavy at the Bold;
 - no Light yet.
+
+## 06 — Bold details and a Light
+
+![Light, Regular and Bold in words, then wght 300-700 from the variable font](06.png)
+
+- **Word space:** the kit's space was `stem × 2.4`, so the Bold's heavier stem
+  widened it to 382 units. A new kit parameter `space_add` (default 0, so other
+  faces are unchanged) is set to −80 in the Bold. That gives 302 units, about the
+  same share of an n as in the Regular.
+- **The Bold's e and c:** their lower terminals are now cut lower and flatter
+  (`e_cut_y`/`c_cut_y` 100, cut angle 188). The heavier bottom wall had nearly
+  closed the e's aperture. The terminal had also left a long wedge with a kink.
+- **A Light master (wght 300):** stems ×0.7, thins ×0.78, so it stays nearly
+  monolinear. Its traps are shallow (20 deep, mouth 18): at this weight a crotch
+  hardly fills in, so the trap becomes a quiet detail. The word space is
+  +40 units. It has no other values of its own.
+  - Lint is clean, and every contour count matches the other masters.
+  - The variable font now spans wght 300–700, with instances Light, Regular,
+    Medium, SemiBold and Bold. No glyph is held static.
+  - Kerning: `kerning_300.json` (`--master 300`), and the Bold was re-kerned.
+
+Self-critique:
+- the Light's traps are barely visible at text sizes (they are meant to be quiet);
+- the Light keeps the Regular's widths, but a Light usually runs a little narrower;
+- still no « » guillemets.
