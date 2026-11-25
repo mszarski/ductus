@@ -1,5 +1,8 @@
 # Ductus
 
+> New here? Start with the [guide](docs/guide/README.md). This file is the
+> reference manual: how the compiler works and why.
+
 A parametric font design language and compiler: glyphs are described as
 named strokes, contour parts and shared parameters (`font.py`), hand
 adjustments live as deltas in `overrides.yaml`, and the compiler emits a CFF
@@ -10,7 +13,7 @@ and measuring the gap (SPEC rev. 2).
 |---|---|
 | `examples/test_font/` | M1 sans test font (`n h m o H O space`) |
 | `examples/sans/` | **Ductus Sans**, a grotesque from the same kit, fitted to Geist Sans: 184 glyphs, Light / Regular / Bold masters, a `wght` 300–700 variable font, per-weight kerning. Its release status is an open question (SPEC §8; see `docs/fitting.md`) |
-| `examples/notch/` | **Ductus Notch**, an ink-trap neo-grotesque designed by eye (183 glyphs, draft 3): traps by rule (`ductus.traps`), branched k/K, straight-tailed y; `docs/notch/README.md` |
+| `examples/notch/` | **Ductus Notch**, an ink-trap neo-grotesque designed by eye (187 glyphs): traps by rule (`ductus.traps`), branched k/K, straight-tailed y, a `wght` 300–700 variable font; `docs/notch/README.md` |
 | `examples/display_serif/` | **Ductus Display**, a high-contrast display serif (184 glyphs). It was pulled toward Geist Serif from iteration 18 at the user's request and is now refined by eye only |
 | `benchmarks/geist_serif/` | **internal benchmark only**, fitted to Geist Serif for measurement (the full kit set; core 16 in `CORE`); never built or released |
 | `docs/fitting.md` | how faces are refined glyph by glyph against a reference, and the rules that keep that safe |
